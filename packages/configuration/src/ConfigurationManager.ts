@@ -21,8 +21,6 @@ export class ConfigurationManager implements IConfigurationManager
     {
         try
         {
-            this.resetConfiguration();
-
             const defaultConfig = this.getDefaultConfig();
 
             if(!defaultConfig) throw new Error('Missing OctaneConfig: make sure window.OctaneConfig is defined in index.html');
@@ -33,9 +31,11 @@ export class ConfigurationManager implements IConfigurationManager
 
             if(!configurationUrls || !configurationUrls.length) throw new Error('No config.urls defined in OctaneConfig — expected an array like ["/renderer-config.json", "/ui-config.json"]');
 
+            const documents: any[] = [];
+
             for(const url of configurationUrls)
             {
-                if(!url || !url.length) return;
+                if(!url || !url.length) break;
 
                 let response: Response;
 
@@ -61,8 +61,13 @@ export class ConfigurationManager implements IConfigurationManager
                     throw new Error(`Invalid config "${ url }" — JSON/JSONC parse failed. JSONC allows comments and trailing commas (${ parseError.message })`);
                 }
 
-                this.parseConfiguration(json);
+                documents.push(json);
             }
+
+            this.resetConfiguration();
+            this.parseConfiguration(defaultConfig, true);
+
+            for(const json of documents) this.parseConfiguration(json);
         }
 
         catch (err)
