@@ -8,7 +8,6 @@ import { RequestOfflineMessagesComposer } from './messages/outgoing/friendlist/R
 import { HotelViewLandingEvent, HotelViewLandingRequestComposer, HotelViewLandingSaveComposer, HotelViewLandingSaveSceneComposer, HotelViewLandingVoteComposer, HotelViewLandingResetVotesComposer } from './messages';
 import { RoomQueueStatusEvent, YouAreNotSpectatorMessageEvent, ConfigurationItemStatesEvent, SpecialRoomEventEvent, SpecialSystemChatEvent, ObjectRemoveMultipleEvent, ItemRemoveMultipleEvent, ItemsStateUpdateEvent, ObjectRemoveConfirmEvent, FurnitureListRemoveMultipleEvent, OfficialRoomsEvent } from './messages';
 import { RoomUnitHabbiconEvent, UseHabbiconComposer } from './messages';
-import { UserHabbiconsEvent, UserHabbiconStatusChangedEvent, HabbiconInfoEvent, HabbiconActionResultEvent, HabbiconShopDataEvent, GetHabbiconShopDataComposer, GetHabbiconInfoComposer, BuyHabbiconComposer, BuyHabbiconCollectionComposer, ClaimHabbiconComposer, FavoriteHabbiconComposer, UnfavoriteHabbiconComposer } from './messages';
 import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomFilterMessageComposer, ModifyCustomFilterResultEvent, RemoveCustomFilterWordMessageComposer } from './messages';
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
@@ -41,7 +40,6 @@ import { DeleteMentionComposer, MarkMentionsReadComposer, MentionReceivedEvent, 
 import { ActiveDailyTasksMessageEvent, ClaimDailyTaskMessageComposer, ClaimRewardTrackPrizeMessageComposer, DailyTaskUpdatedMessageEvent, DailyTasksAddedMessageEvent, GetDailyTasksMessageComposer, GetRewardTracksMessageComposer, PurchaseRewardTrackPremiumMessageComposer, RewardTrackClaimResultMessageEvent, RewardTrackPremiumPurchaseResultMessageEvent, RewardTrackProgressMessageEvent, RewardTracksMessageEvent } from './messages';
 import { TreasureHuntFirstWinnerMessageEvent, TreasureHuntFailMessageEvent, TreasureHuntUpdateMessageEvent } from './messages';
 import { SelfDonationResultMessageEvent, SelfDonationMessageComposer } from './messages';
-import { RaidProtectionCapabilityEvent, RaidProtectionSaveResultEvent, RaidProtectionSettingsEvent, RaidProtectionSettingsRequestComposer, RaidProtectionSettingsSaveComposer } from './messages';
 export class OctaneMessages implements IMessageConfiguration
 {
     private _events: Map<number, Function>;
@@ -634,9 +632,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.WIRED_FURNI_MOVE_STYLE, WiredFurniMoveStyleEvent);
         this._events.set(IncomingHeader.WIRED_ENVIRONMENT, WiredEnvironmentEvent);
         this._events.set(IncomingHeader.WIRED_CLICK_USER_RESPONSE, WiredClickUserResponseEvent);
-        this._events.set(IncomingHeader.RAID_PROTECTION_CAPABILITY, RaidProtectionCapabilityEvent);
-        this._events.set(IncomingHeader.RAID_PROTECTION_SETTINGS, RaidProtectionSettingsEvent);
-        this._events.set(IncomingHeader.RAID_PROTECTION_SAVE_RESULT, RaidProtectionSaveResultEvent);
         this._events.set(IncomingHeader.WIRED_CLICK_SETTINGS, WiredClickSettingsEvent);
         this._events.set(IncomingHeader.WIRED_LOG_PAGE, WiredLogPageEvent);
         this._events.set(IncomingHeader.WIRED_VARIABLE_HOLDERS_PAGE, WiredVariableHoldersPageEvent);
@@ -785,11 +780,6 @@ export class OctaneMessages implements IMessageConfiguration
         // Custom packets
         this._events.set(IncomingHeader.AREA_HIDE, AreaHideMessageEvent);
         this._events.set(IncomingHeader.UNIT_HABBICON, RoomUnitHabbiconEvent);
-        this._events.set(IncomingHeader.USER_HABBICONS, UserHabbiconsEvent);
-        this._events.set(IncomingHeader.USER_HABBICON_STATUS_CHANGED, UserHabbiconStatusChangedEvent);
-        this._events.set(IncomingHeader.HABBICON_SHOP_DATA, HabbiconShopDataEvent);
-        this._events.set(IncomingHeader.HABBICON_INFO, HabbiconInfoEvent);
-        this._events.set(IncomingHeader.HABBICON_ACTION_RESULT, HabbiconActionResultEvent);
         this._events.set(IncomingHeader.HOTEL_VIEW_LANDING, HotelViewLandingEvent);
 
         // Nick Icons
@@ -1001,13 +991,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_LEADERBOARD, SnowWarGetWeeklyLeaderboardComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_FRIENDS_LEADERBOARD, SnowWarGetWeeklyFriendsLeaderboardComposer);
         this._composers.set(OutgoingHeader.USE_HABBICON, UseHabbiconComposer);
-        this._composers.set(OutgoingHeader.GET_HABBICON_SHOP_DATA, GetHabbiconShopDataComposer);
-        this._composers.set(OutgoingHeader.GET_HABBICON_INFO, GetHabbiconInfoComposer);
-        this._composers.set(OutgoingHeader.BUY_HABBICON, BuyHabbiconComposer);
-        this._composers.set(OutgoingHeader.BUY_HABBICON_COLLECTION, BuyHabbiconCollectionComposer);
-        this._composers.set(OutgoingHeader.CLAIM_HABBICON, ClaimHabbiconComposer);
-        this._composers.set(OutgoingHeader.FAVORITE_HABBICON, FavoriteHabbiconComposer);
-        this._composers.set(OutgoingHeader.UNFAVORITE_HABBICON, UnfavoriteHabbiconComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_PRIVACY, UserSettingsPrivacyComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_CHAT_PREFERENCES, UserSettingsChatPreferencesComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_ONLINE_INDICATOR, UserSettingsOnlineIndicatorComposer);
@@ -1375,8 +1358,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.WIRED_APPLY_SNAPSHOT, ApplySnapshotMessageComposer);
         this._composers.set(OutgoingHeader.WIRED_MONITOR_REQUEST, WiredMonitorRequestComposer);
         this._composers.set(OutgoingHeader.WIRED_ROOM_SETTINGS_REQUEST, WiredRoomSettingsRequestComposer);
-        this._composers.set(OutgoingHeader.RAID_PROTECTION_SETTINGS_REQUEST, RaidProtectionSettingsRequestComposer);
-        this._composers.set(OutgoingHeader.RAID_PROTECTION_SETTINGS_SAVE, RaidProtectionSettingsSaveComposer);
         this._composers.set(OutgoingHeader.WIRED_ROOM_SETTINGS_SAVE, WiredRoomSettingsSaveComposer);
         this._composers.set(OutgoingHeader.WIRED_USER_VARIABLES_REQUEST, WiredUserVariablesRequestComposer);
         this._composers.set(OutgoingHeader.WIRED_USER_VARIABLE_UPDATE, WiredUserVariableUpdateComposer);
