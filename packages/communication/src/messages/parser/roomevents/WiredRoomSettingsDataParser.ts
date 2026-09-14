@@ -33,7 +33,7 @@ export class WiredRoomSettingsDataParser implements IMessageParser
         this._canInspect = wrapper.readBoolean();
         this._canModify = wrapper.readBoolean();
         this._canManageSettings = wrapper.readBoolean();
-        this._timezone = wrapper.readString();
+        this._timezone = wrapper.bytesAvailable ? wrapper.readString() : '';
 
         return true;
     }
