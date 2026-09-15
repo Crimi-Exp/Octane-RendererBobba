@@ -4,7 +4,7 @@ import { WiredEnvironmentParser } from '../../parser';
 
 export class WiredEnvironmentEvent extends MessageEvent implements IMessageEvent
 {
-    constructor(callBack: Function)
+    constructor(callBack: (event: IMessageEvent) => void)
     {
         super(callBack, WiredEnvironmentParser);
     }

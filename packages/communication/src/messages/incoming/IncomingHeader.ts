@@ -305,16 +305,7 @@ export class IncomingHeader
     public static WIRED_FURNI_RUNTIME_STATE = 5108;
     public static WIRED_FURNI_OPACITY = 5109;
     public static WIRED_FURNI_MOVE_STYLE = 5110;
-    // AIR 13 wired leftovers. 420 (WiredClickUserResponse) and 2901 (WiredUserVariablesPage)
-    // are already GROUP_LIST / PET_INFO here, so those two take custom ids instead.
-    public static WIRED_ENVIRONMENT = 347;
-    public static WIRED_CLICK_SETTINGS = 2288;
-    public static WIRED_LOG_PAGE = 918;
-    public static WIRED_ALL_VARIABLES_HASH = 1646;
-    public static WIRED_ALL_VARIABLES_DIFF = 2498;
-    public static WIRED_CLICK_USER_RESPONSE = 9460;
-    public static WIRED_VARIABLE_HOLDERS_PAGE = 9461;
-    public static WIRED_VARIABLE_HOLDERS = 9462;
+    public static WIRED_ENVIRONMENT = 5111;
     public static WIRED_OPEN = 1830;
     public static WIRED_REWARD = 178;
     public static WIRED_SAVE = 1155;
