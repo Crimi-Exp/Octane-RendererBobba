@@ -735,4 +735,12 @@ export class OutgoingHeader
     public static DISCORD_UPDATE_PREFERENCES = 2774;
     // AIR 13 self donation tool (client -> server), official id.
     public static SELF_DONATION = 2499;
+    public static GET_HABBICON_SHOP_DATA = 9460;
+    public static GET_HABBICON_INFO = 9461;
+    public static BUY_HABBICON = 9462;
+    public static BUY_HABBICON_COLLECTION = 9463;
+    public static CLAIM_HABBICON = 9464;
+    public static FAVORITE_HABBICON = 9465;
+    public static UNFAVORITE_HABBICON = 9466;
+
 }

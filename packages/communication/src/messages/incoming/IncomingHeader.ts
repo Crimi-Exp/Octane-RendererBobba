@@ -681,4 +681,10 @@ export class IncomingHeader
     public static TREASURE_HUNT_UPDATE = 3368;
     // AIR 13 self donation tool result (server -> client), official id.
     public static SELF_DONATION_RESULT = 2920;
+    public static USER_HABBICONS = 9460;
+    public static USER_HABBICON_STATUS_CHANGED = 9461;
+    public static HABBICON_SHOP_DATA = 9462;
+    public static HABBICON_INFO = 9463;
+    public static HABBICON_ACTION_RESULT = 9464;
+
 }
