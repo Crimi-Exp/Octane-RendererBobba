@@ -727,7 +727,6 @@ export class OutgoingHeader
     public static DISCORD_UPDATE_PREFERENCES = 2774;
     // AIR 13 self donation tool (client -> server), official id.
     public static SELF_DONATION = 2499;
-    // AIR Habbicon semantics on the established Polaris custom header range.
     public static GET_HABBICON_SHOP_DATA = 9460;
     public static GET_HABBICON_INFO = 9461;
     public static BUY_HABBICON = 9462;

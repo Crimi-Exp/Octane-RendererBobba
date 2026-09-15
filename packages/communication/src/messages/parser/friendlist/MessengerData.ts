@@ -1,6 +1,5 @@
 import { IMessageDataWrapper } from '@octane/api';
 
-/** Existing Polaris messenger content types; Habbicons carry their numeric id in message. */
 export enum MessengerMessageType
 {
     Habbicon = 4
