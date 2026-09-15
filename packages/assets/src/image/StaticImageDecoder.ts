@@ -58,8 +58,7 @@ export const decodeStaticImage = async (
     const texture = dependencies.textureFrom(imageSource);
 
     if(!texture) throw new Error(`Decoded image "${ source }" did not create a Pixi texture`);
-    // BobbaTok : nearest pour les atlas de mobis, sinon le zoom mélange les bords des sprites voisins (liserés)
-    if(texture.source) texture.source.scaleMode = 'nearest';
+    if(texture.source) texture.source.scaleMode = 'linear';
     if(texture.source) (texture.source as any).octaneFixedScaleMode = true;
 
     return {
