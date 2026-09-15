@@ -6,7 +6,9 @@ import { UserSettingsOnlineIndicatorComposer } from './messages/outgoing/user/se
 import { WiredMenuSettingsComposer } from './messages/outgoing/roomevents/WiredMenuSettingsComposer';
 import { RequestOfflineMessagesComposer } from './messages/outgoing/friendlist/RequestOfflineMessagesComposer';
 import { HotelViewLandingEvent, HotelViewLandingRequestComposer, HotelViewLandingSaveComposer, HotelViewLandingSaveSceneComposer, HotelViewLandingVoteComposer, HotelViewLandingResetVotesComposer } from './messages';
+import { RoomQueueStatusEvent, YouAreNotSpectatorMessageEvent, ConfigurationItemStatesEvent, SpecialRoomEventEvent, SpecialSystemChatEvent, ObjectRemoveMultipleEvent, ItemRemoveMultipleEvent, ItemsStateUpdateEvent, ObjectRemoveConfirmEvent, FurnitureListRemoveMultipleEvent, OfficialRoomsEvent } from './messages';
 import { RoomUnitHabbiconEvent, UseHabbiconComposer } from './messages';
+import { UserHabbiconsEvent, UserHabbiconStatusChangedEvent, HabbiconInfoEvent, HabbiconActionResultEvent, HabbiconShopDataEvent, GetHabbiconShopDataComposer, GetHabbiconInfoComposer, BuyHabbiconComposer, BuyHabbiconCollectionComposer, ClaimHabbiconComposer, FavoriteHabbiconComposer, UnfavoriteHabbiconComposer } from './messages';
 import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomFilterMessageComposer, ModifyCustomFilterResultEvent, RemoveCustomFilterWordMessageComposer } from './messages';
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
@@ -34,9 +36,11 @@ import { WheelAdminGetPrizesComposer, WheelAdminPrizesEvent, WheelAdminSavePrize
 import { ChestDataEvent, ChestDepositComposer, ChestDepositFurniComposer, ChestDepositInventoryItemComposer, ChestFurniChunkEvent, ChestFurniDeltaEvent, ChestOpenComposer, ChestOpenEvent, ChestStartDepositComposer, ChestWithdrawAllFurniComposer, ChestWithdrawComposer, ChestWithdrawFurniComposer, ChestLogEvent, ChestCloseComposer, ChestEnableWiredComposer, ChestSaveOptionsComposer, ChestSaveSettingsComposer, ChestSaveNotificationsComposer, ChestUpgradeCapacityComposer, ChestNotificationEvent, ChestUpgradeResultEvent, ChestRequestLogComposer, WiredChestRoomLogsComposer, WiredChestLockComposer, WiredChestTransactionDetailsComposer, WiredChestRoomLogsEvent, WiredChestLockStateEvent, WiredChestTransactionDetailsEvent, WiredTradeOpenEvent, WiredTradeItemsEvent, WiredTradeCancelledEvent, WiredTradeCompletedEvent, WiredTradeOfferItemsComposer, WiredTradeAcceptComposer, WiredTradeCancelComposer } from './messages';
 import { SoundboardCatalogEvent, SoundboardCatalogReorderComposer, SoundboardCatalogRequestComposer, SoundboardCatalogResultEvent, SoundboardCatalogUpsertComposer, SoundboardPlayComposer, SoundboardPlayDeniedEvent, SoundboardPlayEvent, SoundboardRequestSettingsComposer, SoundboardSaveVolumeComposer, SoundboardSetEnabledComposer, SoundboardSettingsEvent } from './messages';
 import { PressKeybindComposer } from './messages';
-import { EarningsCenterEvent, EarningsClaimResultEvent, RequestEarningsCenterComposer, ClaimEarningsRewardComposer, ClaimAllEarningsRewardsComposer } from './messages';
+import { EarningsCenterEvent, EarningsClaimResultEvent, IncomeRewardNotificationEvent, RequestEarningsCenterComposer, ClaimEarningsRewardComposer, ClaimAllEarningsRewardsComposer } from './messages';
 import { DeleteMentionComposer, MarkMentionsReadComposer, MentionReceivedEvent, MentionsListEvent, RequestMentionsComposer } from './messages';
 import { ActiveDailyTasksMessageEvent, ClaimDailyTaskMessageComposer, ClaimRewardTrackPrizeMessageComposer, DailyTaskUpdatedMessageEvent, DailyTasksAddedMessageEvent, GetDailyTasksMessageComposer, GetRewardTracksMessageComposer, PurchaseRewardTrackPremiumMessageComposer, RewardTrackClaimResultMessageEvent, RewardTrackPremiumPurchaseResultMessageEvent, RewardTrackProgressMessageEvent, RewardTracksMessageEvent } from './messages';
+import { TreasureHuntFirstWinnerMessageEvent, TreasureHuntFailMessageEvent, TreasureHuntUpdateMessageEvent } from './messages';
+import { SelfDonationResultMessageEvent, SelfDonationMessageComposer } from './messages';
 export class OctaneMessages implements IMessageConfiguration
 {
     private _events: Map<number, Function>;
@@ -128,6 +132,11 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.GIFT_RECEIVER_NOT_FOUND, GiftReceiverNotFoundEvent);
         this._events.set(IncomingHeader.GIFT_WRAPPER_CONFIG, GiftWrappingConfigurationEvent);
         this._events.set(IncomingHeader.CLUB_EXTENDED_OFFER, HabboClubExtendOfferMessageEvent);
+        this._events.set(IncomingHeader.CATALOG_LTD_RAFFLE_ENTERED, LtdRaffleEnteredMessageEvent);
+        this._events.set(IncomingHeader.CATALOG_LTD_RAFFLE_RESULT, LtdRaffleResultMessageEvent);
+        this._events.set(IncomingHeader.PURCHASABLE_CHAT_STYLES, PurchasableChatStylesMessageEvent);
+        this._events.set(IncomingHeader.CHAT_STYLE_NOTIFICATION, ChatStyleNotificationMessageEvent);
+        this._events.set(IncomingHeader.MY_REPORTS_STATUS, MyReportsStatusMessageEvent);
         this._events.set(IncomingHeader.CLUB_OFFERS, HabboClubOffersMessageEvent);
         this._events.set(IncomingHeader.IS_OFFER_GIFTABLE, IsOfferGiftableMessageEvent);
         this._events.set(IncomingHeader.LIMITED_SOLD_OUT, LimitedEditionSoldOutEvent);
@@ -150,6 +159,7 @@ export class OctaneMessages implements IMessageConfiguration
 
         // CLIENT
         this._events.set(IncomingHeader.CLIENT_PING, ClientPingEvent);
+        this._events.set(IncomingHeader.CLIENT_LATENCY, LatencyPingResponseEvent);
 
         // COMPETITION
         this._events.set(IncomingHeader.COMPETITION_ENTRY_SUBMIT, CompetitionEntrySubmitResultEvent);
@@ -220,6 +230,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.GAME_CENTER_DIRECTORY_STATUS, Game2GameDirectoryStatusMessageEvent);
         this._events.set(IncomingHeader.GAME_CENTER_STARTING_GAME_FAILED, Game2StartingGameFailedMessageEvent);
         this._events.set(IncomingHeader.GAME_CENTER_JOINING_FAILED, Game2JoiningGameFailedMessageEvent);
+        this._events.set(IncomingHeader.GAME_CENTER_GAME_NOT_FOUND, Game2GameNotFoundMessageEvent);
+        this._events.set(IncomingHeader.GAME_CENTER_GAME_CANCELLED, Game2GameCancelledMessageEvent);
+        this._events.set(IncomingHeader.GAME_CENTER_USER_BLOCKED, Game2UserBlockedMessageEvent);
+        this._events.set(IncomingHeader.SNOWWAR_GAME_TOKENS, SnowWarGameTokensMessageEvent);
         this._events.set(IncomingHeader.SNOWWAR_QUEUE_POSITION, SnowWarQueuePositionEvent);
         this._events.set(IncomingHeader.SNOWWAR_START_LOBBY_COUNTER, SnowWarStartLobbyCounterEvent);
         this._events.set(IncomingHeader.SNOWWAR_GAME_ENDED, SnowWarGameEndedEvent);
@@ -250,6 +264,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.WEEKLY_COMPETITIVE_FRIENDS_LEADERBOARD, WeeklyCompetitiveFriendsLeaderboardEvent);
         this._events.set(IncomingHeader.WEEKLY_GAME2_FRIENDS_LEADERBOARD, Game2WeeklyFriendsLeaderboardEvent);
         this._events.set(IncomingHeader.WEEKLY_GAME2_LEADERBOARD, Game2WeeklyLeaderboardEvent);
+        this._events.set(IncomingHeader.GAME2_FRIENDS_LEADERBOARD, Game2FriendsLeaderboardEvent);
+        this._events.set(IncomingHeader.GAME2_TOTAL_LEADERBOARD, Game2TotalLeaderboardEvent);
+        this._events.set(IncomingHeader.GAME2_TOTAL_GROUP_LEADERBOARD, Game2TotalGroupLeaderboardEvent);
+        this._events.set(IncomingHeader.GAME2_WEEKLY_GROUP_LEADERBOARD, Game2WeeklyGroupLeaderboardEvent);
 
         // GROUP
         this._events.set(IncomingHeader.GROUP_INFO, GroupInformationEvent);
@@ -318,6 +336,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.USER_BADGES_ADD, BadgeReceivedEvent);
         this._events.set(IncomingHeader.BADGE_POINT_LIMITS, BadgePointLimitsEvent);
         this._events.set(IncomingHeader.BADGE_REQUEST_FULFILLED, IsBadgeRequestFulfilledEvent);
+        this._events.set(IncomingHeader.BADGE_INFO, BadgeInfoEvent);
         this._events.set(IncomingHeader.USER_CLOTHING, FigureSetIdsMessageEvent);
         this._events.set(IncomingHeader.USER_FURNITURE_ADD, FurnitureListAddOrUpdateEvent);
         this._events.set(IncomingHeader.USER_FURNITURE, FurnitureListEvent);
@@ -359,6 +378,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.MARKETPLACE_ITEM_POSTED, MarketplaceMakeOfferResult);
         this._events.set(IncomingHeader.MARKETPLACE_ITEMS_SEARCHED, MarketPlaceOffersEvent);
         this._events.set(IncomingHeader.MARKETPLACE_OWN_ITEMS, MarketplaceOwnOffersEvent);
+        this._events.set(IncomingHeader.MARKETPLACE_CANCEL_ALL_RESULT, MarketplaceCancelAllOffersResultEvent);
+        this._events.set(IncomingHeader.MARKETPLACE_CLEAR_OWN_HISTORY_RESULT, MarketplaceClearOwnHistoryResultEvent);
 
         // MENTIONS
         this._events.set(IncomingHeader.MENTION_RECEIVED, MentionReceivedEvent);
@@ -441,6 +462,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.PET_OPEN_PACKAGE_REQUESTED, OpenPetPackageRequestedMessageEvent);
         this._events.set(IncomingHeader.PET_OPEN_PACKAGE_RESULT, OpenPetPackageResultMessageEvent);
         this._events.set(IncomingHeader.PET_BREEDING_RESULT, PetBreedingResultEvent);
+        this._events.set(IncomingHeader.PET_BREEDING, PetBreedingMessageEvent);
+        this._events.set(IncomingHeader.PET_CONFIRM_BREEDING_REQUEST, ConfirmBreedingRequestEvent);
+        this._events.set(IncomingHeader.PET_CONFIRM_BREEDING_RESULT, ConfirmBreedingResultEvent);
+        this._events.set(IncomingHeader.PET_NEST_BREEDING_SUCCESS, NestBreedingSuccessEvent);
 
         // POLL
         this._events.set(IncomingHeader.QUESTION, QuestionEvent);
@@ -526,6 +551,17 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.FURNITURE_GROUP_CONTEXT_MENU_INFO, GroupFurniContextMenuInfoMessageEvent);
         this._events.set(IncomingHeader.FURNITURE_POSTIT_STICKY_POLE_OPEN, RequestSpamWallPostItMessageEvent);
         this._events.set(IncomingHeader.ROOM_SPECTATOR, YouAreSpectatorMessageEvent);
+        this._events.set(IncomingHeader.ROOM_QUEUE_STATUS, RoomQueueStatusEvent);
+        this._events.set(IncomingHeader.YOU_ARE_NOT_SPECTATOR, YouAreNotSpectatorMessageEvent);
+        this._events.set(IncomingHeader.CONFIGURATION_ITEM_STATES, ConfigurationItemStatesEvent);
+        this._events.set(IncomingHeader.SPECIAL_ROOM_EVENT, SpecialRoomEventEvent);
+        this._events.set(IncomingHeader.SPECIAL_SYSTEM_CHAT, SpecialSystemChatEvent);
+        this._events.set(IncomingHeader.OBJECT_REMOVE_MULTIPLE, ObjectRemoveMultipleEvent);
+        this._events.set(IncomingHeader.ITEM_REMOVE_MULTIPLE, ItemRemoveMultipleEvent);
+        this._events.set(IncomingHeader.ITEMS_STATE_UPDATE, ItemsStateUpdateEvent);
+        this._events.set(IncomingHeader.OBJECT_REMOVE_CONFIRM, ObjectRemoveConfirmEvent);
+        this._events.set(IncomingHeader.FURNI_LIST_REMOVE_MULTIPLE, FurnitureListRemoveMultipleEvent);
+        this._events.set(IncomingHeader.OFFICIAL_ROOMS, OfficialRoomsEvent);
         this._events.set(IncomingHeader.CUSTOM_USER_NOTIFICATION, CustomUserNotificationMessageEvent);
         this._events.set(IncomingHeader.ROOM_MESSAGE_NOTIFICATION, RoomMessageNotificationMessageEvent);
         this._events.set(IncomingHeader.ROOM_POPULAR_TAGS_RESULT, PopularRoomTagsResultEvent);
@@ -628,6 +664,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.TRAX_EDITOR_ERROR, TraxEditorErrorEvent);
         this._events.set(IncomingHeader.EARNINGS_CENTER, EarningsCenterEvent);
         this._events.set(IncomingHeader.EARNINGS_CLAIM_RESULT, EarningsClaimResultEvent);
+        this._events.set(IncomingHeader.INCOME_REWARD_NOTIFICATION, IncomeRewardNotificationEvent);
         this._events.set(IncomingHeader.WIRED_REWARD, WiredRewardResultMessageEvent);
         this._events.set(IncomingHeader.WIRED_SAVE, WiredSaveSuccessEvent);
         this._events.set(IncomingHeader.WIRED_ERROR, WiredValidationErrorEvent);
@@ -654,6 +691,15 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.IN_CLIENT_LINK, InClientLinkEvent);
         this._events.set(IncomingHeader.USER_IGNORED, IgnoredUsersEvent);
         this._events.set(IncomingHeader.USER_IGNORED_RESULT, IgnoreResultEvent);
+        this._events.set(IncomingHeader.USER_BLOCK_LIST, BlockedUsersEvent);
+        this._events.set(IncomingHeader.USER_BLOCK_RESULT, BlockResultEvent);
+        this._events.set(IncomingHeader.PET_RESPECT_FAILED, PetRespectFailedEvent);
+        this._events.set(IncomingHeader.USER_BAN_INFO, BanInfoEvent);
+        this._events.set(IncomingHeader.DISCORD_PREFERENCES, DiscordPreferencesEvent);
+        this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
+        this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
+        this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
+        this._events.set(IncomingHeader.SELF_DONATION_RESULT, SelfDonationResultMessageEvent);
         this._events.set(IncomingHeader.USER_RESPECT, RespectReceivedEvent);
         this._events.set(IncomingHeader.USER_PERMISSIONS, UserPermissionsEvent);
         this._events.set(IncomingHeader.USER_BADGES_CURRENT, UserCurrentBadgesEvent);
@@ -728,6 +774,11 @@ export class OctaneMessages implements IMessageConfiguration
         // Custom packets
         this._events.set(IncomingHeader.AREA_HIDE, AreaHideMessageEvent);
         this._events.set(IncomingHeader.UNIT_HABBICON, RoomUnitHabbiconEvent);
+        this._events.set(IncomingHeader.USER_HABBICONS, UserHabbiconsEvent);
+        this._events.set(IncomingHeader.USER_HABBICON_STATUS_CHANGED, UserHabbiconStatusChangedEvent);
+        this._events.set(IncomingHeader.HABBICON_SHOP_DATA, HabbiconShopDataEvent);
+        this._events.set(IncomingHeader.HABBICON_INFO, HabbiconInfoEvent);
+        this._events.set(IncomingHeader.HABBICON_ACTION_RESULT, HabbiconActionResultEvent);
         this._events.set(IncomingHeader.HOTEL_VIEW_LANDING, HotelViewLandingEvent);
 
         // Nick Icons
@@ -829,6 +880,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.GET_DIRECT_CLUB_BUY_AVAILABLE, GetDirectClubBuyAvailableComposer);
         this._composers.set(OutgoingHeader.GET_HABBO_BASIC_MEMBERSHIP_EXTEND_OFFER, GetHabboBasicMembershipExtendOfferComposer);
         this._composers.set(OutgoingHeader.GET_HABBO_CLUB_EXTEND_OFFER, GetHabboClubExtendOfferMessageComposer);
+        this._composers.set(OutgoingHeader.HABBO_CLUB_EXTEND_CONFIRM, HabboClubExtendConfirmMessageComposer);
         this._composers.set(OutgoingHeader.GET_IS_OFFER_GIFTABLE, GetIsOfferGiftableComposer);
         this._composers.set(OutgoingHeader.GET_LIMITED_OFFER_APPEARING_NEXT, GetLimitedOfferAppearingNextComposer);
         this._composers.set(OutgoingHeader.GET_NEXT_TARGETED_OFFER, GetNextTargetedOfferComposer);
@@ -913,6 +965,11 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.GAME2REQUESTFULLSTATUSUPDATEMESSAGE, Game2RequestFullStatusUpdateMessageComposer);
         this._composers.set(OutgoingHeader.GAME2GETWEEKLYFRIENDSLEADERBOARD, Game2GetWeeklyFriendsLeaderboardComposer);
         this._composers.set(OutgoingHeader.GAME2GETWEEKLYLEADERBOARD, Game2GetWeeklyLeaderboardComposer);
+        this._composers.set(OutgoingHeader.GAME2GETTOTALGROUPLEADERBOARD, Game2GetTotalGroupLeaderboardComposer);
+        this._composers.set(OutgoingHeader.GAME2GETWEEKLYGROUPLEADERBOARD, Game2GetWeeklyGroupLeaderboardComposer);
+        this._composers.set(OutgoingHeader.GET_SNOWWAR_GAME_TOKENS_OFFER, GetSnowWarGameTokensOfferComposer);
+        this._composers.set(OutgoingHeader.PURCHASE_SNOWWAR_GAME_TOKENS_OFFER, PurchaseSnowWarGameTokensOfferComposer);
+        this._composers.set(OutgoingHeader.CLIENT_LATENCY, LatencyPingRequestMessageComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_LOAD_STAGE_READY, SnowWarLoadStageReadyComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_EXIT_GAME, SnowWarExitGameComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_WALK, SnowWarWalkComposer);
@@ -933,6 +990,13 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_LEADERBOARD, SnowWarGetWeeklyLeaderboardComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_FRIENDS_LEADERBOARD, SnowWarGetWeeklyFriendsLeaderboardComposer);
         this._composers.set(OutgoingHeader.USE_HABBICON, UseHabbiconComposer);
+        this._composers.set(OutgoingHeader.GET_HABBICON_SHOP_DATA, GetHabbiconShopDataComposer);
+        this._composers.set(OutgoingHeader.GET_HABBICON_INFO, GetHabbiconInfoComposer);
+        this._composers.set(OutgoingHeader.BUY_HABBICON, BuyHabbiconComposer);
+        this._composers.set(OutgoingHeader.BUY_HABBICON_COLLECTION, BuyHabbiconCollectionComposer);
+        this._composers.set(OutgoingHeader.CLAIM_HABBICON, ClaimHabbiconComposer);
+        this._composers.set(OutgoingHeader.FAVORITE_HABBICON, FavoriteHabbiconComposer);
+        this._composers.set(OutgoingHeader.UNFAVORITE_HABBICON, UnfavoriteHabbiconComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_PRIVACY, UserSettingsPrivacyComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_CHAT_PREFERENCES, UserSettingsChatPreferencesComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_ONLINE_INDICATOR, UserSettingsOnlineIndicatorComposer);
@@ -989,6 +1053,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.CHAT_REVIEW_SESSION_CREATE, ChatReviewSessionCreateMessageComposer);
         this._composers.set(OutgoingHeader.DELETE_PENDING_CALLS_FOR_HELP, DeletePendingCallsForHelpMessageComposer);
         this._composers.set(OutgoingHeader.GET_CFH_STATUS, GetCfhStatusMessageComposer);
+        this._composers.set(OutgoingHeader.GET_MY_REPORTS_STATUS, GetMyReportsStatusMessageComposer);
+        this._composers.set(OutgoingHeader.APPEAL_REPORT, AppealReportMessageComposer);
         this._composers.set(OutgoingHeader.GET_FAQ_CATEGORY, GetFaqCategoryMessageComposer);
         this._composers.set(OutgoingHeader.GET_FAQ_TEXT, GetFaqTextMessageComposer);
         this._composers.set(OutgoingHeader.GET_GUIDE_REPORTING_STATUS, GetGuideReportingStatusMessageComposer);
@@ -1104,6 +1170,7 @@ export class OctaneMessages implements IMessageConfiguration
 
         // BADGES
         this._composers.set(OutgoingHeader.USER_BADGES, RequestBadgesComposer);
+        this._composers.set(OutgoingHeader.GET_BADGE_INFO, GetBadgeInfoComposer);
         this._composers.set(OutgoingHeader.USER_BADGES_CURRENT_UPDATE, SetActivatedBadgesComposer);
         this._composers.set(OutgoingHeader.GET_BADGE_POINTS_LIMITS, GetBadgePointLimitsComposer);
         this._composers.set(OutgoingHeader.REQUESTABADGE, RequestABadgeComposer);
@@ -1168,6 +1235,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.ROOM_RIGHTS_GIVE, RoomGiveRightsComposer);
         this._composers.set(OutgoingHeader.ROOM_KICK, RoomKickUserComposer);
         this._composers.set(OutgoingHeader.ROOM_MUTE_USER, RoomMuteUserComposer);
+        this._composers.set(OutgoingHeader.UNMUTE_USER, RoomUnmuteUserComposer);
         this._composers.set(OutgoingHeader.ROOM_RIGHTS_REMOVE, RoomTakeRightsComposer);
         this._composers.set(OutgoingHeader.ROOM_RIGHTS_REMOVE_ALL, RemoveAllRightsMessageComposer);
 
@@ -1260,6 +1328,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.FURNITURE_MULTISTATE, FurnitureMultiStateComposer);
         this._composers.set(OutgoingHeader.FURNITURE_RANDOMSTATE, FurnitureRandomStateComposer);
         this._composers.set(OutgoingHeader.ITEM_STACK_HELPER, FurnitureStackHeightComposer);
+        this._composers.set(OutgoingHeader.ITEM_STACK_HELPER_ADJACENT, FurnitureAdjacentStackHeightComposer);
         this._composers.set(OutgoingHeader.FURNITURE_WALL_MULTISTATE, FurnitureWallMultiStateComposer);
         this._composers.set(OutgoingHeader.ONE_WAY_DOOR_CLICK, FurnitureOneWayDoorComposer);
         this._composers.set(OutgoingHeader.ITEM_EXCHANGE_REDEEM, FurnitureExchangeComposer);
@@ -1302,6 +1371,14 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.WIRED_USER_INSPECT_MOVE, WiredUserInspectMoveComposer);
         this._composers.set(OutgoingHeader.WIRED_FURNI_RUNTIME_STATE_REQUEST, WiredFurniRuntimeStateRequestComposer);
         this._composers.set(OutgoingHeader.WIRED_FEATURE_CAPABILITIES, WiredFeatureCapabilitiesComposer);
+        this._composers.set(OutgoingHeader.WIRED_USER_SELECTED, WiredUserSelectedComposer);
+        this._composers.set(OutgoingHeader.WIRED_MENU_PERMISSIONS_SAVE, WiredMenuPermissionsSaveComposer);
+        this._composers.set(OutgoingHeader.WIRED_ROOM_STATE_ACTION, WiredRoomStateActionComposer);
+        this._composers.set(OutgoingHeader.WIRED_ROOM_LOGS_PAGE, WiredRoomLogsPageComposer);
+        this._composers.set(OutgoingHeader.WIRED_VARIABLE_HOLDERS_PAGE, WiredVariableHoldersPageComposer);
+        this._composers.set(OutgoingHeader.WIRED_VARIABLE_HOLDERS_REQUEST, WiredVariableHoldersRequestComposer);
+        this._composers.set(OutgoingHeader.WIRED_VARIABLE_HASHES, WiredVariableHashesComposer);
+        this._composers.set(OutgoingHeader.WIRED_ALL_VARIABLES_REQUEST, WiredAllVariablesRequestComposer);
         this._composers.set(OutgoingHeader.TRANSLATION_LANGUAGES_REQUEST, TranslationLanguagesRequestComposer);
         this._composers.set(OutgoingHeader.TRANSLATION_TEXT_REQUEST, TranslationTextRequestComposer);
         this._composers.set(OutgoingHeader.WIRED_OPEN, OpenMessageComposer);
@@ -1324,6 +1401,14 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.USER_IGNORE, IgnoreUserComposer);
         this._composers.set(OutgoingHeader.USER_IGNORE_ID, IgnoreUserIdComposer);
         this._composers.set(OutgoingHeader.USER_UNIGNORE, UnignoreUserComposer);
+        this._composers.set(OutgoingHeader.USER_BLOCK_LIST, GetBlockedUsersComposer);
+        this._composers.set(OutgoingHeader.USER_BLOCK, BlockUserComposer);
+        this._composers.set(OutgoingHeader.USER_UNBLOCK, UnblockUserComposer);
+        this._composers.set(OutgoingHeader.REPLENISH_RESPECT, ReplenishRespectComposer);
+        this._composers.set(OutgoingHeader.ACTIVATE_NOTIFICATIONS, ActivateNotificationsComposer);
+        this._composers.set(OutgoingHeader.DISCORD_PREFERENCES, GetDiscordPreferencesComposer);
+        this._composers.set(OutgoingHeader.DISCORD_UPDATE_PREFERENCES, UpdateDiscordPreferencesComposer);
+        this._composers.set(OutgoingHeader.SELF_DONATION, SelfDonationMessageComposer);
         this._composers.set(OutgoingHeader.USER_BADGES_CURRENT, UserCurrentBadgesComposer);
         this._composers.set(OutgoingHeader.USER_FIGURE, UserFigureComposer);
         this._composers.set(OutgoingHeader.USER_MOTTO, UserMottoComposer);
@@ -1350,6 +1435,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.MARKETPLACE_BUY_OFFER, BuyMarketplaceOfferMessageComposer);
         this._composers.set(OutgoingHeader.MARKETPLACE_REDEEM_CREDITS, RedeemMarketplaceOfferCreditsMessageComposer);
         this._composers.set(OutgoingHeader.MARKETPLACE_BUY_TOKENS, BuyMarketplaceTokensMessageComposer);
+        this._composers.set(OutgoingHeader.MARKETPLACE_CANCEL_ALL_OFFERS, CancelAllMarketplaceOffersMessageComposer);
+        this._composers.set(OutgoingHeader.MARKETPLACE_CLEAR_OWN_HISTORY, ClearOwnMarketplaceHistoryMessageComposer);
+        this._composers.set(OutgoingHeader.MARKETPLACE_SELL_MULTIPLE_ITEMS, MakeMultipleOffersMessageComposer);
         this._composers.set(OutgoingHeader.REQUEST_SELL_ITEM, GetMarketplaceCanMakeOfferComposer);
         this._composers.set(OutgoingHeader.REQUEST_MARKETPLACE_ITEM_STATS, GetMarketplaceItemStatsComposer);
 
@@ -1402,6 +1490,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.USER_SETTINGS_OLD_CHAT, UserSettingsOldChatComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_INVITES, UserSettingsRoomInvitesComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_VOLUME, UserSettingsSoundComposer);
+        this._composers.set(OutgoingHeader.UPDATE_UI_FLAGS, UpdateUIFlagsComposer);
 
         // LANDING VIEW
         this._composers.set(OutgoingHeader.COMMUNITY_GOAL_VOTE_COMPOSER, CommunityGoalVoteMessageComposer);
