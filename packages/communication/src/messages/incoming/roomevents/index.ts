@@ -1,4 +1,3 @@
-export * from './WiredEnvironmentEvent';
 export * from './WiredFurniActionEvent';
 export * from './WiredFurniConditionEvent';
 export * from './WiredFurniMoveStyleEvent';

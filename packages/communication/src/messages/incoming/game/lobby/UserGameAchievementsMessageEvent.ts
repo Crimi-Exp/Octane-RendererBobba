@@ -4,13 +4,13 @@ import { UserGameAchievementsMessageParser } from '../../../parser';
 
 export class UserGameAchievementsMessageEvent extends MessageEvent implements IMessageEvent
 {
-    constructor(callBack: (event: IMessageEvent) => void)
+    constructor(callBack: Function)
     {
         super(callBack, UserGameAchievementsMessageParser);
     }
 
     public getParser(): UserGameAchievementsMessageParser
     {
-        return this.parser as UserGameAchievementsMessageParser;
+        return this.parser;
     }
 }

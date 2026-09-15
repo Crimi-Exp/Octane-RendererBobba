@@ -305,7 +305,16 @@ export class IncomingHeader
     public static WIRED_FURNI_RUNTIME_STATE = 5108;
     public static WIRED_FURNI_OPACITY = 5109;
     public static WIRED_FURNI_MOVE_STYLE = 5110;
-    public static WIRED_ENVIRONMENT = 5111;
+    // AIR 13 wired leftovers. 420 (WiredClickUserResponse) and 2901 (WiredUserVariablesPage)
+    // are already GROUP_LIST / PET_INFO here, so those two take custom ids instead.
+    public static WIRED_ENVIRONMENT = 347;
+    public static WIRED_CLICK_SETTINGS = 2288;
+    public static WIRED_LOG_PAGE = 918;
+    public static WIRED_ALL_VARIABLES_HASH = 1646;
+    public static WIRED_ALL_VARIABLES_DIFF = 2498;
+    public static WIRED_CLICK_USER_RESPONSE = 9460;
+    public static WIRED_VARIABLE_HOLDERS_PAGE = 9461;
+    public static WIRED_VARIABLE_HOLDERS = 9462;
     public static WIRED_OPEN = 1830;
     public static WIRED_REWARD = 178;
     public static WIRED_SAVE = 1155;
@@ -672,10 +681,4 @@ export class IncomingHeader
     public static TREASURE_HUNT_UPDATE = 3368;
     // AIR 13 self donation tool result (server -> client), official id.
     public static SELF_DONATION_RESULT = 2920;
-    public static USER_HABBICONS = 9460;
-    public static USER_HABBICON_STATUS_CHANGED = 9461;
-    public static HABBICON_SHOP_DATA = 9462;
-    public static HABBICON_INFO = 9463;
-    public static HABBICON_ACTION_RESULT = 9464;
-
 }

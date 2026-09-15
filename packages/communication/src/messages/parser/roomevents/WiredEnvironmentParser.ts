@@ -2,8 +2,8 @@ import { IMessageDataWrapper, IMessageParser } from '@octane/api';
 
 export class WiredEnvironmentParser implements IMessageParser
 {
-    private _hasClickUserWired: boolean = false;
-    private _enabledAchievements: string[] = [];
+    private _hasClickUserWired: boolean;
+    private _enabledAchievements: string[];
 
     public flush(): boolean
     {
@@ -20,11 +20,12 @@ export class WiredEnvironmentParser implements IMessageParser
         this._hasClickUserWired = wrapper.readBoolean();
         this._enabledAchievements = [];
 
-        if(!wrapper.bytesAvailable) return true;
+        if(wrapper.bytesAvailable)
+        {
+            const totalAchievements = wrapper.readInt();
 
-        const achievementCount = wrapper.readInt();
-
-        for(let i = 0; i < achievementCount; i++) this._enabledAchievements.push(wrapper.readString());
+            for(let i = 0; i < totalAchievements; i++) this._enabledAchievements.push(wrapper.readString());
+        }
 
         return true;
     }

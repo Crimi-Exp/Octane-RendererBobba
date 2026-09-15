@@ -1,28 +1,21 @@
-import { IMessageDataWrapper } from '@octane/api';
-import { AchievementsParser } from '../../inventory';
+import { IMessageDataWrapper, IMessageParser } from '@octane/api';
 
-export class UserGameAchievementsMessageParser extends AchievementsParser
+export class UserGameAchievementsMessageParser implements IMessageParser
 {
-    private _gameTypeId: number = 0;
+
 
     public flush(): boolean
     {
-        this._gameTypeId = 0;
-
-        return super.flush();
+        return true;
     }
 
     public parse(wrapper: IMessageDataWrapper): boolean
     {
         if(!wrapper) return false;
 
-        this._gameTypeId = wrapper.readInt();
 
-        return super.parse(wrapper);
+
+        return true;
     }
 
-    public get gameTypeId(): number
-    {
-        return this._gameTypeId;
-    }
 }

@@ -14,8 +14,6 @@ export class AchievementLevelUpData
     private _achievementID: number;
     private _category: string;
     private _showDialogToUser: boolean;
-    private _ownerCount: number = 0;
-    private _badgeRarityId: number = 0;
 
     constructor(wrapper: IMessageDataWrapper)
     {
@@ -31,11 +29,6 @@ export class AchievementLevelUpData
         this._removedBadgeCode = wrapper.readString();
         this._category = wrapper.readString();
         this._showDialogToUser = wrapper.readBoolean();
-
-        if(!wrapper.bytesAvailable) return;
-
-        this._ownerCount = wrapper.readInt();
-        this._badgeRarityId = wrapper.readInt();
     }
 
     public get type(): number
@@ -96,15 +89,5 @@ export class AchievementLevelUpData
     public get showDialogToUser(): boolean
     {
         return this._showDialogToUser;
-    }
-
-    public get ownerCount(): number
-    {
-        return this._ownerCount;
-    }
-
-    public get badgeRarityId(): number
-    {
-        return this._badgeRarityId;
     }
 }

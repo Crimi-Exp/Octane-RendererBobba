@@ -9,10 +9,6 @@ export class AchievementResolutionsMessageParser implements IMessageParser
 
     public flush(): boolean
     {
-        this._stuffId = -1;
-        this._achievements = [];
-        this._endTime = -1;
-
         return true;
     }
 
@@ -21,7 +17,6 @@ export class AchievementResolutionsMessageParser implements IMessageParser
         if(!wrapper) return false;
 
         this._stuffId = wrapper.readInt();
-        this._achievements = [];
         const count = wrapper.readInt();
         let i = 0;
         while(i < count)
