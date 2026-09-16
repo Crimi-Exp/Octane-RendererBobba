@@ -1337,16 +1337,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
         newDirection.assign(roomObject.getDirection());
 
-        let validLocation = this.validateFurnitureLocation(roomObject, targetLocation, selectedObjectData.loc, selectedObjectData.dir, stackingHeightMap);
+        const validLocation = this.validateFurnitureLocation(roomObject, targetLocation, selectedObjectData.loc, selectedObjectData.dir, stackingHeightMap);
 
-        if(!validLocation)
-        {
-            newDirection.x = this.getValidRoomObjectDirection(roomObject, true);
-
-            roomObject.setDirection(newDirection);
-
-            validLocation = this.validateFurnitureLocation(roomObject, targetLocation, selectedObjectData.loc, selectedObjectData.dir, stackingHeightMap);
-        }
+        // BobbaTok : pas de rotation automatique pendant un déplacement — si ça ne rentre pas, on ne bouge pas
 
         if(!validLocation)
         {
