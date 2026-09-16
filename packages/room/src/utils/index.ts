@@ -12,3 +12,4 @@ export * from './RoomRotatingEffect';
 export * from './RoomShakingEffect';
 export * from './SelectedRoomObjectData';
 export * from './TileObjectMap';
+export * from './RoomBuildHeightPreview';

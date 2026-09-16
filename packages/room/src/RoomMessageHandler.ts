@@ -9,6 +9,7 @@ import { RoomVariableEnum } from './RoomVariableEnum';
 import { ObjectRoomMapUpdateMessage } from './messages';
 import { RoomPlaneParser } from './object/RoomPlaneParser';
 import { FurnitureStackingHeightMap, LegacyWallGeometry } from './utils';
+import { RoomBuildHeightPreview } from './utils/RoomBuildHeightPreview';
 
 const ROOM_OWN_OBJECT_ID = -1;
 
@@ -293,6 +294,7 @@ export class RoomMessageHandler
         const width = parser.width;
         const height = parser.height;
         const heightMap = new FurnitureStackingHeightMap(width, height);
+        RoomBuildHeightPreview.resetFloor(width, height);
         const BLOCKED = FloorHeightMapMessageParser.TILE_BLOCKED;
 
         let y = 0;
@@ -307,6 +309,7 @@ export class RoomMessageHandler
                 const isRoomTile = (tileHeight !== BLOCKED);
 
                 heightMap.setTileHeight(x, y, isRoomTile ? tileHeight : 0);
+                RoomBuildHeightPreview.setFloor(x, y, isRoomTile ? tileHeight : 0);
                 heightMap.setStackingBlocked(x, y, false);
                 heightMap.setIsRoomTile(x, y, isRoomTile);
 
