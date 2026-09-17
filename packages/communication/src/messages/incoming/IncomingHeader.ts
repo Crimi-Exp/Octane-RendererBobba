@@ -677,6 +677,8 @@ export class IncomingHeader
     public static USER_BAN_INFO = 9471;
     // AIR 13 Discord preferences; official id 1600 is taken by GENERIC_ERROR, so 9472.
     public static DISCORD_PREFERENCES = 9472;
+    // BobbaTok Reward Track (battle pass), custom range.
+    public static REWARD_TRACK = 9490;
     // AIR 13 treasure hunt (server -> client). Official 1631 is taken by UNIT_EXPRESSION,
     // so the first-winner packet uses the reserved custom id 9485; the other two are official.
     public static TREASURE_HUNT_FIRST_WINNER = 9485;

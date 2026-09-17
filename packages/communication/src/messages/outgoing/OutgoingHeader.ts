@@ -740,6 +740,9 @@ export class OutgoingHeader
     // AIR 13 Discord preferences (client -> server), official ids.
     public static DISCORD_PREFERENCES = 1055;
     public static DISCORD_UPDATE_PREFERENCES = 2774;
+    // BobbaTok Reward Track (battle pass), custom range.
+    public static REWARD_TRACK_CLAIM = 9491;
+    public static REWARD_TRACK_REQUEST = 9492;
     // AIR 13 self donation tool (client -> server), official id.
     public static SELF_DONATION = 2499;
 }

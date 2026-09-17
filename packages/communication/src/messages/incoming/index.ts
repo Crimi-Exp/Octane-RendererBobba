@@ -90,3 +90,4 @@ export * from './user/inventory/subscription';
 export * from './user/wardrobe';
 export * from './userclassification';
 export * from './habbicons';
+export * from './battlepass';
