@@ -85,6 +85,10 @@ export const PrepareRenderer = async (options: Partial<AutoDetectOptions>): Prom
 
     renderer.events?.destroy();
 
+    // BobbaTok : même rendu que l'app Habbo (couleurs non gérées sur écran P3)
+    const gl = (renderer as any).gl;
+    if(gl && 'drawingBufferColorSpace' in gl) gl.drawingBufferColorSpace = 'display-p3';
+
     patchGlTextureSystem(renderer);
     patchResizeSkip(renderer);
 

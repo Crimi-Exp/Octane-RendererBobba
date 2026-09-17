@@ -1,3 +1,4 @@
+import { ColorMatrixFilter } from 'pixi.js';
 import { IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType } from '@octane/api';
 import { GetConfiguration } from '@octane/configuration';
 import { RoomSpriteMouseEvent } from '@octane/events';
@@ -87,6 +88,17 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         if(!this._master) this._master = new Container();
 
         this._master.cullableChildren = false;
+
+        // BobbaTok : contraste / saturation de la room (config room.contrast / room.saturation, 0 = off)
+        const contrast = GetConfiguration<number>('room.contrast', 0);
+        const saturation = GetConfiguration<number>('room.saturation', 0);
+        if(contrast || saturation)
+        {
+            const filter = new ColorMatrixFilter();
+            if(contrast) filter.contrast(contrast, false);
+            if(saturation) filter.saturate(saturation, true);
+            this._master.filters = [ filter ];
+        }
 
         if(!this._display)
         {
