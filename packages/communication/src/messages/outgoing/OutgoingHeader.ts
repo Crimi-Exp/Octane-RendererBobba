@@ -651,6 +651,13 @@ export class OutgoingHeader
     public static HOUSEKEEPING_SEND_HOTEL_ALERT = 9121;
     public static HOUSEKEEPING_GET_DASHBOARD = 9122;
     public static HOUSEKEEPING_LIST_ACTION_LOG = 9123;
+    public static HOUSEKEEPING_LIST_RARE_ITEMS = 9124;
+    public static HOUSEKEEPING_GET_RARE_ITEM_DETAIL = 9125;
+    public static HOUSEKEEPING_ADD_RARE_ITEM = 9126;
+    public static HOUSEKEEPING_REMOVE_RARE_ITEM = 9127;
+    public static HOUSEKEEPING_SET_RARE_ITEM_VALUE = 9128;
+    public static HOUSEKEEPING_SET_EXCHANGE_RATE = 9129;
+    public static HOUSEKEEPING_GET_EXCHANGE_RATE = 9130;
 
     // Custom features — IDs 9300+ reserved
     public static REQUEST_RARE_VALUES = 9300;

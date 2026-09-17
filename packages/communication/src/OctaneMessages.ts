@@ -24,6 +24,7 @@ import { TranslationLanguagesEvent, TranslationLanguagesRequestComposer, Transla
 import { YouTubeRoomBroadcastEvent, YouTubeRoomPlayComposer, YouTubeRoomSettingsComposer, YouTubeRoomSettingsEvent, YouTubeRoomWatchersEvent, YouTubeRoomWatchingComposer } from './messages';
 import { HousekeepingActionLogEvent, HousekeepingActionResultEvent, HousekeepingBanUserComposer, HousekeepingDashboardEvent, HousekeepingDeleteRoomComposer, HousekeepingFindRoomByIdComposer, HousekeepingFindUserByIdComposer, HousekeepingFindUserByNameComposer, HousekeepingForceDisconnectUserComposer, HousekeepingGetDashboardComposer, HousekeepingGiveCreditsComposer, HousekeepingGiveCurrencyComposer, HousekeepingGrantItemComposer, HousekeepingKickAllFromRoomComposer, HousekeepingKickUserComposer, HousekeepingListActionLogComposer, HousekeepingMuteRoomComposer, HousekeepingMuteUserComposer, HousekeepingResetUserPasswordComposer, HousekeepingRoomDetailEvent, HousekeepingRoomListEvent, HousekeepingRoomStateComposer, HousekeepingSearchRoomsComposer, HousekeepingSendHotelAlertComposer, HousekeepingSetHcSubscriptionComposer, HousekeepingSetUserRankComposer, HousekeepingTradeLockUserComposer, HousekeepingTransferRoomOwnershipComposer, HousekeepingUnbanUserComposer, HousekeepingUserDetailEvent } from './messages';
 import { CatalogAdminReorderOffersComposer, CatalogAdminSavePageIconComposer, CatalogAdminSavePageImagesComposer, CatalogAdminSetPageEnabledComposer, CatalogAdminSetPageVisibleComposer } from './messages/outgoing/catalog';
+import { HousekeepingListRareItemsComposer, HousekeepingGetRareItemDetailComposer, HousekeepingAddRareItemComposer, HousekeepingRemoveRareItemComposer, HousekeepingSetRareItemValueComposer, HousekeepingSetExchangeRateComposer, HousekeepingGetExchangeRateComposer, HousekeepingRareItemListEvent, HousekeepingRareItemDetailEvent, HousekeepingExchangeRateEvent } from './messages';
 import { CatalogStudioDocumentApplyComposer, CatalogStudioDocumentDryRunComposer, CatalogStudioExportComposer, CatalogStudioHistoryComposer, CatalogStudioOpenSessionComposer, CatalogStudioUndoComposer, CatalogStudioValidateComposer } from './messages/outgoing/catalog/studio';
 import { CatalogStudioDocumentResultEvent, CatalogStudioHistoryEvent, CatalogStudioSessionEvent, CatalogStudioUndoEvent, CatalogStudioValidationEvent } from './messages/incoming/catalog/studio';
 import { CatalogProductMetadataEvent } from './messages/incoming/catalog/metadata';
@@ -658,6 +659,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.HOUSEKEEPING_ROOM_LIST, HousekeepingRoomListEvent);
         this._events.set(IncomingHeader.HOUSEKEEPING_DASHBOARD, HousekeepingDashboardEvent);
         this._events.set(IncomingHeader.HOUSEKEEPING_ACTION_LOG, HousekeepingActionLogEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_RARE_ITEM_LIST, HousekeepingRareItemListEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_RARE_ITEM_DETAIL, HousekeepingRareItemDetailEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_EXCHANGE_RATE, HousekeepingExchangeRateEvent);
 
         // Custom features
         this._events.set(IncomingHeader.RARE_VALUES, RareValuesEvent);
@@ -1616,6 +1620,13 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.HOUSEKEEPING_SEND_HOTEL_ALERT, HousekeepingSendHotelAlertComposer);
         this._composers.set(OutgoingHeader.HOUSEKEEPING_GET_DASHBOARD, HousekeepingGetDashboardComposer);
         this._composers.set(OutgoingHeader.HOUSEKEEPING_LIST_ACTION_LOG, HousekeepingListActionLogComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_LIST_RARE_ITEMS, HousekeepingListRareItemsComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GET_RARE_ITEM_DETAIL, HousekeepingGetRareItemDetailComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_ADD_RARE_ITEM, HousekeepingAddRareItemComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_REMOVE_RARE_ITEM, HousekeepingRemoveRareItemComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SET_RARE_ITEM_VALUE, HousekeepingSetRareItemValueComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SET_EXCHANGE_RATE, HousekeepingSetExchangeRateComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GET_EXCHANGE_RATE, HousekeepingGetExchangeRateComposer);
 
         // Custom features
         this._composers.set(OutgoingHeader.REQUEST_RARE_VALUES, RequestRareValuesComposer);

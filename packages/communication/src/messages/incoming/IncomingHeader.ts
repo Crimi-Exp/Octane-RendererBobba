@@ -593,6 +593,9 @@ export class IncomingHeader
     public static HOUSEKEEPING_ROOM_LIST = 9203;
     public static HOUSEKEEPING_DASHBOARD = 9204;
     public static HOUSEKEEPING_ACTION_LOG = 9205;
+    public static HOUSEKEEPING_RARE_ITEM_LIST = 9206;
+    public static HOUSEKEEPING_RARE_ITEM_DETAIL = 9207;
+    public static HOUSEKEEPING_EXCHANGE_RATE = 9208;
 
     // Custom features — IDs 9400+ reserved
     public static RARE_VALUES = 9400;
