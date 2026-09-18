@@ -2,7 +2,7 @@ import { IMessageDataWrapper, IMessageParser } from '@octane/api';
 
 export interface RewardTrackLevelData { level: number; target: number; progress: number; points: number; }
 export interface RewardTrackTaskData { id: number; key: string; levels: RewardTrackLevelData[]; }
-export interface RewardTrackRewardData { points: number; habbiconId: number; hc: boolean; claimed: boolean; }
+export interface RewardTrackRewardData { points: number; habbiconId: number; hc: boolean; claimed: boolean; currencyType: number; currencyAmount: number; }
 
 /** BobbaTok Reward Track state (custom header 9490), see BattlePassStateComposer. */
 export class RewardTrackParser implements IMessageParser
@@ -35,7 +35,7 @@ export class RewardTrackParser implements IMessageParser
         let count = wrapper.readInt();
         while(count-- > 0)
         {
-            this._rewards.push({ points: wrapper.readInt(), habbiconId: wrapper.readInt(), hc: wrapper.readBoolean(), claimed: wrapper.readBoolean() });
+            this._rewards.push({ points: wrapper.readInt(), habbiconId: wrapper.readInt(), hc: wrapper.readBoolean(), claimed: wrapper.readBoolean(), currencyType: wrapper.readInt(), currencyAmount: wrapper.readInt() });
         }
 
         count = wrapper.readInt();
