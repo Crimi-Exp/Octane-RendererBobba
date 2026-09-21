@@ -33,6 +33,7 @@ export class RoomBuildHeightPreview
 
     public static previewZ(x: number, y: number): number
     {
-        return Math.min(this.getFloor(x, y) + (this.override ?? 0), this.maxHeight);
+        // BobbaTok : hauteur ABSOLUE (independante du sol) -> :setz 0.8 = z 0.8 meme sur un sol a 4
+        return Math.max(-this.maxHeight, Math.min(this.override ?? this.getFloor(x, y), this.maxHeight));
     }
 }
