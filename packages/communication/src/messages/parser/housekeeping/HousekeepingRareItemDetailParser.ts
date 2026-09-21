@@ -6,6 +6,7 @@ export class HousekeepingRareItemDetailParser implements IMessageParser
 {
     private _found: boolean = false;
     private _itemId: number = 0;
+    private _spriteId: number = 0;
     private _rarityTier: string = '';
     private _diamondValue: number = 0;
     private _circulation: number = 0;
@@ -21,6 +22,7 @@ export class HousekeepingRareItemDetailParser implements IMessageParser
     {
         this._found = false;
         this._itemId = 0;
+        this._spriteId = 0;
         this._rarityTier = '';
         this._diamondValue = 0;
         this._circulation = 0;
@@ -44,6 +46,7 @@ export class HousekeepingRareItemDetailParser implements IMessageParser
         if(!this._found) return true;
 
         this._itemId = wrapper.readInt();
+        this._spriteId = wrapper.readInt();
         this._rarityTier = wrapper.readString();
         this._diamondValue = wrapper.readInt();
         this._circulation = wrapper.readInt();
@@ -69,6 +72,10 @@ export class HousekeepingRareItemDetailParser implements IMessageParser
     public get itemId(): number
     {
         return this._itemId;
+    }
+    public get spriteId(): number
+    {
+        return this._spriteId;
     }
     public get rarityTier(): string
     {
