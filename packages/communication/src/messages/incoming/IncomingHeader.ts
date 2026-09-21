@@ -680,6 +680,12 @@ export class IncomingHeader
     public static DISCORD_PREFERENCES = 9472;
     // BobbaTok Reward Track (battle pass), custom range.
     public static REWARD_TRACK = 9490;
+    // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
+    // and the values that went away. Custom ids in the reserved 94xx block.
+    public static WIRED_VARIABLE_FX_CONFIGS = 9473;
+    public static WIRED_VARIABLE_FX_CONFIGS_REMOVED = 9474;
+    public static WIRED_VARIABLE_FX_STATUS = 9475;
+    public static WIRED_VARIABLE_FX_STATUS_REMOVED = 9476;
     // AIR 13 treasure hunt (server -> client). Official 1631 is taken by UNIT_EXPRESSION,
     // so the first-winner packet uses the reserved custom id 9485; the other two are official.
     public static TREASURE_HUNT_FIRST_WINNER = 9485;
