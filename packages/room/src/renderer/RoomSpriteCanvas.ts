@@ -90,8 +90,8 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         this._master.cullableChildren = false;
 
         // BobbaTok : contraste / saturation de la room (config room.contrast / room.saturation, 0 = off)
-        const contrast = GetConfiguration<number>('room.contrast', 0);
-        const saturation = GetConfiguration<number>('room.saturation', 0);
+        const contrast = GetConfiguration().getValue<number>('room.contrast', 0);
+        const saturation = GetConfiguration().getValue<number>('room.saturation', 0);
         if(contrast || saturation)
         {
             const filter = new ColorMatrixFilter();
