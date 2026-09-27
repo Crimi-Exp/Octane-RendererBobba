@@ -2457,11 +2457,19 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         return TextureUtils.createAndWriteRenderTexture(halfWidth, halfHeight, new Sprite(texture), matrix);
     }
 
+    private _mouseButtonHeld: boolean = false;
+
     public dispatchMouseEvent(canvasId: number, x: number, y: number, type: string, altKey: boolean, ctrlKey: boolean, shiftKey: boolean, buttonDown: boolean): void
     {
         const canvas = this.getRoomInstanceRenderingCanvas(this._activeRoomId, canvasId);
 
         if(!canvas) return;
+
+        // Le client n'envoie pas l'etat du bouton : on le deduit des mousedown / mouseup (peinture en direct).
+        if(type === MouseEventType.MOUSE_DOWN) this._mouseButtonHeld = true;
+        else if((type === MouseEventType.MOUSE_UP) || (type === MouseEventType.MOUSE_CLICK) || (type === MouseEventType.DOUBLE_CLICK)) this._mouseButtonHeld = false;
+
+        if(this._wallPaint) buttonDown = (buttonDown || this._mouseButtonHeld);
 
         const overlay = this.getRenderingCanvasOverlay(canvas);
         const sprite = this.getOverlayIconSprite(overlay, RoomEngine.OBJECT_ICON_SPRITE);
