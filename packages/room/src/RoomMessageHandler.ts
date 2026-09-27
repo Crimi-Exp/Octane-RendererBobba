@@ -1018,6 +1018,16 @@ export class RoomMessageHandler
         this._roomEngine.updateRoomObjectFloor(this._currentRoomId, item.itemId, location, direction, item.data.state, item.data, item.extra);
         this._roomEngine.updateRoomObjectFloorHeight(this._currentRoomId, item.itemId, item.stackHeight);
         this._roomEngine.updateRoomObjectFloorExpiration(this._currentRoomId, item.itemId, item.expires);
+
+        // BobbaTok : l'emprise d'un mobi agrandissable change apres coup, on suit les dimensions envoyees.
+        const floorObject = this._roomEngine.getRoomObject(this._currentRoomId, item.itemId, RoomObjectCategory.FLOOR);
+
+        if(floorObject && floorObject.model && (item.dimensionsX > 0) && (item.dimensionsY > 0))
+        {
+            if(floorObject.model.getValue<number>(RoomObjectVariable.FURNITURE_DIMENSIONS_X) !== item.dimensionsX) floorObject.model.setValue(RoomObjectVariable.FURNITURE_DIMENSIONS_X, item.dimensionsX);
+            if(floorObject.model.getValue<number>(RoomObjectVariable.FURNITURE_DIMENSIONS_Y) !== item.dimensionsY) floorObject.model.setValue(RoomObjectVariable.FURNITURE_DIMENSIONS_Y, item.dimensionsY);
+        }
+
         this.applyConfInvisStateToFloorObjects([ item.itemId ]);
         this.applyAreaHideStateToFloorObjects([ item.itemId ]);
     }

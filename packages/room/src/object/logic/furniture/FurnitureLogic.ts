@@ -231,6 +231,8 @@ export class FurnitureLogic extends MovingObjectLogic
         super.processUpdateMessage(message);
     }
 
+    private _scaleDataSeen: boolean = false;
+
     private processDataUpdateMessage(message: ObjectDataUpdateMessage): void
     {
         if(!message) return;
@@ -253,14 +255,24 @@ export class FurnitureLogic extends MovingObjectLogic
 
         const legacy = (typeof (message.data as any).getLegacyString === 'function') ? (message.data as any).getLegacyString() as string : null;
 
-        if(!legacy || (legacy.indexOf('|scale:') === -1)) return;
+        if(!legacy || (legacy.indexOf('|scale:') === -1))
+        {
+            this._scaleDataSeen = true;
+
+            return;
+        }
 
         const match = /\|scale:(\d+)/.exec(legacy);
 
         if(!match) return;
 
         const scale = Math.max(1, Math.min(3, parseInt(match[1], 10) || 1));
-        const previous = this.object.model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE);
+        let previous = this.object.model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE);
+
+        // Mobi deja affiche sans echelle connue (interaction changee en base apres la pose) : il etait en x1.
+        if(((previous === undefined) || (previous === null)) && this._scaleDataSeen) previous = 1;
+
+        this._scaleDataSeen = true;
 
         if(previous === scale) return;
 

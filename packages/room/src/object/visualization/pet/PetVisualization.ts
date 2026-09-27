@@ -554,6 +554,11 @@ export class PetVisualization extends FurnitureAnimatedVisualization
         return super.getAdditionalLayerCount() + PetVisualization.ADDITIONAL_SPRITE_COUNT;
     }
 
+    protected getStarLayerCount(): number
+    {
+        return 0;
+    }
+
     protected setLayerCount(count: number): void
     {
         super.setLayerCount(count);

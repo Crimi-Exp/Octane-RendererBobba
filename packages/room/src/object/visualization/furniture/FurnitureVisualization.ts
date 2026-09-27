@@ -52,14 +52,25 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     private _wiredClickThrough: boolean;
     private _hideInvisibleLayers: boolean;
 
-    // BobbaTok : mobi agrandissable (x1/x2/x3) avec effet "pop" au changement.
+    // BobbaTok : mobi agrandissable (x1/x2/x3) avec effet "pop" + nuee d'etoiles au changement.
     protected static POP_DURATION_MS: number = 420;
+    protected static STARS_DURATION_MS: number = 950;
+    protected static STARS_COUNT: number = 18;
+    private static STAR_TINTS: number[] = [ 0xFFE066, 0xFFFFFF, 0xFFB3E6, 0xA8E4FF, 0xFFD23F ];
+    private static _starTexture: Texture = null;
     protected _furniScale: number = 1;
     protected _displayScale: number = 1;
     private _popFrom: number = 1;
     private _popStartTime: number = -1;
     private _popPending: boolean = false;
     private _scaleUpdateTime: number = 0;
+    private _scaleShiftX: number = 0;
+    private _scaleShiftY: number = 0;
+    private _stars: { x: number; y: number; vx: number; vy: number; size: number; tint: number; spin: number; delay: number }[] = [];
+    private _starsStartTime: number = -1;
+    private _starsRegistered: boolean = false;
+    private _hasScaleFeature: boolean = false;
+    private _lastUpdateTime: number = 0;
 
     constructor()
     {
@@ -190,6 +201,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     {
         if(!geometry) return;
 
+        this._lastUpdateTime = time;
+
         const scale = geometry.scale;
         let updateSprites = false;
 
@@ -198,6 +211,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         if(this.updateModel(scale)) updateSprites = true;
 
         if(this.updateScalePop(time)) updateSprites = true;
+
+        if(updateSprites) this.updateScaleShift(geometry);
 
         if(this._needsLookThroughUpdate)
         {
@@ -246,9 +261,23 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
             this._popPending = false;
             this._popFrom = this._displayScale;
             this._popStartTime = time;
+            this.spawnStars(time);
         }
 
-        if(this._popStartTime < 0) return false;
+        let updated = false;
+
+        if(this._starsStartTime >= 0)
+        {
+            if((time - this._starsStartTime) >= FurnitureVisualization.STARS_DURATION_MS)
+            {
+                this._starsStartTime = -1;
+                this._stars = [];
+            }
+
+            updated = true;
+        }
+
+        if(this._popStartTime < 0) return updated;
 
         const t = (time - this._popStartTime) / FurnitureVisualization.POP_DURATION_MS;
 
@@ -268,6 +297,209 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         this._displayScale = this._popFrom + ((this._furniScale - this._popFrom) * eased);
 
         return true;
+    }
+
+    /**
+     * Un mobi agrandi occupe plus de dalles cote emulateur (1x1 -> 2x2 -> 3x3). Son point d'ancrage
+     * reste la dalle d'origine, on decale donc le dessin vers le centre de la nouvelle emprise.
+     */
+    private updateScaleShift(geometry: IRoomGeometry): void
+    {
+        this._scaleShiftX = 0;
+        this._scaleShiftY = 0;
+
+        if((this._displayScale === 1) || !this.object || !this.object.model || !geometry) return;
+
+        const model = this.object.model;
+        const dimX = (model.getValue<number>(RoomObjectVariable.FURNITURE_DIMENSIONS_X) || 1);
+        const dimY = (model.getValue<number>(RoomObjectVariable.FURNITURE_DIMENSIONS_Y) || 1);
+
+        // Les dimensions recues du serveur sont deja multipliees par l'echelle cible.
+        let baseX = Math.max(1, Math.round(dimX / this._furniScale));
+        let baseY = Math.max(1, Math.round(dimY / this._furniScale));
+
+        const rotation = Math.round((((this.object.getDirection().x % 360) + 360) % 360) / 45) % 8;
+
+        if((rotation === 2) || (rotation === 6))
+        {
+            const swap = baseX;
+
+            baseX = baseY;
+            baseY = swap;
+        }
+
+        const shiftTilesX = (baseX * (this._displayScale - 1)) / 2;
+        const shiftTilesY = (baseY * (this._displayScale - 1)) / 2;
+
+        const location = this.object.getLocation();
+        const origin = geometry.getScreenPosition(location);
+        const shifted = geometry.getScreenPosition(new Vector3d((location.x + shiftTilesX), (location.y + shiftTilesY), location.z));
+
+        if(!origin || !shifted) return;
+
+        this._scaleShiftX = (shifted.x - origin.x);
+        this._scaleShiftY = (shifted.y - origin.y);
+    }
+
+    private static getStarTexture(): Texture
+    {
+        if(FurnitureVisualization._starTexture) return FurnitureVisualization._starTexture;
+
+        if((typeof document === 'undefined') || !document.createElement) return null;
+
+        const size = 24;
+        const canvas = document.createElement('canvas');
+
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext('2d');
+
+        if(!ctx) return null;
+
+        const cx = (size / 2);
+        const cy = (size / 2);
+
+        // Halo doux
+        const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, (size / 2));
+
+        glow.addColorStop(0, 'rgba(255,255,255,0.85)');
+        glow.addColorStop(0.45, 'rgba(255,255,255,0.25)');
+        glow.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, size, size);
+
+        // Etoile a 4 branches (style "sparkle")
+        ctx.fillStyle = 'rgba(255,255,255,1)';
+        ctx.beginPath();
+
+        const outer = (size / 2) - 1;
+        const inner = (size / 9);
+
+        for(let i = 0; i < 8; i++)
+        {
+            const radius = ((i % 2) === 0) ? outer : inner;
+            const angle = ((Math.PI / 4) * i) - (Math.PI / 2);
+            const x = (cx + (Math.cos(angle) * radius));
+            const y = (cy + (Math.sin(angle) * radius));
+
+            if(i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+
+        ctx.closePath();
+        ctx.fill();
+
+        FurnitureVisualization._starTexture = Texture.from(canvas);
+
+        return FurnitureVisualization._starTexture;
+    }
+
+    private spawnStars(time: number): void
+    {
+        const texture = FurnitureVisualization.getStarTexture();
+
+        if(!texture || !this.asset) return;
+
+        if(!this._starsRegistered)
+        {
+            if(!this.asset.getAsset('bobba_star')) this.asset.addAsset('bobba_star', texture, true, 0, 0, false, false);
+
+            this._starsRegistered = true;
+        }
+
+        this._stars = [];
+
+        const count = FurnitureVisualization.STARS_COUNT;
+        const growing = (this._furniScale >= this._popFrom);
+
+        for(let i = 0; i < count; i++)
+        {
+            const angle = ((Math.PI * 2) * (i / count)) + ((Math.random() - 0.5) * 0.6);
+            const speed = (growing ? 1 : 0.6) * (55 + (Math.random() * 70)) * (0.7 + (0.3 * this._furniScale));
+
+            this._stars.push({
+                x: ((Math.random() - 0.5) * 10),
+                y: ((Math.random() - 0.5) * 10),
+                vx: (Math.cos(angle) * speed),
+                vy: ((Math.sin(angle) * speed * 0.55) - 40),
+                size: (0.45 + (Math.random() * 0.75)),
+                tint: FurnitureVisualization.STAR_TINTS[Math.floor(Math.random() * FurnitureVisualization.STAR_TINTS.length)],
+                spin: (Math.random() * Math.PI * 2),
+                delay: (Math.random() * 120)
+            });
+        }
+
+        this._starsStartTime = time;
+    }
+
+    private isStarLayer(layerId: number): boolean
+    {
+        return ((this._shadowLayerIndex >= 0) && (layerId > this._shadowLayerIndex) && (layerId <= (this._shadowLayerIndex + this.getStarLayerCount())));
+    }
+
+    private updateStarSprite(scale: number, layerId: number, time: number): void
+    {
+        const sprite = this.getSprite(layerId);
+
+        if(!sprite) return;
+
+        const index = (layerId - this._shadowLayerIndex - 1);
+        const star = this._stars[index];
+        const assetData = ((this._starsStartTime >= 0) && star) ? this.getAsset('bobba_star', layerId) : null;
+
+        if(!assetData || !assetData.texture)
+        {
+            this.resetSprite(sprite);
+            sprite.alpha = 0;
+            sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
+
+            return;
+        }
+
+        const elapsed = Math.max(0, (time - this._starsStartTime - star.delay));
+        const life = Math.min(1, (elapsed / (FurnitureVisualization.STARS_DURATION_MS - 150)));
+        const seconds = (elapsed / 1000);
+
+        // Trajectoire : jaillit du centre du mobi, ralentit, retombe un peu (gravite douce).
+        const drag = (1 - (life * 0.55));
+        const px = (star.x + (star.vx * seconds * drag));
+        const py = (star.y + (star.vy * seconds * drag) + (60 * seconds * seconds));
+
+        // Scintillement + retrecit en fin de vie.
+        const twinkle = (0.75 + (0.25 * Math.sin((seconds * 22) + star.spin)));
+        const sizeFactor = (star.size * (1 + (0.35 * this._displayScale)) * twinkle * (life < 0.15 ? (life / 0.15) : (1 - ((life - 0.15) / 0.85) * 0.6)));
+        const alpha = (life < 0.1) ? (life / 0.1) : (1 - ((life - 0.1) / 0.9));
+
+        const zoom = ((scale > 0) ? (scale / 64) : 1);
+        const magnitude = (sizeFactor * zoom);
+        const width = (assetData.texture.width * magnitude);
+        const height = (assetData.texture.height * magnitude);
+
+        // Origine : centre visuel approximatif du mobi (au-dessus de la dalle, decale vers le centre de l'emprise).
+        const originX = this._scaleShiftX;
+        const originY = (this._scaleShiftY - (18 * this._displayScale * zoom));
+
+        sprite.visible = true;
+        sprite.type = this._type;
+        sprite.texture = assetData.texture;
+        sprite.flipH = false;
+        sprite.flipV = false;
+        sprite.direction = this._direction;
+        sprite.scale = magnitude;
+        sprite.offsetX = (originX + (px * zoom) - (width / 2));
+        sprite.offsetY = (originY + (py * zoom) - (height / 2));
+        sprite.alpha = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
+        sprite.color = star.tint;
+        sprite.blendMode = 'add';
+        sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
+        sprite.tag = 'bobba_star';
+        sprite.relativeDepth = (-0.3 * FurnitureVisualization.DEPTH_MULTIPLIER);
+        sprite.name = 'bobba_star';
+        sprite.libraryAssetName = '';
+        sprite.posture = '';
+        sprite.clickHandling = false;
+        sprite.filters = null;
     }
 
     protected get pushesWindowReflection(): boolean
@@ -516,8 +748,21 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
             this._alphaChanged = true;
         }
 
-        const furniScale = Math.max(1, Math.min(3, (model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE) || 1)));
+        const rawScale = model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE);
+        const furniScale = Math.max(1, Math.min(3, (rawScale || 1)));
         const scaleUpdateTime = (model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE_UPDATE_TIME) || 0);
+
+        if(!this._hasScaleFeature && (rawScale !== undefined) && (rawScale !== null) && (this.getStarLayerCount() === 0))
+        {
+            this._hasScaleFeature = true;
+
+            if(this.getStarLayerCount() > 0)
+            {
+                // Les couches d'etoiles n'existent pas encore : on force un recalcul des couches.
+                this._cacheScale = -1;
+                this.updateObjectCounter = -1;
+            }
+        }
 
         if(furniScale !== this._furniScale)
         {
@@ -574,6 +819,13 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
     protected updateSprite(scale: number, layerId: number): void
     {
+        if(this.isStarLayer(layerId))
+        {
+            this.updateStarSprite(scale, layerId, this._lastUpdateTime);
+
+            return;
+        }
+
         const assetName = this.getSpriteAssetName(scale, layerId);
         const sprite = this.getSprite(layerId);
 
@@ -601,8 +853,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                     sprite.tag = this.getLayerTag(scale, this._direction, layerId);
                     sprite.alpha = this.getLayerAlpha(scale, this._direction, layerId);
                     sprite.color = this.getLayerColor(scale, layerId, this._selectedColor);
-                    sprite.offsetX = ((assetData.offsetX + this.getLayerXOffset(scale, this._direction, layerId)) * sizeScale);
-                    sprite.offsetY = ((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale);
+                    sprite.offsetX = (((assetData.offsetX + this.getLayerXOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftX);
+                    sprite.offsetY = (((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftY);
                     sprite.blendMode = this.getLayerBlendMode(scale, this._direction, layerId);
                     sprite.alphaTolerance = furnitureAlphaTolerance(this.getLayerIgnoreMouse(scale, this._direction, layerId), this._wiredClickThrough);
 
@@ -617,8 +869,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 }
                 else
                 {
-                    sprite.offsetX = (assetData.offsetX * sizeScale);
-                    sprite.offsetY = ((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale);
+                    sprite.offsetX = ((assetData.offsetX * sizeScale) + this._scaleShiftX);
+                    sprite.offsetY = (((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftY);
                     sprite.alpha = (48 * this._alphaMultiplier);
 
                     sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
@@ -922,7 +1174,13 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
     protected getAdditionalLayerCount(): number
     {
-        return 1;
+        return 1 + this.getStarLayerCount();
+    }
+
+    /** Couches reservees aux etoiles du "pop" : seulement pour les mobis agrandissables. */
+    protected getStarLayerCount(): number
+    {
+        return (this._hasScaleFeature ? FurnitureVisualization.STARS_COUNT : 0);
     }
 
     protected updateAnimation(scale: number): number
