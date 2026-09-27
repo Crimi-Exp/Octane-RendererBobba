@@ -98,6 +98,8 @@ export interface IRoomEngine
     addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean;
     removeWallTag(roomId: number, tagId: number): void;
     getRoomDoors(roomId: number): { x: number; y: number; z: number; dir: number }[];
+    /** Tags deja poses sur le mur clique en dernier, avec leur centre en px dans la toile de l'editeur. */
+    getWallTagsOnLastWall(): { id: number; ownerId: number; width: number; height: number; data: string; centerX: number; centerY: number }[];
     removeAllWallTags(roomId: number): void;
     getWallTagInfo(roomId: number, tagId: number): { id: number; ownerId: number; ownerName: string; width: number; height: number } | null;
     setWallTagMode(enabled: boolean): void;

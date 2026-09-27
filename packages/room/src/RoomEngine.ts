@@ -3697,6 +3697,66 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         return true;
     }
 
+    public getWallTagsOnLastWall(): { id: number; ownerId: number; width: number; height: number; data: string; centerX: number; centerY: number }[]
+    {
+        const click = this._lastWallClick;
+        const result: { id: number; ownerId: number; width: number; height: number; data: string; centerX: number; centerY: number }[] = [];
+
+        if(!click) return result;
+
+        const instance = this.getRoomInstance(click.roomId);
+
+        if(!instance) return result;
+
+        const wallLength = click.wallWidth.length;
+        const wallHeightLength = click.wallHeight.length;
+
+        if((wallLength <= 0) || (wallHeightLength <= 0)) return result;
+
+        const info = this.getWallTagWallInfo();
+        const flips = this.getWallTagAxisFlips();
+        const ux = (click.wallWidth.x / wallLength);
+        const uy = (click.wallWidth.y / wallLength);
+        const uz = (click.wallWidth.z / wallLength);
+        const vx = (click.wallHeight.x / wallHeightLength);
+        const vy = (click.wallHeight.y / wallHeightLength);
+        const vz = (click.wallHeight.z / wallHeightLength);
+
+        for(const object of instance.getRoomObjectsForCategory(RoomObjectCategory.WALL))
+        {
+            if(!object || (object.type !== 'wall_tag') || !object.model) continue;
+
+            const location = object.getLocation();
+            const dx = (location.x - click.wallLocation.x);
+            const dy = (location.y - click.wallLocation.y);
+            const dz = (location.z - click.wallLocation.z);
+            const along = ((dx * ux) + (dy * uy) + (dz * uz));
+            const up = ((dx * vx) + (dy * vy) + (dz * vz));
+            const perpX = (dx - (along * ux) - (up * vx));
+            const perpY = (dy - (along * uy) - (up * vy));
+            const perpZ = (dz - (along * uz) - (up * vz));
+            const across = Math.sqrt((perpX * perpX) + (perpY * perpY) + (perpZ * perpZ));
+
+            // Meme mur : dans le plan (a moins d'un tiers de dalle) et dans sa longueur.
+            if((across > 0.35) || (along < -0.5) || (along > (wallLength + 0.5))) continue;
+
+            const centerX = ((flips.flipX ? (wallLength - along) : along) * 32);
+            const centerY = ((flips.flipY ? (wallHeightLength - up) : up) * 32);
+
+            result.push({
+                id: (object.id - RoomEngine.WALL_TAG_ID_OFFSET),
+                ownerId: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_OWNER_ID) || 0),
+                width: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_WIDTH) || 0),
+                height: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_HEIGHT) || 0),
+                data: (object.model.getValue<string>(RoomObjectVariable.WALL_TAG_DATA) || ''),
+                centerX: Math.round(Math.max(0, Math.min(info.width, centerX))),
+                centerY: Math.round(Math.max(0, Math.min(info.height, centerY)))
+            });
+        }
+
+        return result;
+    }
+
     public getRoomDoors(roomId: number): { x: number; y: number; z: number; dir: number }[]
     {
         const instanceData = this._roomInstanceDatas.get(roomId);
