@@ -346,7 +346,8 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
                 sprite.offsetX = (-(this._canvasWidth * zoom) / 2);
                 sprite.offsetY = (-(this._canvasHeight * zoom) / 2);
                 sprite.alpha = 255;
-                sprite.alphaTolerance = AlphaTolerance.MATCH_OPAQUE_PIXELS;
+                // Un tag a la bombe est fait de gouttelettes peu opaques : on accepte le clic des 8 % d'opacite.
+                sprite.alphaTolerance = 20;
                 sprite.relativeDepth = 0;
                 sprite.clickHandling = false;
             }
