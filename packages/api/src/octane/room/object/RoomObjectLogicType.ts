@@ -17,6 +17,7 @@ export class RoomObjectLogicType
     public static FURNITURE_PLANET_SYSTEM = 'furniture_planet_system';
     public static FURNITURE_WINDOW = 'furniture_window';
     public static FURNITURE_EXTERNAL_IMAGE_WALLITEM = 'furniture_external_image_wallitem';
+    public static WALL_TAG = 'wall_tag';
     public static FURNITURE_ROOMDIMMER = 'furniture_roomdimmer';
     public static FURNITURE_SOUND_MACHINE = 'furniture_sound_machine';
     public static FURNITURE_JUKEBOX = 'furniture_jukebox';

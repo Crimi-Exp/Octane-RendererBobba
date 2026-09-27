@@ -6,6 +6,7 @@ export class RoomObjectVisualizationType
     public static FURNITURE_RESETTING_ANIMATED = 'furniture_resetting_animated';
     public static FURNITURE_POSTER = 'furniture_poster';
     public static FURNITURE_EXTERNAL_IMAGE = 'furniture_external_image';
+    public static WALL_TAG = 'wall_tag';
     public static FURNITURE_HABBOWHEEL = 'furniture_habbowheel';
     public static FURNITURE_VAL_RANDOMIZER = 'furniture_val_randomizer';
     public static FURNITURE_BOTTLE = 'furniture_bottle';

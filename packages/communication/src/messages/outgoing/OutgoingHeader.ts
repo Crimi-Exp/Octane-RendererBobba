@@ -433,6 +433,9 @@ export class OutgoingHeader
     public static GET_DAILY_TASKS = 4100;
     public static CLAIM_DAILY_TASK = 4101;
     public static GET_REWARD_TRACKS = 9450;
+    // BobbaTok : tags muraux (graffitis)
+    public static WALL_TAG_PLACE = 9493;
+    public static WALL_TAG_REMOVE = 9494;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;

@@ -283,6 +283,8 @@ export class RoomContentLoader implements IRoomContentLoader
 
         if(type === RoomObjectVisualizationType.USER) return false;
 
+        if(type === RoomObjectVisualizationType.WALL_TAG) return false;
+
         return true;
     }
 

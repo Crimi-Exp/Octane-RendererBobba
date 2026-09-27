@@ -10,6 +10,7 @@ export class RoomEngineTriggerWidgetEvent extends RoomEngineObjectEvent
     public static REQUEST_CREDITFURNI: string = 'RETWE_REQUEST_CREDITFURNI';
     public static REQUEST_STACK_HEIGHT: string = 'RETWE_REQUEST_STACK_HEIGHT';
     public static REQUEST_EXTERNAL_IMAGE: string = 'RETWE_REQUEST_EXTERNAL_IMAGE';
+    public static REQUEST_WALL_TAG: string = 'RETWE_REQUEST_WALL_TAG';
     public static REQUEST_STICKIE: string = 'RETWE_REQUEST_STICKIE';
     public static REQUEST_PRESENT: string = 'RETWE_REQUEST_PRESENT';
     public static REQUEST_TROPHY: string = 'RETWE_REQUEST_TROPHY';

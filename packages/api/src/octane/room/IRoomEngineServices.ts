@@ -44,4 +44,7 @@ export interface IRoomEngineServices
     isAreaSelectionMode(): boolean;
     whereYouClickIsWhereYouGo(): boolean;
     areaSelectionManager: IRoomAreaSelectionManager;
+    /** BobbaTok : tags muraux. */
+    isWallTagMode(): boolean;
+    onWallTagWallClicked(roomId: number, wallLocation: IVector3D, wallWidth: IVector3D, wallHeight: IVector3D, x: number, y: number, direction: number): void;
 }

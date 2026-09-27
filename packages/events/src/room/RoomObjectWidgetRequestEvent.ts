@@ -11,6 +11,7 @@ export class RoomObjectWidgetRequestEvent extends RoomObjectEvent
     public static CREDITFURNI: string = 'ROWRE_CREDITFURNI';
     public static STACK_HEIGHT: string = 'ROWRE_STACK_HEIGHT';
     public static EXTERNAL_IMAGE: string = 'ROWRE_EXTERNAL_IMAGE';
+    public static WALL_TAG: string = 'ROWRE_WALL_TAG';
     public static STICKIE: string = 'ROWRE_STICKIE';
     public static PRESENT: string = 'ROWRE_PRESENT';
     public static TROPHY: string = 'ROWRE_TROPHY';

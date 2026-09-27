@@ -7,6 +7,10 @@ export interface IRoomCreator
 {
     destroyRoom(id: number): void;
     getRoomInstance(roomId: number): IRoomInstance;
+    /** BobbaTok : tags muraux. */
+    addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean;
+    removeWallTag(roomId: number, tagId: number): void;
+    removeAllWallTags(roomId: number): void;
     updateRoomInstancePlaneVisibility(roomId: number, wallVisible: boolean, floorVisible?: boolean): boolean;
     updateRoomInstancePlaneThickness(roomId: number, wallThickness: number, floorThickness: number): boolean;
     updateRoomInstancePlaneType(roomId: number, floorType?: string, wallType?: string, landscapeType?: string, forceUpdate?: boolean): boolean;

@@ -1,5 +1,5 @@
 import { IMessageConfiguration } from '@octane/api';
-import { GoToBreedingNestFailureEvent, GroupMemberUpdateEvent, GroupMembersRefreshEvent } from './messages';
+import { GoToBreedingNestFailureEvent, GroupMemberUpdateEvent, GroupMembersRefreshEvent, WallTagAddedMessageEvent, WallTagPlaceComposer, WallTagRemoveComposer, WallTagRemovedMessageEvent, WallTagsMessageEvent } from './messages';
 import { UnsupportedOutgoingHeader } from './messages/outgoing/UnsupportedOutgoingHeader';
 import { UserSettingsPrivacyComposer } from './messages/outgoing/user/settings/UserSettingsPrivacyComposer';
 import { UserSettingsChatPreferencesComposer } from './messages/outgoing/user/settings/UserSettingsChatPreferencesComposer';
@@ -718,6 +718,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.USER_BAN_INFO, BanInfoEvent);
         this._events.set(IncomingHeader.DISCORD_PREFERENCES, DiscordPreferencesEvent);
         this._events.set(IncomingHeader.REWARD_TRACK, RewardTrackEvent);
+        this._events.set(IncomingHeader.WALL_TAGS, WallTagsMessageEvent);
+        this._events.set(IncomingHeader.WALL_TAG_ADDED, WallTagAddedMessageEvent);
+        this._events.set(IncomingHeader.WALL_TAG_REMOVED, WallTagRemovedMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
@@ -1537,6 +1540,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.GET_DAILY_TASKS, GetDailyTasksMessageComposer);
         this._composers.set(OutgoingHeader.CLAIM_DAILY_TASK, ClaimDailyTaskMessageComposer);
         this._composers.set(OutgoingHeader.GET_REWARD_TRACKS, GetRewardTracksMessageComposer);
+        this._composers.set(OutgoingHeader.WALL_TAG_PLACE, WallTagPlaceComposer);
+        this._composers.set(OutgoingHeader.WALL_TAG_REMOVE, WallTagRemoveComposer);
         this._composers.set(OutgoingHeader.CLAIM_REWARD_TRACK_PRIZE, ClaimRewardTrackPrizeMessageComposer);
         this._composers.set(OutgoingHeader.PURCHASE_REWARD_TRACK_PREMIUM, PurchaseRewardTrackPremiumMessageComposer);
         this._composers.set(OutgoingHeader.GET_QUESTS, GetQuestsMessageComposer);

@@ -1,5 +1,5 @@
 import { AvatarGuideStatus, IConnection, IMessageEvent, IRoomCreator, IRoomObjectController, IRoomObject, IVector3D, LegacyDataType, ObjectRolling, PetType, RoomObjectCategory, RoomObjectType, RoomObjectUserType, RoomObjectVariable } from '@octane/api';
-import { AreaHideMessageEvent, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser } from '@octane/communication';
+import { AreaHideMessageEvent, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { Vector3d } from '@octane/utils';
 import { FloorHeightMapMessageParser } from '@octane/communication';
@@ -78,6 +78,9 @@ export class RoomMessageHandler
             new ObjectRemoveMultipleEvent(this.onObjectRemoveMultipleEvent.bind(this)),
             new FurnitureFloorUpdateEvent(this.onFurnitureFloorUpdateEvent.bind(this)),
             new FurnitureWallAddEvent(this.onFurnitureWallAddEvent.bind(this)),
+            new WallTagsMessageEvent(this.onWallTagsMessageEvent.bind(this)),
+            new WallTagAddedMessageEvent(this.onWallTagAddedMessageEvent.bind(this)),
+            new WallTagRemovedMessageEvent(this.onWallTagRemovedMessageEvent.bind(this)),
             new FurnitureWallEvent(this.onFurnitureWallEvent.bind(this)),
             new FurnitureWallRemoveEvent(this.onFurnitureWallRemoveEvent.bind(this)),
             new ItemRemoveMultipleEvent(this.onItemRemoveMultipleEvent.bind(this)),
@@ -1095,6 +1098,39 @@ export class RoomMessageHandler
         }
 
         this._confInvisReapplyTimeouts = [];
+    }
+
+    // BobbaTok : tags muraux (graffitis)
+    private onWallTagsMessageEvent(event: WallTagsMessageEvent): void
+    {
+        if(!(event instanceof WallTagsMessageEvent) || !event.connection || !this._roomEngine) return;
+
+        for(const tag of event.getParser().tags)
+        {
+            this._roomEngine.addWallTag(this._currentRoomId, tag.id, tag.wallPosition, tag.width, tag.height, tag.data, tag.userId, tag.username, false);
+        }
+    }
+
+    private onWallTagAddedMessageEvent(event: WallTagAddedMessageEvent): void
+    {
+        if(!(event instanceof WallTagAddedMessageEvent) || !event.connection || !this._roomEngine) return;
+
+        const parser = event.getParser();
+        const tag = parser.tag;
+
+        if(!tag) return;
+
+        this._roomEngine.addWallTag(this._currentRoomId, tag.id, tag.wallPosition, tag.width, tag.height, tag.data, tag.userId, tag.username, parser.animate);
+    }
+
+    private onWallTagRemovedMessageEvent(event: WallTagRemovedMessageEvent): void
+    {
+        if(!(event instanceof WallTagRemovedMessageEvent) || !event.connection || !this._roomEngine) return;
+
+        const tagId = event.getParser().tagId;
+
+        if(tagId > 0) this._roomEngine.removeWallTag(this._currentRoomId, tagId);
+        else this._roomEngine.removeAllWallTags(this._currentRoomId);
     }
 
     private onFurnitureWallAddEvent(event: FurnitureWallAddEvent): void

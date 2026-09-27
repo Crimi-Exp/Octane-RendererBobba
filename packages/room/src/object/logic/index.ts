@@ -5,4 +5,5 @@ export * from './RoomLogic';
 export * from './RoomObjectLogicBase';
 export * from './SelectionArrowLogic';
 export * from './TileCursorLogic';
+export * from './WallTagLogic';
 export * from './furniture';

@@ -6,6 +6,7 @@ export * from './RoomEngineDimmerStateEvent';
 export * from './RoomEngineEvent';
 export * from './RoomEngineObjectEvent';
 export * from './RoomEngineObjectPlacedEvent';
+export * from './RoomEngineWallTagEvent';
 export * from './RoomEngineObjectPlacedOnUserEvent';
 export * from './RoomEngineObjectPlaySoundEvent';
 export * from './RoomEngineRoomAdEvent';

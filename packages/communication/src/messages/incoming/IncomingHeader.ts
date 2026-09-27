@@ -680,6 +680,10 @@ export class IncomingHeader
     public static DISCORD_PREFERENCES = 9472;
     // BobbaTok Reward Track (battle pass), custom range.
     public static REWARD_TRACK = 9490;
+    // BobbaTok : tags muraux (graffitis)
+    public static WALL_TAGS = 9495;
+    public static WALL_TAG_ADDED = 9496;
+    public static WALL_TAG_REMOVED = 9497;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;

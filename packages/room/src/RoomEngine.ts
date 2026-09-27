@@ -1,7 +1,7 @@
 import { IFurnitureStackingHeightMap, IGetImageListener, IImageResult, ILegacyWallGeometry, IObjectData, IPetColorResult, IPetCustomPart, IRoomAreaSelectionManager, IRoomContentListener, IRoomContentLoader, IRoomCreator, IRoomEngine, IRoomEngineServices, IRoomGeometry, IRoomInstance, IRoomManager, IRoomManagerListener, IRoomObject, IRoomObjectController, IRoomRenderer, IRoomRenderingCanvas, IRoomSessionManager, ISelectedRoomObjectData, ISessionDataManager, ITileObjectMap, IUpdateReceiver, IVector3D, LegacyDataType, MouseEventType, ObjectDataFactory, PetFigureData, RoomControllerLevel, RoomObjectCategory, RoomObjectOperationType, RoomObjectUserType, RoomObjectVariable, ToolbarIconEnum } from '@octane/api';
 import { GetCommunication, RenderRoomMessageComposer, RenderRoomThumbnailMessageComposer } from '@octane/communication';
 import { GetConfiguration } from '@octane/configuration';
-import { BadgeImageReadyEvent, GetEventDispatcher, OctaneToolbarAnimateIconEvent, RoomBackgroundColorEvent, RoomDragEvent, RoomEngineAreaHideStateEvent, RoomEngineEvent, RoomEngineObjectEvent, RoomObjectEvent, RoomObjectFurnitureActionEvent, RoomObjectMouseEvent, RoomSessionEvent, RoomToObjectOwnAvatarMoveEvent } from '@octane/events';
+import { BadgeImageReadyEvent, GetEventDispatcher, OctaneToolbarAnimateIconEvent, RoomBackgroundColorEvent, RoomDragEvent, RoomEngineAreaHideStateEvent, RoomEngineEvent, RoomEngineObjectEvent, RoomEngineWallTagEvent, RoomObjectEvent, RoomObjectFurnitureActionEvent, RoomObjectMouseEvent, RoomSessionEvent, RoomToObjectOwnAvatarMoveEvent } from '@octane/events';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { FurniId, GetTickerTime, OctaneLogger, NumberBank, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Matrix, Point, PointData, Rectangle, RenderTexture, Sprite, Texture, Ticker } from 'pixi.js';
@@ -3631,6 +3631,170 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
     public isAreaSelectionMode(): boolean
     {
         return this._areaSelectionManager.areaSelectionState !== RoomAreaSelectionManager.NOT_ACTIVE;
+    }
+
+    // ==================== BobbaTok : tags muraux (graffitis) ====================
+
+    public static WALL_TAG_ID_OFFSET: number = 1900000000;
+
+    private _wallTagMode: boolean = false;
+    private _lastWallClick: { roomId: number; wallLocation: IVector3D; wallWidth: IVector3D; wallHeight: IVector3D; x: number; y: number; direction: number } = null;
+
+    public addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean
+    {
+        const wallGeometry = this.getLegacyWallGeometry(roomId);
+
+        if(!wallGeometry) return false;
+
+        const parsed = RoomEngine.parseWallPosition(wallPosition);
+
+        if(!parsed) return false;
+
+        const location = wallGeometry.getLocation(parsed.tileX, parsed.tileY, parsed.localX, parsed.localY, parsed.side);
+        const direction = new Vector3d(wallGeometry.getDirection(parsed.side));
+        const objectId = (RoomEngine.WALL_TAG_ID_OFFSET + tagId);
+
+        let object = this.getRoomObjectWall(roomId, objectId);
+
+        if(!object) object = this.createRoomObjectWall(roomId, objectId, 'wall_tag');
+
+        if(!object || !object.model || !object.logic) return false;
+
+        const model = object.model;
+
+        model.setValue(RoomObjectVariable.FURNITURE_IS_WALL_ITEM, 1);
+        model.setValue(RoomObjectVariable.FURNITURE_REAL_ROOM_OBJECT, 0);
+        model.setValue(RoomObjectVariable.OBJECT_ACCURATE_Z_VALUE, 1);
+        model.setValue(RoomObjectVariable.WALL_TAG_ID, tagId);
+        model.setValue(RoomObjectVariable.WALL_TAG_WIDTH, width);
+        model.setValue(RoomObjectVariable.WALL_TAG_HEIGHT, height);
+        model.setValue(RoomObjectVariable.WALL_TAG_OWNER_ID, ownerId);
+        model.setValue(RoomObjectVariable.WALL_TAG_OWNER_NAME, ownerName);
+        model.setValue(RoomObjectVariable.WALL_TAG_ANIMATE, (animate ? 1 : 0));
+        model.setValue(RoomObjectVariable.WALL_TAG_DATA, data);
+
+        object.logic.processUpdateMessage(new RoomObjectUpdateMessage(location, direction));
+
+        return true;
+    }
+
+    public removeWallTag(roomId: number, tagId: number): void
+    {
+        this.removeRoomObject(roomId, (RoomEngine.WALL_TAG_ID_OFFSET + tagId), RoomObjectCategory.WALL);
+    }
+
+    public removeAllWallTags(roomId: number): void
+    {
+        const instance = this.getRoomInstance(roomId);
+
+        if(!instance) return;
+
+        const objects = instance.getRoomObjectsForCategory(RoomObjectCategory.WALL);
+        const ids: number[] = [];
+
+        for(const object of objects)
+        {
+            if(object && (object.type === 'wall_tag')) ids.push(object.id);
+        }
+
+        for(const id of ids) this.removeRoomObject(roomId, id, RoomObjectCategory.WALL);
+    }
+
+    public getWallTagInfo(roomId: number, tagId: number): { id: number; ownerId: number; ownerName: string; width: number; height: number } | null
+    {
+        const object = this.getRoomObjectWall(roomId, (RoomEngine.WALL_TAG_ID_OFFSET + tagId));
+
+        if(!object || !object.model) return null;
+
+        return {
+            id: tagId,
+            ownerId: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_OWNER_ID) || 0),
+            ownerName: (object.model.getValue<string>(RoomObjectVariable.WALL_TAG_OWNER_NAME) || ''),
+            width: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_WIDTH) || 0),
+            height: (object.model.getValue<number>(RoomObjectVariable.WALL_TAG_HEIGHT) || 0)
+        };
+    }
+
+    public setWallTagMode(enabled: boolean): void
+    {
+        if(this._wallTagMode === enabled) return;
+
+        this._wallTagMode = enabled;
+
+        if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineWallTagEvent(RoomEngineWallTagEvent.MODE_CHANGED, this._activeRoomId, '', 0, 0, enabled));
+    }
+
+    public isWallTagMode(): boolean
+    {
+        return this._wallTagMode;
+    }
+
+    /** Appele par le gestionnaire d'evenements quand un mur est clique en mode tag. */
+    public onWallTagWallClicked(roomId: number, wallLocation: IVector3D, wallWidth: IVector3D, wallHeight: IVector3D, x: number, y: number, direction: number): void
+    {
+        this._lastWallClick = { roomId, wallLocation, wallWidth, wallHeight, x, y, direction };
+
+        this.setWallTagMode(false);
+
+        const position = this.getWallTagPlacement(1, 1);
+
+        if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineWallTagEvent(RoomEngineWallTagEvent.WALL_CLICKED, roomId, position, direction));
+    }
+
+    public getWallTagPlacement(width: number, height: number): string
+    {
+        const click = this._lastWallClick;
+
+        if(!click) return '';
+
+        const wallGeometry = this.getLegacyWallGeometry(click.roomId);
+
+        if(!wallGeometry) return '';
+
+        // 32 px = 1 unite le long du mur et en hauteur (LegacyWallGeometry).
+        const sizeX = (Math.max(1, width) / 32);
+        const sizeZ = (Math.max(1, height) / 32);
+        const wallWidthLength = click.wallWidth.length;
+        const wallHeightLength = click.wallHeight.length;
+
+        let x = click.x;
+        let y = click.y;
+
+        if(wallWidthLength > sizeX) x = Math.min(Math.max(x, (sizeX / 2)), (wallWidthLength - (sizeX / 2)));
+        else x = (wallWidthLength / 2);
+
+        if(wallHeightLength > sizeZ) y = Math.min(Math.max(y, (sizeZ / 2)), (wallHeightLength - (sizeZ / 2)));
+        else y = (wallHeightLength / 2);
+
+        let location = Vector3d.sum(Vector3d.product(click.wallWidth, (x / wallWidthLength)), Vector3d.product(click.wallHeight, (y / wallHeightLength)));
+
+        location = Vector3d.sum(click.wallLocation, location);
+
+        return wallGeometry.getOldLocationString(location, click.direction);
+    }
+
+    private static parseWallPosition(position: string): { tileX: number; tileY: number; localX: number; localY: number; side: 'l' | 'r' } | null
+    {
+        if(!position || (position.indexOf(':') !== 0)) return null;
+
+        const parts = position.substring(1).trim().split(' ');
+
+        if(parts.length < 3) return null;
+
+        const tile = parts[0].replace('w=', '').split(',');
+        const local = parts[1].replace('l=', '').split(',');
+        const side = ((parts[2] === 'r') ? 'r' : 'l');
+
+        if((tile.length < 2) || (local.length < 2)) return null;
+
+        const tileX = parseInt(tile[0], 10);
+        const tileY = parseInt(tile[1], 10);
+        const localX = parseInt(local[0], 10);
+        const localY = parseInt(local[1], 10);
+
+        if([ tileX, tileY, localX, localY ].some(value => isNaN(value))) return null;
+
+        return { tileX, tileY, localX, localY, side };
     }
 
     public whereYouClickIsWhereYouGo(): boolean

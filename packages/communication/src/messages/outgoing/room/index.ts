@@ -18,3 +18,4 @@ export * from './PressKeybindComposer';
 export * from './session';
 export * from './unit';
 export * from './unit/chat';
+export * from './walltags';

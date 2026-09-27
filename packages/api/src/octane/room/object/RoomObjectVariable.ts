@@ -70,6 +70,13 @@ export class RoomObjectVariable
     public static FURNITURE_TYPE_ID: string = 'furniture_type_id';
     public static FURNITURE_EXTRAS: string = 'furniture_extras';
     public static FURNITURE_SCALE: string = 'furniture_scale';
+    public static WALL_TAG_ID: string = 'wall_tag_id';
+    public static WALL_TAG_DATA: string = 'wall_tag_data';
+    public static WALL_TAG_WIDTH: string = 'wall_tag_width';
+    public static WALL_TAG_HEIGHT: string = 'wall_tag_height';
+    public static WALL_TAG_ANIMATE: string = 'wall_tag_animate';
+    public static WALL_TAG_OWNER_ID: string = 'wall_tag_owner_id';
+    public static WALL_TAG_OWNER_NAME: string = 'wall_tag_owner_name';
     public static FURNITURE_SCALE_UPDATE_TIME: string = 'furniture_scale_update_time';
     public static FURNITURE_INVISIBLE_LAYER: string = 'furniture_invisible_layer';
     public static FURNITURE_EXPIRY_TIME: string = 'furniture_expiry_time';

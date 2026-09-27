@@ -94,6 +94,15 @@ export interface IRoomEngine
     readonly isDecorating: boolean;
     moveBlocked: boolean;
     isAreaSelectionMode(): boolean;
+    /** BobbaTok : tags muraux (graffitis). */
+    addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean;
+    removeWallTag(roomId: number, tagId: number): void;
+    removeAllWallTags(roomId: number): void;
+    getWallTagInfo(roomId: number, tagId: number): { id: number; ownerId: number; ownerName: string; width: number; height: number } | null;
+    setWallTagMode(enabled: boolean): void;
+    isWallTagMode(): boolean;
+    /** Position murale (":w=.. l=.. l") pour un tag de width x height px au dernier point de mur clique, recadree dans le mur. */
+    getWallTagPlacement(width: number, height: number): string;
     whereYouClickIsWhereYouGo(): boolean;
     /** What the room's wired asked this player's clicks on avatars and furni to do; forgotten with the room. */
     setWiredClickSettings(userOption: number, furniOption: number): void;

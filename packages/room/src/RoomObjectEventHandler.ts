@@ -220,6 +220,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
             case RoomObjectWidgetRequestEvent.CREDITFURNI:
             case RoomObjectWidgetRequestEvent.STACK_HEIGHT:
             case RoomObjectWidgetRequestEvent.EXTERNAL_IMAGE:
+            case RoomObjectWidgetRequestEvent.WALL_TAG:
             case RoomObjectWidgetRequestEvent.STICKIE:
             case RoomObjectWidgetRequestEvent.PRESENT:
             case RoomObjectWidgetRequestEvent.TROPHY:
@@ -436,6 +437,17 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         if(selectedData) operation = selectedData.operation;
 
         if(this.applyWiredClickSettings(event, roomId, operation)) return;
+
+        // BobbaTok : en mode tag, un clic sur un mur ouvre l'editeur de tag (et ne fait pas marcher l'avatar).
+        if(this._roomEngine.isWallTagMode() && (!operation || (operation === RoomObjectOperationType.OBJECT_UNDEFINED)))
+        {
+            if(event instanceof RoomObjectWallMouseEvent)
+            {
+                this._roomEngine.onWallTagWallClicked(roomId, event.wallLocation, event.wallWidth, event.wallHeight, event.x, event.y, event.direction);
+            }
+
+            return;
+        }
 
         this.clickRoomObject(event, operation);
 
@@ -868,6 +880,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 return;
             case RoomObjectWidgetRequestEvent.EXTERNAL_IMAGE:
                 GetEventDispatcher().dispatchEvent(new RoomEngineTriggerWidgetEvent(RoomEngineTriggerWidgetEvent.REQUEST_EXTERNAL_IMAGE, roomId, objectId, objectCategory));
+                return;
+            case RoomObjectWidgetRequestEvent.WALL_TAG:
+                GetEventDispatcher().dispatchEvent(new RoomEngineTriggerWidgetEvent(RoomEngineTriggerWidgetEvent.REQUEST_WALL_TAG, roomId, objectId, objectCategory));
                 return;
             case RoomObjectWidgetRequestEvent.STICKIE:
                 GetEventDispatcher().dispatchEvent(new RoomEngineTriggerWidgetEvent(RoomEngineTriggerWidgetEvent.REQUEST_STICKIE, roomId, objectId, objectCategory));
