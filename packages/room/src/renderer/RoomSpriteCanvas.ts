@@ -608,23 +608,28 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
             const spriteX = ((x + sprite.offsetX) + this._screenOffsetX);
             const spriteY = ((y + sprite.offsetY) + this._screenOffsetY);
 
+            // Dimensions a l'ecran (le sprite peut etre agrandi : assets size-32 ou mobi agrandissable).
+            const spriteMagnitude = ((sprite.scale && (sprite.scale > 0)) ? sprite.scale : 1);
+            const spriteWidth = (texture.width * spriteMagnitude);
+            const spriteHeight = (texture.height * spriteMagnitude);
+
             if(sprite.flipH)
             {
-                const checkX = ((x + (-(texture.width + (-(sprite.offsetX))))) + this._screenOffsetX);
+                const checkX = ((x + (-(spriteWidth + (-(sprite.offsetX))))) + this._screenOffsetX);
 
-                if(!this.isSpriteVisible(checkX, spriteY, texture.width, texture.height)) continue;
+                if(!this.isSpriteVisible(checkX, spriteY, spriteWidth, spriteHeight)) continue;
             }
 
             else if(sprite.flipV)
             {
-                const checkY = ((y + (-(texture.height + (-(sprite.offsetY))))) + this._screenOffsetY);
+                const checkY = ((y + (-(spriteHeight + (-(sprite.offsetY))))) + this._screenOffsetY);
 
-                if(!this.isSpriteVisible(spriteX, checkY, texture.width, texture.height)) continue;
+                if(!this.isSpriteVisible(spriteX, checkY, spriteWidth, spriteHeight)) continue;
             }
 
             else
             {
-                if(!this.isSpriteVisible(spriteX, spriteY, texture.width, texture.height)) continue;
+                if(!this.isSpriteVisible(spriteX, spriteY, spriteWidth, spriteHeight)) continue;
             }
 
             let sortableSprite = sortableCache.getSprite(spriteCount);
@@ -790,8 +795,10 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
         if(!textureSet) extendedSprite.setTexture(sprite.texture);
 
-        if(sprite.flipH) extendedSprite.scale.x = -1;
-        if(sprite.flipV) extendedSprite.scale.y = -1;
+        const magnitude = ((sprite.scale && (sprite.scale > 0)) ? sprite.scale : 1);
+
+        extendedSprite.scale.x = (sprite.flipH ? -magnitude : magnitude);
+        extendedSprite.scale.y = (sprite.flipV ? -magnitude : magnitude);
 
         this.updateEnterRoomEffect(extendedSprite, sprite);
 

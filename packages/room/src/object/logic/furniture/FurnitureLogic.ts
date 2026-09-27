@@ -242,6 +242,32 @@ export class FurnitureLogic extends MovingObjectLogic
         if(message.extra !== null) this.object.model.setValue(RoomObjectVariable.FURNITURE_EXTRAS, message.extra.toString());
 
         this.object.model.setValue(RoomObjectVariable.FURNITURE_STATE_UPDATE_TIME, this.lastUpdateTime);
+
+        this.updateFurnitureScale(message);
+    }
+
+    // BobbaTok : mobi agrandissable (interaction "scale" cote emulateur). L'extradata vaut "<etat>|scale:<n>".
+    private updateFurnitureScale(message: ObjectDataUpdateMessage): void
+    {
+        if(!message.data || !this.object.model) return;
+
+        const legacy = (typeof (message.data as any).getLegacyString === 'function') ? (message.data as any).getLegacyString() as string : null;
+
+        if(!legacy || (legacy.indexOf('|scale:') === -1)) return;
+
+        const match = /\|scale:(\d+)/.exec(legacy);
+
+        if(!match) return;
+
+        const scale = Math.max(1, Math.min(3, parseInt(match[1], 10) || 1));
+        const previous = this.object.model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE);
+
+        if(previous === scale) return;
+
+        this.object.model.setValue(RoomObjectVariable.FURNITURE_SCALE, scale);
+
+        // Pas de "pop" au chargement de la piece : uniquement quand l'echelle change apres coup.
+        if(previous !== undefined && previous !== null) this.object.model.setValue(RoomObjectVariable.FURNITURE_SCALE_UPDATE_TIME, this.lastUpdateTime);
     }
 
     private processObjectHeightUpdateMessage(message: ObjectHeightUpdateMessage): void

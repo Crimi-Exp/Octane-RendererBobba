@@ -153,9 +153,10 @@ export class RoomObjectSpriteVisualization implements IRoomObjectSpriteVisualiza
                 sprite.blendMode = objectSprite.blendMode;
                 sprite.filters = objectSprite.filters;
 
-                if(objectSprite.flipH) sprite.scale.x = -1;
+                const magnitude = ((objectSprite.scale && (objectSprite.scale > 0)) ? objectSprite.scale : 1);
 
-                if(objectSprite.flipV) sprite.scale.y = -1;
+                sprite.scale.x = (objectSprite.flipH ? -magnitude : magnitude);
+                sprite.scale.y = (objectSprite.flipV ? -magnitude : magnitude);
 
                 container.addChild(sprite);
             }

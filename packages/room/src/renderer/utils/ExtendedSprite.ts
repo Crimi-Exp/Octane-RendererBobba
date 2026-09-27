@@ -93,7 +93,11 @@ export class ExtendedSprite extends Sprite
     {
         if(!point || (this.alphaTolerance > 255) || !this.texture || (this.texture === Texture.EMPTY)) return false;
 
-        point = ExtendedSprite.SCRATCH_POINT.set((point.x * this.scale.x), (point.y * this.scale.y));
+        // Retour dans l'espace de la texture : on divise par l'echelle (marche aussi pour les flips -1).
+        const scaleX = (this.scale.x || 1);
+        const scaleY = (this.scale.y || 1);
+
+        point = ExtendedSprite.SCRATCH_POINT.set((point.x / scaleX), (point.y / scaleY));
 
         if(!super.containsPoint(point)) return false;
 

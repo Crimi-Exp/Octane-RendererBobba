@@ -69,6 +69,8 @@ export class RoomObjectVariable
     public static FURNITURE_AD_URL: string = 'furniture_ad_url';
     public static FURNITURE_TYPE_ID: string = 'furniture_type_id';
     public static FURNITURE_EXTRAS: string = 'furniture_extras';
+    public static FURNITURE_SCALE: string = 'furniture_scale';
+    public static FURNITURE_SCALE_UPDATE_TIME: string = 'furniture_scale_update_time';
     public static FURNITURE_INVISIBLE_LAYER: string = 'furniture_invisible_layer';
     public static FURNITURE_EXPIRY_TIME: string = 'furniture_expiry_time';
     public static FURNITURE_EXPIRTY_TIMESTAMP: string = 'furniture_expiry_timestamp';

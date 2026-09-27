@@ -52,6 +52,15 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     private _wiredClickThrough: boolean;
     private _hideInvisibleLayers: boolean;
 
+    // BobbaTok : mobi agrandissable (x1/x2/x3) avec effet "pop" au changement.
+    protected static POP_DURATION_MS: number = 420;
+    protected _furniScale: number = 1;
+    protected _displayScale: number = 1;
+    private _popFrom: number = 1;
+    private _popStartTime: number = -1;
+    private _popPending: boolean = false;
+    private _scaleUpdateTime: number = 0;
+
     constructor()
     {
         super();
@@ -188,6 +197,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
         if(this.updateModel(scale)) updateSprites = true;
 
+        if(this.updateScalePop(time)) updateSprites = true;
+
         if(this._needsLookThroughUpdate)
         {
             updateSprites = true;
@@ -226,6 +237,37 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 this.updateWindowReflectionSource();
             }
         }
+    }
+
+    private updateScalePop(time: number): boolean
+    {
+        if(this._popPending)
+        {
+            this._popPending = false;
+            this._popFrom = this._displayScale;
+            this._popStartTime = time;
+        }
+
+        if(this._popStartTime < 0) return false;
+
+        const t = (time - this._popStartTime) / FurnitureVisualization.POP_DURATION_MS;
+
+        if(t >= 1)
+        {
+            this._popStartTime = -1;
+            this._displayScale = this._furniScale;
+
+            return true;
+        }
+
+        // easeOutBack : depasse legerement la cible puis revient (effet "pop").
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        const eased = 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+
+        this._displayScale = this._popFrom + ((this._furniScale - this._popFrom) * eased);
+
+        return true;
     }
 
     protected get pushesWindowReflection(): boolean
@@ -474,6 +516,26 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
             this._alphaChanged = true;
         }
 
+        const furniScale = Math.max(1, Math.min(3, (model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE) || 1)));
+        const scaleUpdateTime = (model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE_UPDATE_TIME) || 0);
+
+        if(furniScale !== this._furniScale)
+        {
+            this._furniScale = furniScale;
+
+            if(scaleUpdateTime && (scaleUpdateTime !== this._scaleUpdateTime))
+            {
+                this._popPending = true;
+            }
+            else
+            {
+                this._displayScale = furniScale;
+                this._popStartTime = -1;
+            }
+        }
+
+        this._scaleUpdateTime = scaleUpdateTime;
+
         this.updateModelCounter = model.updateCounter;
 
         return true;
@@ -528,7 +590,7 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 sprite.flipV = assetData.flipV;
                 sprite.direction = this._direction;
 
-                const sizeScale = ((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1;
+                const sizeScale = (((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1) * this._displayScale;
 
                 sprite.scale = sizeScale;
 
