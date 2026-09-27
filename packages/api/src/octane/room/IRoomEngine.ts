@@ -103,6 +103,8 @@ export interface IRoomEngine
     isWallTagMode(): boolean;
     /** Position murale (":w=.. l=.. l") pour un tag de width x height px au dernier point de mur clique, recadree dans le mur. */
     getWallTagPlacement(width: number, height: number): string;
+    /** Taille max (px) d'un tag sur le mur clique en dernier, pour qu'il ne deborde pas. */
+    getWallTagMaxSize(): { width: number; height: number };
     whereYouClickIsWhereYouGo(): boolean;
     /** What the room's wired asked this player's clicks on avatars and furni to do; forgotten with the room. */
     setWiredClickSettings(userOption: number, furniOption: number): void;

@@ -3741,6 +3741,19 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineWallTagEvent(RoomEngineWallTagEvent.WALL_CLICKED, roomId, position, direction));
     }
 
+    public getWallTagMaxSize(): { width: number; height: number }
+    {
+        const click = this._lastWallClick;
+
+        if(!click) return { width: 0, height: 0 };
+
+        // 32 px = 1 unite le long du mur et en hauteur ; petite marge pour ne pas coller aux bords.
+        return {
+            width: Math.max(16, Math.floor((click.wallWidth.length * 32) - 6)),
+            height: Math.max(16, Math.floor((click.wallHeight.length * 32) - 6))
+        };
+    }
+
     public getWallTagPlacement(width: number, height: number): string
     {
         const click = this._lastWallClick;
