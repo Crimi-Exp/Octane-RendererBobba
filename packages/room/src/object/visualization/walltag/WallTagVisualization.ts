@@ -28,7 +28,9 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
     private static _dropTexture: Texture = null;
 
     private _dataKey: string = null;
-    private _image: HTMLImageElement = null;
+    private _image: CanvasImageSource = null;
+    private _previewTick: number = -1;
+    private _hidden: boolean = false;
     private _imageReady: boolean = false;
     private _width: number = 0;
     private _height: number = 0;
@@ -88,6 +90,38 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
         if(!this.object || !this.object.model || !geometry) return;
 
         const model = this.object.model;
+
+        // Cache pendant l'edition du mur (le tag est dans la toile d'apercu).
+        const hidden = (model.getValue<number>(RoomObjectVariable.WALL_TAG_HIDDEN) === 1);
+
+        if(hidden !== this._hidden)
+        {
+            this._hidden = hidden;
+            this._needsSpriteUpdate = true;
+        }
+
+        // Apercu en direct : la toile du client est la source, redessinee a chaque changement.
+        if(model.getValue<number>(RoomObjectVariable.WALL_TAG_PREVIEW) === 1)
+        {
+            const tick = (model.getValue<number>(RoomObjectVariable.WALL_TAG_PREVIEW_TICK) || 0);
+            const canvas = model.getValue<HTMLCanvasElement>(RoomObjectVariable.WALL_TAG_PREVIEW_CANVAS);
+
+            if(canvas && (tick !== this._previewTick))
+            {
+                this._previewTick = tick;
+                this._image = canvas;
+                this._width = (model.getValue<number>(RoomObjectVariable.WALL_TAG_WIDTH) || canvas.width);
+                this._height = (model.getValue<number>(RoomObjectVariable.WALL_TAG_HEIGHT) || canvas.height);
+                this._imageReady = true;
+                this._dataKey = 'preview';
+
+                if(this._finalTexture && (this._canvasWidth === this._width)) this.redrawFinal();
+                else this.buildTextures();
+
+                this._needsSpriteUpdate = true;
+            }
+        }
+
         const data = model.getValue<string>(RoomObjectVariable.WALL_TAG_DATA);
 
         if(data && (data !== this._dataKey))
@@ -284,6 +318,22 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
         this._workTexture.source.scaleMode = 'nearest';
     }
 
+    /** Redessine la texture finale en place (apercu en direct), sans reallouer. */
+    private redrawFinal(): void
+    {
+        if(!this._finalTexture || !this._image) return;
+
+        const canvas = (this._finalTexture.source.resource as HTMLCanvasElement);
+        const ctx = (canvas && canvas.getContext) ? canvas.getContext('2d') : null;
+
+        if(!ctx) { this.buildTextures(); return; }
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        this.drawSkewedImage(ctx);
+        this._finalTexture.source.update();
+    }
+
     private startReveal(time: number): void
     {
         if(!this._workCanvas) return;
@@ -407,7 +457,7 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
             const revealing = (this._revealStart >= 0);
             const texture = (revealing ? this._workTexture : this._finalTexture);
 
-            if(texture && this._imageReady)
+            if(texture && this._imageReady && !this._hidden)
             {
                 sprite.visible = true;
                 sprite.texture = texture;
@@ -419,7 +469,8 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
                 sprite.offsetY = (-(this._canvasHeight * zoom) / 2);
                 sprite.alpha = 255;
                 // Un tag a la bombe est fait de gouttelettes peu opaques : on accepte le clic des 8 % d'opacite.
-                sprite.alphaTolerance = 20;
+                // L'apercu en direct, lui, laisse passer la souris jusqu'au mur (c'est lui qu'on peint).
+                sprite.alphaTolerance = ((this._dataKey === 'preview') ? AlphaTolerance.MATCH_NOTHING : 20);
                 sprite.relativeDepth = 0;
                 sprite.clickHandling = false;
             }

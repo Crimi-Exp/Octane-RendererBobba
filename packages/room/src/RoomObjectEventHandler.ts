@@ -438,6 +438,17 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
         if(this.applyWiredClickSettings(event, roomId, operation)) return;
 
+        // BobbaTok : peinture en direct sur un mur : le clic pose un tampon / remplit, l'avatar ne bouge pas.
+        if(this._roomEngine.isWallPaintMode())
+        {
+            if(event instanceof RoomObjectWallMouseEvent)
+            {
+                this._roomEngine.onWallPaintMouse(roomId, event.wallLocation, event.wallWidth, event.wallHeight, event.x, event.y, event.direction, false, true);
+            }
+
+            return;
+        }
+
         // BobbaTok : en mode tag, un clic sur un mur ouvre l'editeur de tag (et ne fait pas marcher l'avatar).
         if(this._roomEngine.isWallTagMode() && (!operation || (operation === RoomObjectOperationType.OBJECT_UNDEFINED)))
         {
@@ -659,6 +670,21 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         if(selectedData) operation = selectedData.operation;
 
         const category = this._roomEngine.getRoomObjectCategoryForType(event.objectType);
+
+        // BobbaTok : peinture en direct : chaque mouvement sur le mur est un point du trait.
+        if(this._roomEngine.isWallPaintMode() && (category === RoomObjectCategory.ROOM))
+        {
+            if(event instanceof RoomObjectWallMouseEvent)
+            {
+                this._roomEngine.onWallPaintMouse(roomId, event.wallLocation, event.wallWidth, event.wallHeight, event.x, event.y, event.direction, event.buttonDown, false);
+            }
+            else
+            {
+                this._roomEngine.onWallPaintMouse(roomId, null, null, null, 0, 0, 0, false, false);
+            }
+
+            return;
+        }
 
         if(this._roomEngine)
         {

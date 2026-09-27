@@ -1,17 +1,19 @@
 import { IMessageComposer } from '@octane/api';
 
-/** Pose d'un tag : position murale, largeur, hauteur, PNG base64 (sans prefixe data:). */
-export class WallTagPlaceComposer implements IMessageComposer<ConstructorParameters<typeof WallTagPlaceComposer>>
+/**
+ * Pose d'un tag : position murale, largeur, hauteur, image base64 (PNG ou WebP, sans prefixe data:),
+ * puis le nombre et la liste des anciens tags du meme mur a retirer si la pose est acceptee.
+ */
+export class WallTagPlaceComposer implements IMessageComposer<(string | number)[]>
 {
-    private _data: ConstructorParameters<typeof WallTagPlaceComposer>;
+    private _data: (string | number)[];
 
-    /** replacedIds : anciens tags du meme mur a retirer, seulement si la pose est acceptee par l'emulateur. */
     constructor(wallPosition: string, width: number, height: number, data: string, replacedIds: number[] = [])
     {
-        this._data = [wallPosition, width, height, data, replacedIds.length, ...replacedIds];
+        this._data = [ wallPosition, width, height, data, replacedIds.length, ...replacedIds ];
     }
 
-    public getMessageArray()
+    public getMessageArray(): (string | number)[]
     {
         return this._data;
     }

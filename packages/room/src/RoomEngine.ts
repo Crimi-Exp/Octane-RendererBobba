@@ -2515,6 +2515,15 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
     private handleRoomDragging(canvas: IRoomRenderingCanvas, x: number, y: number, type: string, altKey: boolean, ctrlKey: boolean, shiftKey: boolean): boolean
     {
+        if(this._wallPaint)
+        {
+            // Peinture en direct : la souris sert a peindre, pas a deplacer la piece.
+            this._activeRoomIsDragged = false;
+            this._activeRoomWasDragged = false;
+
+            return false;
+        }
+
         const selectedData = this.getSelectedRoomObjectData(this._activeRoomId);
 
         if(selectedData &&
@@ -3695,6 +3704,148 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         object.logic.processUpdateMessage(new RoomObjectUpdateMessage(location, direction));
 
         return true;
+    }
+
+    // ---- peinture en direct sur le mur ----
+    private _wallPaint: { roomId: number; wallLocation: IVector3D; wallWidth: IVector3D; wallHeight: IVector3D; direction: number; hiddenIds: number[] } = null;
+    private _wallPaintDown: boolean = false;
+    private _wallPaintTick: number = 0;
+
+    public isWallPaintMode(): boolean
+    {
+        return (this._wallPaint !== null);
+    }
+
+    public startWallPaint(canvas: HTMLCanvasElement): boolean
+    {
+        const click = this._lastWallClick;
+
+        if(!click || !canvas) return false;
+
+        this.stopWallPaint();
+
+        const info = this.getWallTagWallInfo();
+        const instance = this.getRoomInstance(click.roomId);
+
+        if(!info || !instance) return false;
+
+        // Les tags deja sur ce mur sont dans la toile : on les cache le temps de l'edition.
+        const hiddenIds: number[] = [];
+
+        for(const existing of this.getWallTagsOnLastWall())
+        {
+            const object = this.getRoomObjectWall(click.roomId, (RoomEngine.WALL_TAG_ID_OFFSET + existing.id));
+
+            if(!object || !object.model) continue;
+
+            object.model.setValue(RoomObjectVariable.WALL_TAG_HIDDEN, 1);
+            hiddenIds.push(existing.id);
+        }
+
+        const objectId = RoomEngine.WALL_TAG_ID_OFFSET; // tagId 0 = apercu
+        const object = this.createRoomObjectWall(click.roomId, objectId, 'wall_tag');
+
+        if(!object || !object.model || !object.logic) return false;
+
+        const model = object.model;
+
+        model.setValue(RoomObjectVariable.FURNITURE_IS_WALL_ITEM, 1);
+        model.setValue(RoomObjectVariable.FURNITURE_REAL_ROOM_OBJECT, 0);
+        model.setValue(RoomObjectVariable.OBJECT_ACCURATE_Z_VALUE, 1);
+        model.setValue(RoomObjectVariable.WALL_TAG_ID, 0);
+        model.setValue(RoomObjectVariable.WALL_TAG_WIDTH, info.width);
+        model.setValue(RoomObjectVariable.WALL_TAG_HEIGHT, info.height);
+        model.setValue(RoomObjectVariable.WALL_TAG_PREVIEW, 1);
+        model.setValue(RoomObjectVariable.WALL_TAG_PREVIEW_CANVAS, canvas);
+        model.setValue(RoomObjectVariable.WALL_TAG_PREVIEW_TICK, ++this._wallPaintTick);
+
+        // L'apercu est centre sur le mur : sa toile couvre tout le mur.
+        const location = Vector3d.sum(click.wallLocation, Vector3d.sum(Vector3d.product(click.wallWidth, 0.5), Vector3d.product(click.wallHeight, 0.5)));
+
+        object.logic.processUpdateMessage(new RoomObjectUpdateMessage(location, new Vector3d(click.direction)));
+
+        this._wallPaint = { roomId: click.roomId, wallLocation: click.wallLocation, wallWidth: click.wallWidth, wallHeight: click.wallHeight, direction: click.direction, hiddenIds };
+        this._wallPaintDown = false;
+
+        return true;
+    }
+
+    public refreshWallPaint(): void
+    {
+        if(!this._wallPaint) return;
+
+        const object = this.getRoomObjectWall(this._wallPaint.roomId, RoomEngine.WALL_TAG_ID_OFFSET);
+
+        if(object && object.model) object.model.setValue(RoomObjectVariable.WALL_TAG_PREVIEW_TICK, ++this._wallPaintTick);
+    }
+
+    public stopWallPaint(): void
+    {
+        const paint = this._wallPaint;
+
+        if(!paint) return;
+
+        this._wallPaint = null;
+        this._wallPaintDown = false;
+
+        this.removeRoomObject(paint.roomId, RoomEngine.WALL_TAG_ID_OFFSET, RoomObjectCategory.WALL);
+
+        for(const id of paint.hiddenIds)
+        {
+            const object = this.getRoomObjectWall(paint.roomId, (RoomEngine.WALL_TAG_ID_OFFSET + id));
+
+            if(object && object.model) object.model.setValue(RoomObjectVariable.WALL_TAG_HIDDEN, 0);
+        }
+    }
+
+    /** Souris sur un mur pendant la peinture en direct : converti en px de la toile et transmis au client. */
+    public onWallPaintMouse(roomId: number, wallLocation: IVector3D, wallWidth: IVector3D, wallHeight: IVector3D, x: number, y: number, direction: number, buttonDown: boolean, click: boolean): void
+    {
+        const paint = this._wallPaint;
+
+        if(!paint || (paint.roomId !== roomId)) return;
+
+        const sameWall = (wallLocation && (Math.abs(wallLocation.x - paint.wallLocation.x) < 0.01) && (Math.abs(wallLocation.y - paint.wallLocation.y) < 0.01) && (Math.abs(wallLocation.z - paint.wallLocation.z) < 0.01) && (direction === paint.direction));
+
+        if(!sameWall)
+        {
+            // Hors du mur : on termine le trait en cours, sans dessiner.
+            if(this._wallPaintDown)
+            {
+                this._wallPaintDown = false;
+
+                const event = new RoomEngineWallTagEvent(RoomEngineWallTagEvent.PAINT, roomId);
+
+                event.buttonDown = false;
+                event.onWall = false;
+
+                if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(event);
+            }
+
+            return;
+        }
+
+        const info = this.getWallTagWallInfo();
+        const flips = this.getWallTagAxisFlips();
+        const wallLength = paint.wallWidth.length;
+        const wallHeightLength = paint.wallHeight.length;
+
+        if(!info || (wallLength <= 0) || (wallHeightLength <= 0)) return;
+
+        const canvasX = ((flips.flipX ? (wallLength - x) : x) * 32);
+        const canvasY = ((flips.flipY ? (wallHeightLength - y) : y) * 32);
+
+        const event = new RoomEngineWallTagEvent(RoomEngineWallTagEvent.PAINT, roomId);
+
+        event.x = canvasX;
+        event.y = canvasY;
+        event.buttonDown = buttonDown;
+        event.click = click;
+        event.onWall = true;
+
+        this._wallPaintDown = buttonDown;
+
+        if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(event);
     }
 
     public getWallTagsOnLastWall(): { id: number; ownerId: number; width: number; height: number; data: string; centerX: number; centerY: number }[]
