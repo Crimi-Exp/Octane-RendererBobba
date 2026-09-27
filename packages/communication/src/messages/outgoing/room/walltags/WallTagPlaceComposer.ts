@@ -5,9 +5,10 @@ export class WallTagPlaceComposer implements IMessageComposer<ConstructorParamet
 {
     private _data: ConstructorParameters<typeof WallTagPlaceComposer>;
 
-    constructor(wallPosition: string, width: number, height: number, data: string)
+    /** replacedIds : anciens tags du meme mur a retirer, seulement si la pose est acceptee par l'emulateur. */
+    constructor(wallPosition: string, width: number, height: number, data: string, replacedIds: number[] = [])
     {
-        this._data = [wallPosition, width, height, data];
+        this._data = [wallPosition, width, height, data, replacedIds.length, ...replacedIds];
     }
 
     public getMessageArray()
