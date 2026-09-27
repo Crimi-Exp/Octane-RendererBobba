@@ -884,6 +884,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
             return;
         }
 
+        this.processPendingWallTags();
+
         const startTime = new Date().valueOf();
         const furniturePerTick = 5;
         const hasTickLimit = true;
@@ -3640,25 +3642,40 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
     private _wallTagMode: boolean = false;
     private _lastWallClick: { roomId: number; wallLocation: IVector3D; wallWidth: IVector3D; wallHeight: IVector3D; x: number; y: number; direction: number } = null;
 
+    private _pendingWallTags: { roomId: number; tagId: number; wallPosition: string; width: number; height: number; data: string; ownerId: number; ownerName: string; animate: boolean }[] = [];
+
     public addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean
     {
-        const wallGeometry = this.getLegacyWallGeometry(roomId);
-
-        if(!wallGeometry) return false;
-
         const parsed = RoomEngine.parseWallPosition(wallPosition);
 
-        if(!parsed) return false;
+        if(!parsed)
+        {
+            OctaneLogger.warn('[WallTag] position murale invalide', wallPosition);
+
+            return false;
+        }
+
+        const wallGeometry = this.getLegacyWallGeometry(roomId);
+        const instance = this.getRoomInstance(roomId);
+        const objectId = (RoomEngine.WALL_TAG_ID_OFFSET + tagId);
+
+        let object = ((wallGeometry && instance) ? this.getRoomObjectWall(roomId, objectId) : null);
+
+        if(!object && wallGeometry && instance) object = this.createRoomObjectWall(roomId, objectId, 'wall_tag');
+
+        if(!object || !object.model || !object.logic)
+        {
+            // La piece n'est pas encore prete (modele / instance) : on reessaie au prochain tick.
+            if(!this._pendingWallTags.some(entry => ((entry.roomId === roomId) && (entry.tagId === tagId))))
+            {
+                this._pendingWallTags.push({ roomId, tagId, wallPosition, width, height, data, ownerId, ownerName, animate });
+            }
+
+            return false;
+        }
 
         const location = wallGeometry.getLocation(parsed.tileX, parsed.tileY, parsed.localX, parsed.localY, parsed.side);
         const direction = new Vector3d(wallGeometry.getDirection(parsed.side));
-        const objectId = (RoomEngine.WALL_TAG_ID_OFFSET + tagId);
-
-        let object = this.getRoomObjectWall(roomId, objectId);
-
-        if(!object) object = this.createRoomObjectWall(roomId, objectId, 'wall_tag');
-
-        if(!object || !object.model || !object.logic) return false;
 
         const model = object.model;
 
@@ -3680,11 +3697,31 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
     public removeWallTag(roomId: number, tagId: number): void
     {
+        this._pendingWallTags = this._pendingWallTags.filter(entry => !((entry.roomId === roomId) && (entry.tagId === tagId)));
+
         this.removeRoomObject(roomId, (RoomEngine.WALL_TAG_ID_OFFSET + tagId), RoomObjectCategory.WALL);
+    }
+
+    private processPendingWallTags(): void
+    {
+        if(!this._pendingWallTags.length) return;
+
+        const pending = this._pendingWallTags;
+
+        this._pendingWallTags = [];
+
+        for(const entry of pending)
+        {
+            if(!this._roomInstanceDatas.has(entry.roomId)) continue;
+
+            this.addWallTag(entry.roomId, entry.tagId, entry.wallPosition, entry.width, entry.height, entry.data, entry.ownerId, entry.ownerName, entry.animate);
+        }
     }
 
     public removeAllWallTags(roomId: number): void
     {
+        this._pendingWallTags = this._pendingWallTags.filter(entry => (entry.roomId !== roomId));
+
         const instance = this.getRoomInstance(roomId);
 
         if(!instance) return;

@@ -1105,7 +1105,11 @@ export class RoomMessageHandler
     {
         if(!(event instanceof WallTagsMessageEvent) || !event.connection || !this._roomEngine) return;
 
-        for(const tag of event.getParser().tags)
+        const tags = event.getParser().tags;
+
+        OctaneLogger.log(`[WallTag] ${ tags.length } tag(s) recu(s) pour la piece ${ this._currentRoomId }`);
+
+        for(const tag of tags)
         {
             this._roomEngine.addWallTag(this._currentRoomId, tag.id, tag.wallPosition, tag.width, tag.height, tag.data, tag.userId, tag.username, false);
         }
