@@ -171,7 +171,8 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
             this._imageReady = false;
         };
 
-        image.src = 'data:image/png;base64,' + data;
+        // PNG (iVBORw0KGgo) ou WebP (UklGR = RIFF) : le format est detecte sur le contenu.
+        image.src = ((data.indexOf('UklGR') === 0) ? 'data:image/webp;base64,' : 'data:image/png;base64,') + data;
     }
 
     private get skew(): number
