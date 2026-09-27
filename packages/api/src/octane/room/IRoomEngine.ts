@@ -97,6 +97,7 @@ export interface IRoomEngine
     /** BobbaTok : tags muraux (graffitis). */
     addWallTag(roomId: number, tagId: number, wallPosition: string, width: number, height: number, data: string, ownerId: number, ownerName: string, animate: boolean): boolean;
     removeWallTag(roomId: number, tagId: number): void;
+    getRoomDoors(roomId: number): { x: number; y: number; z: number; dir: number }[];
     removeAllWallTags(roomId: number): void;
     getWallTagInfo(roomId: number, tagId: number): { id: number; ownerId: number; ownerName: string; width: number; height: number } | null;
     setWallTagMode(enabled: boolean): void;

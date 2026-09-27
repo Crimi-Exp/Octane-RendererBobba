@@ -1,5 +1,7 @@
 import { AlphaTolerance, IObjectVisualizationData, IRoomGeometry, RoomObjectVariable } from '@octane/api';
+import { Vector3d } from '@octane/utils';
 import { Texture } from 'pixi.js';
+import { GetRoomEngine } from '../../../GetRoomEngine';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 
 interface WallTagDrop
@@ -38,6 +40,9 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
     private _workTexture: Texture = null;
     private _blobs: { dx: number; dy: number; scale: number }[] = [];
     private _tint: number = 0xFFFFFF;
+    /** Colonne de la porte a ne pas peindre (px de la toile), calculee depuis la geometrie de la piece. */
+    private _doorCut: { x: number; width: number } = null;
+    private _doorChecked: boolean = false;
 
     private _animatePending: boolean = false;
     private _revealStart: number = -1;
@@ -101,8 +106,12 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
         {
             this._direction = direction;
 
+            this._doorChecked = false;
+
             if(this._imageReady) this.buildTextures();
         }
+
+        if(this._imageReady && !this._doorChecked) this.updateDoorCut(geometry);
 
         if(this._imageReady && this._animatePending)
         {
@@ -180,6 +189,68 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
         ctx.setTransform(1, skew, 0, 1, 0, offsetY);
         ctx.drawImage(this._image, 0, 0, this._width, this._height);
         ctx.restore();
+
+        // La porte est un trou dans le mur : on n'y laisse jamais de peinture.
+        if(this._doorCut && (this._doorCut.width > 0))
+        {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(this._doorCut.x, 0, this._doorCut.width, this._canvasHeight);
+            ctx.restore();
+        }
+    }
+
+    /**
+     * Cherche la porte de la piece a l'ecran : si elle est sous ce tag (meme mur, a moins d'une demi-toile),
+     * sa colonne (32 px, une dalle) est retiree du dessin.
+     */
+    private updateDoorCut(geometry: IRoomGeometry): void
+    {
+        this._doorChecked = true;
+
+        const roomIdString = this.object.model.getValue<string>(RoomObjectVariable.OBJECT_ROOM_ID);
+        const roomId = ((roomIdString && (parseInt(roomIdString.split('_')[0]) || 0)) || -1);
+
+        if(roomId < 0) return;
+
+        const engine = GetRoomEngine();
+        const doors = (engine ? engine.getRoomDoors(roomId) : []);
+
+        if(!doors || !doors.length) return;
+
+        const tagScreen = geometry.getScreenPosition(this.object.getLocation());
+
+        if(!tagScreen) return;
+
+        const zoom = ((geometry.scale > 0) ? (geometry.scale / 64) : 1);
+
+        let cut: { x: number; width: number } = null;
+
+        for(const door of doors)
+        {
+            const doorScreen = geometry.getScreenPosition(new Vector3d((door.x + 0.5), (door.y + 0.5), door.z));
+
+            if(!doorScreen) continue;
+
+            const dx = ((doorScreen.x - tagScreen.x) / zoom);
+            const dy = ((doorScreen.y - tagScreen.y) / zoom);
+
+            // Le point de la porte est au sol, juste sous le tag (pas sur le mur d'en face, bien plus bas ou plus haut).
+            if((Math.abs(dx) > ((this._canvasWidth / 2) + 24)) || (dy < -24) || (dy > 240)) continue;
+
+            const margin = 3;
+
+            cut = { x: Math.round((this._canvasWidth / 2) + dx - 16 - margin), width: (32 + (margin * 2)) };
+
+            break;
+        }
+
+        if((cut === null) === (this._doorCut === null) && (!cut || ((cut.x === this._doorCut.x) && (cut.width === this._doorCut.width)))) return;
+
+        this._doorCut = cut;
+
+        this.buildTextures();
+        this._needsSpriteUpdate = true;
     }
 
     private buildTextures(): void

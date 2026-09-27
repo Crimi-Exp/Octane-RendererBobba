@@ -257,6 +257,8 @@ export class RoomContentLoader implements IRoomContentLoader
 
         if(type.indexOf('poster') === 0) return RoomObjectCategory.WALL;
 
+        if(type === RoomObjectVisualizationType.WALL_TAG) return RoomObjectCategory.WALL;
+
         if(type === 'room') return RoomObjectCategory.ROOM;
 
         if(type === RoomObjectUserType.USER) return RoomObjectCategory.UNIT;

@@ -3697,6 +3697,13 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         return true;
     }
 
+    public getRoomDoors(roomId: number): { x: number; y: number; z: number; dir: number }[]
+    {
+        const instanceData = this._roomInstanceDatas.get(roomId);
+
+        return (instanceData ? instanceData.doors : []);
+    }
+
     public removeWallTag(roomId: number, tagId: number): void
     {
         this._pendingWallTags = this._pendingWallTags.filter(entry => !((entry.roomId === roomId) && (entry.tagId === tagId)));
