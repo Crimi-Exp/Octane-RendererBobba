@@ -106,7 +106,7 @@ export interface IRoomEngine
     /** Taille max (px) d'un tag sur le mur clique en dernier, pour qu'il ne deborde pas. */
     getWallTagMaxSize(): { width: number; height: number };
     /** Le mur clique en dernier, en pixels (32 px = 1 dalle) : taille de la toile de l'editeur. */
-    getWallTagWallInfo(): { width: number; height: number; direction: number } | null;
+    getWallTagWallInfo(): { width: number; height: number; direction: number; door: { x: number; width: number } | null } | null;
     /** Position murale d'un tag dont le centre est a (centerX, centerY) px dans la toile du mur (origine en haut a gauche a l'ecran). */
     getWallTagPlacementAt(centerX: number, centerY: number, width: number, height: number): string;
     whereYouClickIsWhereYouGo(): boolean;

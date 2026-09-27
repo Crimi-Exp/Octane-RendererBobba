@@ -226,6 +226,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         const instance = this.setupRoomInstance(roomId, roomMap, floorType, wallType, landscapeType, this.getRoomInstanceModelName(roomId));
 
+        this.getRoomInstanceData(roomId).doors = roomMap.doors;
+
         if(!instance) return;
 
         this._roomAllowsDragging = true;
@@ -3791,17 +3793,51 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         };
     }
 
-    public getWallTagWallInfo(): { width: number; height: number; direction: number } | null
+    public getWallTagWallInfo(): { width: number; height: number; direction: number; door: { x: number; width: number } | null } | null
     {
         const click = this._lastWallClick;
 
         if(!click) return null;
 
-        return {
-            width: Math.max(32, Math.round(click.wallWidth.length * 32)),
-            height: Math.max(32, Math.round(click.wallHeight.length * 32)),
-            direction: click.direction
-        };
+        const width = Math.max(32, Math.round(click.wallWidth.length * 32));
+        const height = Math.max(32, Math.round(click.wallHeight.length * 32));
+
+        return { width, height, direction: click.direction, door: this.getWallTagDoorRange(width) };
+    }
+
+    /** La porte, si elle est dans ce mur : colonne (px, dans la toile de l'editeur) a ne pas peindre. */
+    private getWallTagDoorRange(canvasWidth: number): { x: number; width: number } | null
+    {
+        const click = this._lastWallClick;
+        const instanceData = (click ? this._roomInstanceDatas.get(click.roomId) : null);
+
+        if(!click || !instanceData || !instanceData.doors.length) return null;
+
+        const wallLength = click.wallWidth.length;
+
+        if(wallLength <= 0) return null;
+
+        const ux = (click.wallWidth.x / wallLength);
+        const uy = (click.wallWidth.y / wallLength);
+        const flips = this.getWallTagAxisFlips();
+
+        for(const door of instanceData.doors)
+        {
+            const dx = ((door.x + 0.5) - click.wallLocation.x);
+            const dy = ((door.y + 0.5) - click.wallLocation.y);
+            const along = ((dx * ux) + (dy * uy));
+            const across = Math.abs((dx * uy) - (dy * ux));
+
+            // La dalle de la porte touche le mur (a moins d'une dalle et demie) et se trouve dans sa longueur.
+            if((across > 1.6) || (along < -0.6) || (along > (wallLength + 0.6))) continue;
+
+            const centerPx = ((flips.flipX ? (wallLength - along) : along) * 32);
+            const margin = 3;
+
+            return { x: Math.round(centerPx - 16 - margin), width: (32 + (margin * 2)) };
+        }
+
+        return null;
     }
 
     /**

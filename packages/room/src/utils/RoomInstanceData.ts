@@ -19,6 +19,8 @@ export class RoomInstanceData
     private _floorStack: Map<number, RoomFurnitureData>;
     private _wallStack: Map<number, RoomFurnitureData>;
     private _mouseButtonCursorOwners: string[];
+    /** BobbaTok : portes du modele (pour les tags muraux). */
+    private _doors: { x: number; y: number; z: number; dir: number }[] = [];
 
     constructor(roomId: number)
     {
@@ -242,6 +244,16 @@ export class RoomInstanceData
     public get legacyGeometry(): ILegacyWallGeometry
     {
         return this._legacyGeometry;
+    }
+
+    public get doors(): { x: number; y: number; z: number; dir: number }[]
+    {
+        return this._doors;
+    }
+
+    public set doors(doors: { x: number; y: number; z: number; dir: number }[])
+    {
+        this._doors = (doors || []);
     }
 
     public get tileObjectMap(): ITileObjectMap
