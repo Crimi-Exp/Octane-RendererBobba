@@ -3791,6 +3791,78 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         };
     }
 
+    public getWallTagWallInfo(): { width: number; height: number; direction: number } | null
+    {
+        const click = this._lastWallClick;
+
+        if(!click) return null;
+
+        return {
+            width: Math.max(32, Math.round(click.wallWidth.length * 32)),
+            height: Math.max(32, Math.round(click.wallHeight.length * 32)),
+            direction: click.direction
+        };
+    }
+
+    /**
+     * Sens des axes du mur a l'ecran : l'axe "largeur" peut aller de droite a gauche selon le mur, et
+     * l'axe "hauteur" part du sol vers le haut. La toile de l'editeur a son origine en haut a gauche.
+     */
+    private getWallTagAxisFlips(): { flipX: boolean; flipY: boolean }
+    {
+        const click = this._lastWallClick;
+        const canvas = (click ? this.getRoomInstanceRenderingCanvas(click.roomId, this._activeRoomActiveCanvas) : null);
+        const geometry = (canvas ? canvas.geometry : null);
+
+        if(!click || !geometry) return { flipX: false, flipY: true };
+
+        const origin = geometry.getScreenPosition(click.wallLocation);
+        const alongWidth = geometry.getScreenPosition(Vector3d.sum(click.wallLocation, click.wallWidth));
+        const alongHeight = geometry.getScreenPosition(Vector3d.sum(click.wallLocation, click.wallHeight));
+
+        if(!origin || !alongWidth || !alongHeight) return { flipX: false, flipY: true };
+
+        return {
+            flipX: (alongWidth.x < origin.x),
+            flipY: (alongHeight.y < origin.y)
+        };
+    }
+
+    public getWallTagPlacementAt(centerX: number, centerY: number, width: number, height: number): string
+    {
+        const click = this._lastWallClick;
+
+        if(!click) return '';
+
+        const wallGeometry = this.getLegacyWallGeometry(click.roomId);
+
+        if(!wallGeometry) return '';
+
+        const info = this.getWallTagWallInfo();
+        const flips = this.getWallTagAxisFlips();
+        const wallWidthLength = click.wallWidth.length;
+        const wallHeightLength = click.wallHeight.length;
+
+        // Toile -> unites du mur (32 px par unite), en tenant compte du sens des axes.
+        let x = ((flips.flipX ? (info.width - centerX) : centerX) / 32);
+        let y = ((flips.flipY ? (info.height - centerY) : centerY) / 32);
+
+        const sizeX = (Math.max(1, width) / 32);
+        const sizeZ = (Math.max(1, height) / 32);
+
+        if(wallWidthLength > sizeX) x = Math.min(Math.max(x, (sizeX / 2)), (wallWidthLength - (sizeX / 2)));
+        else x = (wallWidthLength / 2);
+
+        if(wallHeightLength > sizeZ) y = Math.min(Math.max(y, (sizeZ / 2)), (wallHeightLength - (sizeZ / 2)));
+        else y = (wallHeightLength / 2);
+
+        let location = Vector3d.sum(Vector3d.product(click.wallWidth, (x / wallWidthLength)), Vector3d.product(click.wallHeight, (y / wallHeightLength)));
+
+        location = Vector3d.sum(click.wallLocation, location);
+
+        return wallGeometry.getOldLocationString(location, click.direction);
+    }
+
     public getWallTagPlacement(width: number, height: number): string
     {
         const click = this._lastWallClick;
