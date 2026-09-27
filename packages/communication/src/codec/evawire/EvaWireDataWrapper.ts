@@ -60,7 +60,12 @@ export class EvaWireDataWrapper implements IMessageDataWrapper
 
     public readString(): string
     {
-        const length = this.readShort();
+        // La longueur est un entier NON signe sur 16 bits (0..65535) : un readShort signe casse
+        // les chaines de plus de 32767 octets (ex. le PNG d'un tag mural).
+        let length = this.readShort();
+
+        if(length < 0) length += 65536;
+
         const buffer = this._buffer.readBytes(length);
 
         return buffer.toString('utf8');
