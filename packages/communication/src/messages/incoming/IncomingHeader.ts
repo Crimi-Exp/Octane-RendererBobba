@@ -684,6 +684,14 @@ export class IncomingHeader
     public static WALL_TAGS = 9495;
     public static WALL_TAG_ADDED = 9496;
     public static WALL_TAG_REMOVED = 9497;
+    // BobbaTok : Wobble Squabble (duel sur la bouee du Lido)
+    public static WOBBLE_QUEUE = 9610;
+    public static WOBBLE_MATCH_START = 9611;
+    public static WOBBLE_ROUND_START = 9612;
+    public static WOBBLE_STATE = 9613;
+    public static WOBBLE_NOTICE = 9614;
+    public static WOBBLE_ROUND_END = 9615;
+    public static WOBBLE_MATCH_END = 9616;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;

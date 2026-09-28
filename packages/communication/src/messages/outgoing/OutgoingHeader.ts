@@ -436,6 +436,11 @@ export class OutgoingHeader
     // BobbaTok : tags muraux (graffitis)
     public static WALL_TAG_PLACE = 9493;
     public static WALL_TAG_REMOVE = 9494;
+    // BobbaTok : Wobble Squabble
+    public static WOBBLE_JOIN = 9600;
+    public static WOBBLE_LEAVE = 9601;
+    public static WOBBLE_INPUT = 9602;
+    public static WOBBLE_ACTION = 9603;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;
