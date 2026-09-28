@@ -1,5 +1,5 @@
 import { AvatarAction, AvatarDirectionAngle, AvatarScaleType, AvatarSetType, IActiveActionData, IAnimationLayerData, IAvatarDataContainer, IAvatarEffectListener, IAvatarFigureContainer, IAvatarImage, IGraphicAsset, IPartColor, ISpriteDataContainer } from '@octane/api';
-import { GetRenderer, GetTexturePool, GetTickerTime, PaletteMapFilter, TextureUtils } from '@octane/utils';
+import { GetRenderer, GetTexturePool, GetTickerTime, OctaneLogger, PaletteMapFilter, TextureUtils } from '@octane/utils';
 import { ColorMatrixFilter, Container, Filter, ICanvas, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { AvatarFigureContainer } from './AvatarFigureContainer';
 import { AvatarImageBodyPartContainer } from './AvatarImageBodyPartContainer';
@@ -277,13 +277,23 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
     {
         if(!this._changes) return this._activeTexture;
 
-        if(!this._mainAction) return null;
+        if(!this._mainAction)
+        {
+            OctaneLogger.warn('AvatarImage: no main action, nothing to render');
+
+            return null;
+        }
 
         if(!this._actionsSorted) this.endActionAppends();
 
         const avatarCanvas = this._structure.getCanvas(this._scale, this._mainAction.definition.geometryType);
 
-        if(!avatarCanvas) return null;
+        if(!avatarCanvas)
+        {
+            OctaneLogger.warn(`AvatarImage: no canvas for geometry "${ this._mainAction.definition.geometryType }" at scale "${ this._scale }" (action ${ this._mainAction.definition.id })`);
+
+            return null;
+        }
 
         const container = this.buildAvatarContainer(avatarCanvas, setType);
 
@@ -302,6 +312,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
         if(!this._activeTexture)
         {
+            OctaneLogger.warn(`AvatarImage: texture pool returned nothing for ${ avatarCanvas.width }x${ avatarCanvas.height }`);
+
             this._activeTexture = previousTexture;
 
             return null;
@@ -334,6 +346,10 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
     public processAsImageUrl(setType: string, scale: number = 1): string
     {
         const texture = this.processAsTexture(setType, false);
+
+        // Pas de texture (pose inconnue, geometrie absente...) : null plutot qu'un plantage dans generateCanvas
+        if(!texture || !texture.source) return null;
+
         const canvas = GetRenderer().texture.generateCanvas(texture);
 
         const url = canvas.toDataURL('image/png');
