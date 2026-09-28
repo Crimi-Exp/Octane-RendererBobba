@@ -1,3 +1,4 @@
+export * from './WobbleChatComposer';
 export * from './WobbleJoinComposer';
 export * from './WobbleLeaveComposer';
 export * from './WobbleInputComposer';

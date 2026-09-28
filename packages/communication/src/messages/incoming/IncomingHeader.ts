@@ -692,6 +692,7 @@ export class IncomingHeader
     public static WOBBLE_NOTICE = 9614;
     public static WOBBLE_ROUND_END = 9615;
     public static WOBBLE_MATCH_END = 9616;
+    public static WOBBLE_CHAT = 9617;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
