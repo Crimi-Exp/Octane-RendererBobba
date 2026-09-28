@@ -1105,8 +1105,7 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
     private get cameraFollowDuration(): number
     {
-        return 1000;
-        //return (getBoolean("room.camera.follow_user")) ? 1000 : 0;
+        return GetConfiguration().getValue<boolean>('room.camera.follow_user', true) ? 1000 : 0;
     }
 
     private updateRoomCameras(time: number): void
@@ -1530,6 +1529,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         if(existing) return existing;
 
         const data = new RoomInstanceData(roomId);
+
+        data.roomCamera.moveSpeed = Number(GetConfiguration().getValue<number>('room.camera.move.speed', RoomCamera.DEFAULT_MOVE_SPEED));
 
         this._roomInstanceDatas.set(data.roomId, data);
 

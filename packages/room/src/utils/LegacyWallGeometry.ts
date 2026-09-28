@@ -309,10 +309,20 @@ export class LegacyWallGeometry implements ILegacyWallGeometry
 
     public getFloorAltitude(x: number, y: number): number
     {
-        const altitude = this.getHeight(x, y);
-        const neighbourAltitude = (altitude + 1);
+        // Like Flash: only this tile is made an int, the neighbours are compared as they are.
+        const altitude = this.getHeight(x, y) | 0;
+        const stepUp = (altitude + 1) | 0;
 
-        return altitude + (((((((((Math.trunc(this.getHeight((x - 1), (y - 1))) == neighbourAltitude) || (Math.trunc(this.getHeight(x, (y - 1))) == neighbourAltitude)) || (Math.trunc(this.getHeight((x + 1), (y - 1))) == neighbourAltitude)) || (Math.trunc(this.getHeight((x - 1), y)) == neighbourAltitude)) || (Math.trunc(this.getHeight((x + 1), y)) == neighbourAltitude)) || (Math.trunc(this.getHeight((x - 1), (y + 1))) == neighbourAltitude)) || (Math.trunc(this.getHeight(x, (y + 1))) == neighbourAltitude)) || (Math.trunc(this.getHeight((x + 1), (y + 1))) == neighbourAltitude)) ? 0.5 : 0);
+        const nextToStep = (this.getHeight(x - 1, y - 1) == stepUp)
+            || (this.getHeight(x, y - 1) == stepUp)
+            || (this.getHeight(x + 1, y - 1) == stepUp)
+            || (this.getHeight(x - 1, y) == stepUp)
+            || (this.getHeight(x + 1, y) == stepUp)
+            || (this.getHeight(x - 1, y + 1) == stepUp)
+            || (this.getHeight(x, y + 1) == stepUp)
+            || (this.getHeight(x + 1, y + 1) == stepUp);
+
+        return altitude + (nextToStep ? 0.5 : 0);
     }
 
     public isRoomTile(x: number, y: number): boolean

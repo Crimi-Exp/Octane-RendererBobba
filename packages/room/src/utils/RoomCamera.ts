@@ -3,7 +3,7 @@ import { Vector3d } from '@octane/utils';
 
 export class RoomCamera
 {
-    private static MOVE_SPEED_DENOMINATOR: number = 12;
+    public static DEFAULT_MOVE_SPEED: number = 12;
 
     private _targetId: number = -1;
     private _targetCategory: number = -2;
@@ -25,6 +25,7 @@ export class RoomCamera
     private _geometryUpdateId: number = -1;
     private _scaleChanged: boolean = false;
     private _followDuration: number;
+    private _moveSpeed: number = RoomCamera.DEFAULT_MOVE_SPEED;
 
     constructor()
     {
@@ -251,7 +252,7 @@ export class RoomCamera
             {
                 speedFactor = Math.sin(((Math.PI * difference.length) / this._moveDistance));
                 minSpeed = (speed * 0.5);
-                maxSpeed = (this._moveDistance / RoomCamera.MOVE_SPEED_DENOMINATOR);
+                maxSpeed = (this._moveDistance / this._moveSpeed);
                 moveSpeed = (minSpeed + ((maxSpeed - minSpeed) * speedFactor));
                 if(this._maintainPreviousMoveSpeed)
                 {
@@ -284,5 +285,16 @@ export class RoomCamera
     public activateFollowing(duration: number): void
     {
         this._followDuration = duration;
+    }
+
+    /** Divides the move distance into the top speed: higher is a slower, smoother glide. */
+    public get moveSpeed(): number
+    {
+        return this._moveSpeed;
+    }
+
+    public set moveSpeed(value: number)
+    {
+        this._moveSpeed = (Number.isFinite(value) && (value > 0)) ? value : RoomCamera.DEFAULT_MOVE_SPEED;
     }
 }

@@ -160,16 +160,7 @@ export class MovingObjectLogic extends RoomObjectLogicBase
                 }
 
                 // A chained hop still to come was sent with the same hint; it keeps it.
-                if(model && !this._queuedMoveMessages.length)
-                {
-                    if(model.getValue<number>(RoomObjectVariable.FURNITURE_MOVE_STYLE) > 0)
-                    {
-                        model.setValue(RoomObjectVariable.FURNITURE_MOVE_STYLE, 0);
-                        model.setValue(RoomObjectVariable.FURNITURE_MOVE_STYLE_INTENSITY, 0);
-                    }
-
-                    if(model.getValue<number>(RoomObjectVariable.FURNITURE_MOVE_OVERSHOOT)) model.setValue(RoomObjectVariable.FURNITURE_MOVE_OVERSHOOT, 0);
-                }
+                if(!this._queuedMoveMessages.length) this.clearMoveStyle();
             }
         }
 
@@ -227,11 +218,55 @@ export class MovingObjectLogic extends RoomObjectLogicBase
             }
         }
 
+        if(!(message instanceof ObjectMoveUpdateMessage) && message.location && this.isAnimating())
+        {
+            // An update for where the move ends (a state toggle mid-slide) lets the move finish.
+            if(this.matchesLocation(message.location, this.getMovementEndLocation()))
+            {
+                super.processUpdateMessage(message);
+
+                return;
+            }
+
+            // Anywhere else the furni was put there: stop the old move, or it is drawn past its tile.
+            this.resetInterpolationState();
+            this.clearMoveStyle();
+        }
+
         super.processUpdateMessage(message);
 
         if(message.location) this._location.assign(message.location);
 
         if(message instanceof ObjectMoveUpdateMessage) return this.processMoveMessage(message);
+    }
+
+    private getMovementEndLocation(): IVector3D
+    {
+        if(this._queuedMoveMessages.length) return this._queuedMoveMessages[this._queuedMoveMessages.length - 1].targetLocation;
+
+        if(this._landing) return this._landing;
+
+        const end = new Vector3d();
+
+        end.assign(this._location);
+        end.add(this._locationDelta);
+
+        return end;
+    }
+
+    private clearMoveStyle(): void
+    {
+        const model = this.object && this.object.model;
+
+        if(!model) return;
+
+        if(model.getValue<number>(RoomObjectVariable.FURNITURE_MOVE_STYLE) > 0)
+        {
+            model.setValue(RoomObjectVariable.FURNITURE_MOVE_STYLE, 0);
+            model.setValue(RoomObjectVariable.FURNITURE_MOVE_STYLE_INTENSITY, 0);
+        }
+
+        if(model.getValue<number>(RoomObjectVariable.FURNITURE_MOVE_OVERSHOOT)) model.setValue(RoomObjectVariable.FURNITURE_MOVE_OVERSHOOT, 0);
     }
 
     private shouldApplyInstantMoveMessage(message: ObjectMoveUpdateMessage): boolean
