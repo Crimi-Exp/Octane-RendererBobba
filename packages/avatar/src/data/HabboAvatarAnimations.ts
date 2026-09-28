@@ -1,3 +1,7 @@
+// HabboAvatarAnimation.xml d'AIR : valeurs ecrites pour la petite echelle (la piece SnowStorm d'AIR est en
+// echelle 32). Octane dessine SnowStorm en grande echelle : on les double, sinon la tete couchee n'est
+// decalee que de moitie et, une fois « cachee » (-100), il en reste un bout dans le canevas de 192 px.
+const SNOWWAR_OFFSET_SCALE = 2;
 const snowWarHeadOffsets = (front: boolean) => [0, 1, 2, 3].map(frame =>
 {
     const hidden = frame > 1;
@@ -8,8 +12,8 @@ const snowWarHeadOffsets = (front: boolean) => [0, 1, 2, 3].map(frame =>
             'id': direction,
             'bodyParts': [{
                 'id': 'head',
-                'dx': hidden ? -100 : ((direction < 3) === front ? 10 : -10),
-                'dy': (direction === 0 || direction === 6) ? 4 : 5
+                'dx': (hidden ? -100 : ((direction < 3) === front ? 10 : -10)) * SNOWWAR_OFFSET_SCALE,
+                'dy': (hidden ? 5 : ((direction === 0 || direction === 6) ? 4 : 5)) * SNOWWAR_OFFSET_SCALE
             }]
         }))
     };
@@ -1974,7 +1978,7 @@ export const HabboAvatarAnimations = {
                     'id': 0,
                     'directions': [0, 1, 2, 3, 4, 5, 6, 7].map(direction => ({
                         'id': direction,
-                        'bodyParts': [{ 'id': 'head', 'dx': 0, 'dy': 3 }]
+                        'bodyParts': [{ 'id': 'head', 'dx': 0, 'dy': 3 * SNOWWAR_OFFSET_SCALE }]
                     }))
                 }]
             }
