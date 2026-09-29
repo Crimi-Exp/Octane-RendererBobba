@@ -218,7 +218,11 @@ export class AvatarStructure
     {
         let partTypeIds: string[] = [];
         const bodyPartIds: string[] = [];
-        const geometryType = action.definition.geometryType;
+        // Les actions secondaires (coucou, grimaces, rire, parler...) n'ont souvent pas de geometryType dans
+        // HabboAvatarActions.json : sans repli, aucune partie du corps ne les recoit et l'avatar reste
+        // dessine debout. On prend alors la geometrie de l'action principale (debout, assis...).
+        const mainAction = avatar?.getMainAction?.();
+        const geometryType = action.definition.geometryType || ((mainAction && (mainAction !== action)) ? mainAction.definition?.geometryType : null) || 'vertical';
 
         if(action.definition.isAnimation)
         {
