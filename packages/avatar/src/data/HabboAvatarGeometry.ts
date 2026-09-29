@@ -122,6 +122,31 @@ export const HabboAvatarGeometry = {
                                 'id': 'head'
                             }
                         ]
+                    },
+                    // Calques separes pour animer un avatar piece par piece (jeux BobbaTok) : le corps sans les
+                    // bras, puis chaque bras. Memes canevas et reperes que « full » : les images se superposent.
+                    {
+                        'id': 'rig_torso',
+                        'bodyParts': [
+                            { 'id': 'top' },
+                            { 'id': 'bottom' },
+                            { 'id': 'behind' },
+                            { 'id': 'torso' },
+                            { 'id': 'leftitem' },
+                            { 'id': 'rightitem' }
+                        ]
+                    },
+                    {
+                        'id': 'rig_leftarm',
+                        'bodyParts': [
+                            { 'id': 'leftarm' }
+                        ]
+                    },
+                    {
+                        'id': 'rig_rightarm',
+                        'bodyParts': [
+                            { 'id': 'rightarm' }
+                        ]
                     }
                 ]
             }

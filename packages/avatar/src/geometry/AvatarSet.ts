@@ -45,7 +45,8 @@
             bodyParts = bodyParts.concat(avatarSet.getBodyParts());
         }
 
-        this._allBodyParts = bodyParts;
+        // Sans doublons : les calques d'animation (rig_*) reprennent des parties deja dans « body »
+        this._allBodyParts = [ ...new Set(bodyParts) ];
     }
 
     public findAvatarSet(avatarSetId: string): AvatarSet
