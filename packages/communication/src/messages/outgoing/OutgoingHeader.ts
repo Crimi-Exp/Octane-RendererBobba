@@ -442,6 +442,7 @@ export class OutgoingHeader
     public static WOBBLE_INPUT = 9602;
     public static WOBBLE_ACTION = 9603;
     public static WOBBLE_CHAT = 9604;
+    public static WOBBLE_CHALLENGE = 9605;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;
