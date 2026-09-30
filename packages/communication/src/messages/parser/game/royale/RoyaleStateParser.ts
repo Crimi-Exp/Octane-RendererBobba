@@ -25,10 +25,11 @@ export interface IRoyaleObject
 }
 
 /**
- * Etat d'une partie de Bobba Royale (a chaque changement, au moins toutes les secondes). Evenements
- * [type, a, b, c, d, e] : 1 tir (tireur, cible, touche, x, y), 2 mort (victime, tueur, place, x, y),
- * 3 ramassage (joueur, sorte, x, y, vie ou bombes), 4 zone (joueur, vie), 5 bombe lancee (lanceur, x, y,
- * meche ms, id), 6 explosion (lanceur, x, y, joueurs touches, id).
+ * Etat d'une partie de Bobba Royale (a chaque changement, au moins toutes les secondes). La zone suivante est
+ * annoncee (centre, rayon) avec l'etat de la zone (0 attente, 1 retrecit, 2 derniere) et le temps restant de
+ * cet etat. Evenements [type, a, b, c, d, e] : 1 tir (tireur, cible, touche, x, y), 2 mort (victime, tueur,
+ * place, x, y), 3 ramassage (joueur, sorte, x, y, vie ou bombes), 4 zone (joueur, vie), 5 bombe lancee
+ * (lanceur, x, y, meche ms, id), 6 explosion (lanceur, x, y, joueurs touches, id), 7 emote (joueur, emote).
  */
 export class RoyaleStateParser implements IMessageParser
 {
@@ -38,6 +39,11 @@ export class RoyaleStateParser implements IMessageParser
     private _zoneX: number;
     private _zoneY: number;
     private _zoneRadius: number;
+    private _nextX: number;
+    private _nextY: number;
+    private _nextRadius: number;
+    private _zoneState: number;
+    private _zoneMsLeft: number;
     private _players: IRoyalePlayerState[];
     private _objects: IRoyaleObject[];
     private _events: number[][];
@@ -50,6 +56,11 @@ export class RoyaleStateParser implements IMessageParser
         this._zoneX = 0;
         this._zoneY = 0;
         this._zoneRadius = 0;
+        this._nextX = 0;
+        this._nextY = 0;
+        this._nextRadius = 0;
+        this._zoneState = 0;
+        this._zoneMsLeft = 0;
         this._players = [];
         this._objects = [];
         this._events = [];
@@ -67,6 +78,11 @@ export class RoyaleStateParser implements IMessageParser
         this._zoneX = wrapper.readInt() / 100;
         this._zoneY = wrapper.readInt() / 100;
         this._zoneRadius = wrapper.readInt() / 100;
+        this._nextX = wrapper.readInt() / 100;
+        this._nextY = wrapper.readInt() / 100;
+        this._nextRadius = wrapper.readInt() / 100;
+        this._zoneState = wrapper.readInt();
+        this._zoneMsLeft = wrapper.readInt();
 
         let count = wrapper.readInt();
         for(let i = 0; i < count; i++)
@@ -129,6 +145,26 @@ export class RoyaleStateParser implements IMessageParser
     public get zoneRadius(): number
     {
         return this._zoneRadius;
+    }
+    public get nextX(): number
+    {
+        return this._nextX;
+    }
+    public get nextY(): number
+    {
+        return this._nextY;
+    }
+    public get nextRadius(): number
+    {
+        return this._nextRadius;
+    }
+    public get zoneState(): number
+    {
+        return this._zoneState;
+    }
+    public get zoneMsLeft(): number
+    {
+        return this._zoneMsLeft;
     }
     public get players(): IRoyalePlayerState[]
     {
