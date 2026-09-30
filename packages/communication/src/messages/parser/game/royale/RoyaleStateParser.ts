@@ -11,12 +11,14 @@ export interface IRoyalePlayerState
     target: number;
     kills: number;
     left: boolean;
+    /** bombes en poche */
+    bombs: number;
 }
 
 export interface IRoyaleObject
 {
     id: number;
-    /** 1 trousse de soin */
+    /** 1 trousse de soin, 2 bombe a ramasser, 3 bombe lancee (meche allumee) */
     kind: number;
     x: number;
     y: number;
@@ -25,7 +27,8 @@ export interface IRoyaleObject
 /**
  * Etat d'une partie de Bobba Royale (a chaque changement, au moins toutes les secondes). Evenements
  * [type, a, b, c, d, e] : 1 tir (tireur, cible, touche, x, y), 2 mort (victime, tueur, place, x, y),
- * 3 soin (joueur, sorte, x, y, vie), 4 zone (joueur, vie).
+ * 3 ramassage (joueur, sorte, x, y, vie ou bombes), 4 zone (joueur, vie), 5 bombe lancee (lanceur, x, y,
+ * meche ms, id), 6 explosion (lanceur, x, y, joueurs touches, id).
  */
 export class RoyaleStateParser implements IMessageParser
 {
@@ -76,7 +79,8 @@ export class RoyaleStateParser implements IMessageParser
                 alive: wrapper.readInt() !== 0,
                 target: wrapper.readInt(),
                 kills: wrapper.readInt(),
-                left: wrapper.readInt() !== 0
+                left: wrapper.readInt() !== 0,
+                bombs: wrapper.readInt()
             });
         }
 

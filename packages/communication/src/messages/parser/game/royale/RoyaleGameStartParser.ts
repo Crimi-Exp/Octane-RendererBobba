@@ -9,7 +9,10 @@ export interface IRoyalePlayerInfo
     bot: boolean;
 }
 
-/** Depart d'une partie de Bobba Royale : carte (lignes separees par | : . sol, c caisse, w mur), joueurs. */
+/**
+ * Depart d'une partie de Bobba Royale : carte (lignes separees par | : . sol, c caisse, w mur), joueurs, puis le
+ * style de carte (0 entrepot, 1 labyrinthe, 2 forteresse, 3 champ de tir, 4 allees).
+ */
 export class RoyaleGameStartParser implements IMessageParser
 {
     private _gameId: number;
@@ -20,6 +23,7 @@ export class RoyaleGameStartParser implements IMessageParser
     private _gameMs: number;
     private _gunEffect: number;
     private _players: IRoyalePlayerInfo[];
+    private _mapStyle: number;
 
     public flush(): boolean
     {
@@ -31,6 +35,7 @@ export class RoyaleGameStartParser implements IMessageParser
         this._gameMs = 0;
         this._gunEffect = 0;
         this._players = [];
+        this._mapStyle = 0;
 
         return true;
     }
@@ -58,6 +63,8 @@ export class RoyaleGameStartParser implements IMessageParser
                 bot: wrapper.readBoolean()
             });
         }
+
+        if(wrapper.bytesAvailable) this._mapStyle = wrapper.readInt();
 
         return true;
     }
@@ -93,5 +100,9 @@ export class RoyaleGameStartParser implements IMessageParser
     public get players(): IRoyalePlayerInfo[]
     {
         return this._players;
+    }
+    public get mapStyle(): number
+    {
+        return this._mapStyle;
     }
 }
