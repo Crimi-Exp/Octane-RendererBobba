@@ -22,6 +22,7 @@ export class BattleBallGameStartParser implements IMessageParser
     private _countdownMs: number;
     private _gameMs: number;
     private _players: IBattleBallPlayerInfo[];
+    private _teamEffects: number[];
 
     public flush(): boolean
     {
@@ -34,6 +35,7 @@ export class BattleBallGameStartParser implements IMessageParser
         this._countdownMs = 0;
         this._gameMs = 0;
         this._players = [];
+        this._teamEffects = [];
 
         return true;
     }
@@ -63,6 +65,11 @@ export class BattleBallGameStartParser implements IMessageParser
                 team: wrapper.readInt()
             });
         }
+
+        // Effets d'avatar (enables) de chaque equipe, ajoutes apres coup : un vieil emulateur ne les envoie pas
+        if(!wrapper.bytesAvailable) return true;
+        const effects = wrapper.readInt();
+        for(let i = 0; i < effects; i++) this._teamEffects.push(wrapper.readInt());
 
         return true;
     }
@@ -102,5 +109,10 @@ export class BattleBallGameStartParser implements IMessageParser
     public get players(): IBattleBallPlayerInfo[]
     {
         return this._players;
+    }
+    /** Effet d'avatar (enable) de chaque equipe, 0 = balle dessinee par le client. */
+    public get teamEffects(): number[]
+    {
+        return this._teamEffects;
     }
 }
