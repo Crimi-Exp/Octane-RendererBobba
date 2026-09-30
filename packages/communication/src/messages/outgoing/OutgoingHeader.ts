@@ -448,6 +448,10 @@ export class OutgoingHeader
     public static KART_LEAVE = 9621;
     public static KART_INPUT = 9622;
     public static KART_ITEM = 9623;
+    public static BATTLEBALL_JOIN = 9640;
+    public static BATTLEBALL_LEAVE = 9641;
+    public static BATTLEBALL_MOVE = 9642;
+    public static BATTLEBALL_POWER = 9643;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;

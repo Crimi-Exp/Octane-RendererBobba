@@ -4,5 +4,6 @@ export * from './ingame';
 export * from './lobby';
 export * from './score';
 export * from './snowwar';
+export * from './battleball';
 export * from './kart';
 export * from './wobble';

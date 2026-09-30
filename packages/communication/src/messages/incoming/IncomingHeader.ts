@@ -699,6 +699,10 @@ export class IncomingHeader
     public static KART_STATE = 9632;
     public static KART_EVENT = 9633;
     public static KART_RACE_END = 9634;
+    public static BATTLEBALL_QUEUE = 9650;
+    public static BATTLEBALL_GAME_START = 9651;
+    public static BATTLEBALL_STATE = 9652;
+    public static BATTLEBALL_GAME_END = 9653;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
