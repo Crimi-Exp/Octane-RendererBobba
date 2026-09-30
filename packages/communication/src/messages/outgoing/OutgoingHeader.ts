@@ -443,6 +443,11 @@ export class OutgoingHeader
     public static WOBBLE_ACTION = 9603;
     public static WOBBLE_CHAT = 9604;
     public static WOBBLE_CHALLENGE = 9605;
+    // BobbaTok : BobbaKart
+    public static KART_JOIN = 9620;
+    public static KART_LEAVE = 9621;
+    public static KART_INPUT = 9622;
+    public static KART_ITEM = 9623;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;

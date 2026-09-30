@@ -693,6 +693,12 @@ export class IncomingHeader
     public static WOBBLE_ROUND_END = 9615;
     public static WOBBLE_MATCH_END = 9616;
     public static WOBBLE_CHAT = 9617;
+    // BobbaTok : BobbaKart
+    public static KART_QUEUE = 9630;
+    public static KART_RACE_START = 9631;
+    public static KART_STATE = 9632;
+    public static KART_EVENT = 9633;
+    public static KART_RACE_END = 9634;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
