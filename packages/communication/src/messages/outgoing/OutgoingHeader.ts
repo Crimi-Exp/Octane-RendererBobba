@@ -452,6 +452,10 @@ export class OutgoingHeader
     public static BATTLEBALL_LEAVE = 9641;
     public static BATTLEBALL_MOVE = 9642;
     public static BATTLEBALL_POWER = 9643;
+    public static ROYALE_JOIN = 9660;
+    public static ROYALE_LEAVE = 9661;
+    public static ROYALE_MOVE = 9662;
+    public static ROYALE_ATTACK = 9663;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;

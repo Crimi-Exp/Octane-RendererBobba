@@ -703,6 +703,10 @@ export class IncomingHeader
     public static BATTLEBALL_GAME_START = 9651;
     public static BATTLEBALL_STATE = 9652;
     public static BATTLEBALL_GAME_END = 9653;
+    public static ROYALE_QUEUE = 9670;
+    public static ROYALE_GAME_START = 9671;
+    public static ROYALE_STATE = 9672;
+    public static ROYALE_GAME_END = 9673;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;

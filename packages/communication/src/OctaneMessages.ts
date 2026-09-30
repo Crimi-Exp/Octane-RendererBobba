@@ -14,6 +14,7 @@ import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomF
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
 import { SnowWarGetAllTimeFriendsLeaderboardComposer, SnowWarGetAllTimeLeaderboardComposer, SnowWarGetWeeklyFriendsLeaderboardComposer, SnowWarGetWeeklyLeaderboardComposer, SnowWarSelectArenaComposer } from './messages';
+import { RoyaleAttackComposer, RoyaleGameEndEvent, RoyaleGameStartEvent, RoyaleJoinComposer, RoyaleLeaveComposer, RoyaleMoveComposer, RoyaleQueueEvent, RoyaleStateEvent } from './messages';
 import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinComposer, BattleBallLeaveComposer, BattleBallMoveComposer, BattleBallPowerComposer, BattleBallQueueEvent, BattleBallStateEvent } from './messages';
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
 import { WobbleChallengeComposer, WobbleChatComposer, WobbleChatEvent, WobbleActionComposer, WobbleInputComposer, WobbleJoinComposer, WobbleLeaveComposer, WobbleMatchEndEvent, WobbleMatchStartEvent, WobbleNoticeEvent, WobbleQueueEvent, WobbleRoundEndEvent, WobbleRoundStartEvent, WobbleStateEvent } from './messages';
@@ -741,6 +742,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.BATTLEBALL_GAME_START, BattleBallGameStartEvent);
         this._events.set(IncomingHeader.BATTLEBALL_STATE, BattleBallStateEvent);
         this._events.set(IncomingHeader.BATTLEBALL_GAME_END, BattleBallGameEndEvent);
+        this._events.set(IncomingHeader.ROYALE_QUEUE, RoyaleQueueEvent);
+        this._events.set(IncomingHeader.ROYALE_GAME_START, RoyaleGameStartEvent);
+        this._events.set(IncomingHeader.ROYALE_STATE, RoyaleStateEvent);
+        this._events.set(IncomingHeader.ROYALE_GAME_END, RoyaleGameEndEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
@@ -1576,6 +1581,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.BATTLEBALL_LEAVE, BattleBallLeaveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_MOVE, BattleBallMoveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_POWER, BattleBallPowerComposer);
+        this._composers.set(OutgoingHeader.ROYALE_JOIN, RoyaleJoinComposer);
+        this._composers.set(OutgoingHeader.ROYALE_LEAVE, RoyaleLeaveComposer);
+        this._composers.set(OutgoingHeader.ROYALE_MOVE, RoyaleMoveComposer);
+        this._composers.set(OutgoingHeader.ROYALE_ATTACK, RoyaleAttackComposer);
         this._composers.set(OutgoingHeader.CLAIM_REWARD_TRACK_PRIZE, ClaimRewardTrackPrizeMessageComposer);
         this._composers.set(OutgoingHeader.PURCHASE_REWARD_TRACK_PREMIUM, PurchaseRewardTrackPremiumMessageComposer);
         this._composers.set(OutgoingHeader.GET_QUESTS, GetQuestsMessageComposer);
