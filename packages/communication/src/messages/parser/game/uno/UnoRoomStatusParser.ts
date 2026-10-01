@@ -8,6 +8,8 @@ export interface IUnoRoomStatus
     /** 0 rien, 1 dans un salon, 2 en partie */
     status: number;
     freeSeats: number;
+    /** la derniere carte posee (0 = aucune) */
+    card: number;
 }
 
 /** Qui joue au UNO dans l'appart : liste complete ou mise a jour. */
@@ -37,7 +39,8 @@ export class UnoRoomStatusParser implements IMessageParser
             const unitId = wrapper.readInt();
             const status = wrapper.readInt();
             const freeSeats = wrapper.readInt();
-            this._entries.push({ userId, unitId, status, freeSeats });
+            const card = wrapper.readInt();
+            this._entries.push({ userId, unitId, status, freeSeats, card });
         }
 
         return true;
