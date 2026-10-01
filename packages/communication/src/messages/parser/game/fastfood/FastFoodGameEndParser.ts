@@ -2,8 +2,8 @@ import { IMessageDataWrapper, IMessageParser } from '@octane/api';
 
 /**
  * Fin FastFood : parti ou non, gagnant (-1 = personne), place / plats servis / plats casses / missiles reussis de
- * chaque joueur, points gagnes, tes totaux (parties, victoires, plats, points), puis le pouvoir gagne (0 rien,
- * 2 missile, 3 bouclier) et ton stock de missiles et de boucliers (-1 = partie contre les bots).
+ * chaque joueur, points gagnes, tes totaux (parties, victoires, plats, points), puis les missiles et boucliers
+ * gagnes et ton stock de missiles et de boucliers (-1 = partie contre les bots).
  */
 export class FastFoodGameEndParser implements IMessageParser
 {
@@ -18,7 +18,8 @@ export class FastFoodGameEndParser implements IMessageParser
     private _totalWins: number;
     private _totalDishes: number;
     private _totalPoints: number;
-    private _reward: number;
+    private _gainedRockets: number;
+    private _gainedShields: number;
     private _stockRockets: number;
     private _stockShields: number;
 
@@ -35,7 +36,8 @@ export class FastFoodGameEndParser implements IMessageParser
         this._totalWins = 0;
         this._totalDishes = 0;
         this._totalPoints = 0;
-        this._reward = 0;
+        this._gainedRockets = 0;
+        this._gainedShields = 0;
         this._stockRockets = -1;
         this._stockShields = -1;
 
@@ -63,7 +65,8 @@ export class FastFoodGameEndParser implements IMessageParser
         this._totalPoints = wrapper.readInt();
         if(wrapper.bytesAvailable)
         {
-            this._reward = wrapper.readInt();
+            this._gainedRockets = wrapper.readInt();
+            this._gainedShields = wrapper.readInt();
             this._stockRockets = wrapper.readInt();
             this._stockShields = wrapper.readInt();
         }
@@ -115,9 +118,13 @@ export class FastFoodGameEndParser implements IMessageParser
     {
         return this._totalPoints;
     }
-    public get reward(): number
+    public get gainedRockets(): number
     {
-        return this._reward;
+        return this._gainedRockets;
+    }
+    public get gainedShields(): number
+    {
+        return this._gainedShields;
     }
     public get stockRockets(): number
     {
