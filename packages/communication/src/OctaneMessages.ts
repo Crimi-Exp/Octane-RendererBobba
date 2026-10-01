@@ -14,6 +14,7 @@ import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomF
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
 import { SnowWarGetAllTimeFriendsLeaderboardComposer, SnowWarGetAllTimeLeaderboardComposer, SnowWarGetWeeklyFriendsLeaderboardComposer, SnowWarGetWeeklyLeaderboardComposer, SnowWarSelectArenaComposer } from './messages';
+import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
 import { RoyaleAttackComposer, RoyaleGameEndEvent, RoyaleGameStartEvent, RoyaleJoinComposer, RoyaleLeaveComposer, RoyaleMoveComposer, RoyaleQueueEvent, RoyaleStateEvent } from './messages';
 import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinComposer, BattleBallLeaveComposer, BattleBallMoveComposer, BattleBallPowerComposer, BattleBallQueueEvent, BattleBallStateEvent } from './messages';
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
@@ -746,6 +747,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.ROYALE_GAME_START, RoyaleGameStartEvent);
         this._events.set(IncomingHeader.ROYALE_STATE, RoyaleStateEvent);
         this._events.set(IncomingHeader.ROYALE_GAME_END, RoyaleGameEndEvent);
+        this._events.set(IncomingHeader.FASTFOOD_QUEUE, FastFoodQueueEvent);
+        this._events.set(IncomingHeader.FASTFOOD_GAME_START, FastFoodGameStartEvent);
+        this._events.set(IncomingHeader.FASTFOOD_STATE, FastFoodStateEvent);
+        this._events.set(IncomingHeader.FASTFOOD_GAME_END, FastFoodGameEndEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
@@ -1585,6 +1590,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.ROYALE_LEAVE, RoyaleLeaveComposer);
         this._composers.set(OutgoingHeader.ROYALE_MOVE, RoyaleMoveComposer);
         this._composers.set(OutgoingHeader.ROYALE_ATTACK, RoyaleAttackComposer);
+        this._composers.set(OutgoingHeader.FASTFOOD_JOIN, FastFoodJoinComposer);
+        this._composers.set(OutgoingHeader.FASTFOOD_LEAVE, FastFoodLeaveComposer);
+        this._composers.set(OutgoingHeader.FASTFOOD_ACTION, FastFoodActionComposer);
         this._composers.set(OutgoingHeader.CLAIM_REWARD_TRACK_PRIZE, ClaimRewardTrackPrizeMessageComposer);
         this._composers.set(OutgoingHeader.PURCHASE_REWARD_TRACK_PREMIUM, PurchaseRewardTrackPremiumMessageComposer);
         this._composers.set(OutgoingHeader.GET_QUESTS, GetQuestsMessageComposer);

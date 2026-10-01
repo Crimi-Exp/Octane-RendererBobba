@@ -456,6 +456,9 @@ export class OutgoingHeader
     public static ROYALE_LEAVE = 9661;
     public static ROYALE_MOVE = 9662;
     public static ROYALE_ATTACK = 9663;
+    public static FASTFOOD_JOIN = 9680;
+    public static FASTFOOD_LEAVE = 9681;
+    public static FASTFOOD_ACTION = 9682;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;

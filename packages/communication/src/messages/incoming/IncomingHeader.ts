@@ -707,6 +707,10 @@ export class IncomingHeader
     public static ROYALE_GAME_START = 9671;
     public static ROYALE_STATE = 9672;
     public static ROYALE_GAME_END = 9673;
+    public static FASTFOOD_QUEUE = 9690;
+    public static FASTFOOD_GAME_START = 9691;
+    public static FASTFOOD_STATE = 9692;
+    public static FASTFOOD_GAME_END = 9693;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
