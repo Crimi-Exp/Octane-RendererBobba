@@ -715,6 +715,9 @@ export class IncomingHeader
     public static UNO_GAME_START = 9731;
     public static UNO_STATE = 9732;
     public static UNO_GAME_END = 9733;
+    public static UNO_OPEN = 9734;
+    public static UNO_TABLE = 9735;
+    public static UNO_ROOM_STATUS = 9736;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;

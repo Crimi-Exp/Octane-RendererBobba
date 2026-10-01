@@ -462,6 +462,7 @@ export class OutgoingHeader
     public static UNO_JOIN = 9720;
     public static UNO_LEAVE = 9721;
     public static UNO_ACTION = 9722;
+    public static UNO_TABLE_ACTION = 9723;
     public static CLAIM_REWARD_TRACK_PRIZE = 1111;
     public static PURCHASE_REWARD_TRACK_PREMIUM = 3022;
     public static GET_BONUS_RARE_INFO = 957;
