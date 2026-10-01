@@ -6,12 +6,22 @@ export interface ILoopCarInfo
     figure: string;
     gender: string;
     bot: boolean;
+    /** enable du kart (vrai kart Habbo) */
+    effect: number;
+}
+
+export interface ILoopItem
+{
+    /** 1 etoile, 2 anneau de feu */
+    kind: number;
+    x: number;
+    y: number;
 }
 
 /**
  * Depart d'une course Bobba Loop : id, ton index, compte a rebours (ms), duree max (ms), piste (id, nom, sol,
  * index de l'arrivee, puis chaque point : x, y en dixiemes et bits : 1 booster, 2 reprise, 4 fin avant un saut,
- * 8 arrivee, 16 debut apres un saut), puis les voitures.
+ * 8 arrivee, 16 debut apres un saut), les voitures (avec l'enable de leur kart) et les objets (etoiles, anneaux).
  */
 export class LoopGameStartParser implements IMessageParser
 {
@@ -27,6 +37,7 @@ export class LoopGameStartParser implements IMessageParser
     private _ys: Float32Array;
     private _flags: Uint8Array;
     private _cars: ILoopCarInfo[];
+    private _items: ILoopItem[];
 
     public flush(): boolean
     {
@@ -42,6 +53,7 @@ export class LoopGameStartParser implements IMessageParser
         this._ys = new Float32Array(0);
         this._flags = new Uint8Array(0);
         this._cars = [];
+        this._items = [];
 
         return true;
     }
@@ -75,7 +87,19 @@ export class LoopGameStartParser implements IMessageParser
             const figure = wrapper.readString();
             const gender = wrapper.readString();
             const bot = wrapper.readBoolean();
-            this._cars.push({ name, figure, gender, bot });
+            const effect = wrapper.bytesAvailable ? wrapper.readInt() : 0;
+            this._cars.push({ name, figure, gender, bot, effect });
+        }
+        if(wrapper.bytesAvailable)
+        {
+            const items = wrapper.readInt();
+            for(let i = 0; i < items; i++)
+            {
+                const kind = wrapper.readInt();
+                const x = wrapper.readInt() / 10;
+                const y = wrapper.readInt() / 10;
+                this._items.push({ kind, x, y });
+            }
         }
 
         return true;
@@ -128,5 +152,9 @@ export class LoopGameStartParser implements IMessageParser
     public get cars(): ILoopCarInfo[]
     {
         return this._cars;
+    }
+    public get items(): ILoopItem[]
+    {
+        return this._items;
     }
 }
