@@ -114,8 +114,12 @@ export class SnowWarGameObjectData
                 this._snowballCount = wrapper.readInt();
                 break;
             case SnowWarGameObjectData.OBJECT_TYPE_WALL:
+                // objet, case x, case y, points du mur, axe (0 = 2e case en x+1, 1 = en y+1)
+                this._objectId = wrapper.readInt();
+                this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
+                break;
             case SnowWarGameObjectData.OBJECT_TYPE_BONUS:
-                // objet, case x, case y, points du mur / type du bonus
+                // objet, case x, case y, type du bonus
                 this._objectId = wrapper.readInt();
                 this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
                 break;

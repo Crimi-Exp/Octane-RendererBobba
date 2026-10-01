@@ -104,7 +104,7 @@ export class SnowWarSubturnEventData
     }
 
     /** Champs de chaque evenement BobbaTok : mur pose, mur touche, bonus pose, pris, bonus d'un avatar, bouclier. */
-    private static EXTRA_FIELD_COUNTS: Record<number, number> = { 20: 5, 21: 2, 24: 4, 25: 3, 26: 6, 27: 2 };
+    private static EXTRA_FIELD_COUNTS: Record<number, number> = { 20: 6, 21: 2, 24: 4, 25: 3, 26: 6, 27: 2 };
 
     public get values(): number[]
     {
