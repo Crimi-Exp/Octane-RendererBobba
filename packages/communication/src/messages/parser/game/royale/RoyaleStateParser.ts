@@ -13,12 +13,17 @@ export interface IRoyalePlayerState
     left: boolean;
     /** bombes en poche */
     bombs: number;
+    /** bits : 1 cache pour toi, 2 dans un buisson, 4 levitation, 8 bouclier, 16 vitesse, 32 invisible */
+    flags: number;
+    /** cubes de puissance */
+    cubes: number;
+    maxHp: number;
 }
 
 export interface IRoyaleObject
 {
     id: number;
-    /** 1 trousse de soin, 2 bombe a ramasser, 3 bombe lancee (meche allumee) */
+    /** 1 trousse, 2 bombe a ramasser, 3 bombe lancee, 4 levitation, 5 bouclier, 6 vitesse, 7 invisibilite, 8 cube */
     kind: number;
     x: number;
     y: number;
@@ -29,7 +34,8 @@ export interface IRoyaleObject
  * annoncee (centre, rayon) avec l'etat de la zone (0 attente, 1 retrecit, 2 derniere) et le temps restant de
  * cet etat. Evenements [type, a, b, c, d, e] : 1 tir (tireur, cible, touche, x, y), 2 mort (victime, tueur,
  * place, x, y), 3 ramassage (joueur, sorte, x, y, vie ou bombes), 4 zone (joueur, vie), 5 bombe lancee
- * (lanceur, x, y, meche ms, id), 6 explosion (lanceur, x, y, joueurs touches, id), 7 emote (joueur, emote).
+ * (lanceur, x, y, meche ms, id), 6 explosion (lanceur, x, y, joueurs touches, id), 7 emote (joueur, emote),
+ * 8 caisse cassee (0, x, y).
  */
 export class RoyaleStateParser implements IMessageParser
 {
@@ -96,7 +102,10 @@ export class RoyaleStateParser implements IMessageParser
                 target: wrapper.readInt(),
                 kills: wrapper.readInt(),
                 left: wrapper.readInt() !== 0,
-                bombs: wrapper.readInt()
+                bombs: wrapper.readInt(),
+                flags: wrapper.readInt(),
+                cubes: wrapper.readInt(),
+                maxHp: wrapper.readInt()
             });
         }
 

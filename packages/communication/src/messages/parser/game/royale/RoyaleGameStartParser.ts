@@ -7,11 +7,16 @@ export interface IRoyalePlayerInfo
     figure: string;
     gender: string;
     bot: boolean;
+    /** 0 pistolet, 1 fusil a pompe, 2 sniper, 3 deux pistolets */
+    weapon: number;
+    /** enable de son arme */
+    effect: number;
 }
 
 /**
  * Depart d'une partie de Bobba Royale : carte (lignes separees par | : . sol, c caisse, w mur), joueurs, puis le
- * style de carte (0 entrepot, 1 labyrinthe, 2 forteresse, 3 champ de tir, 4 allees).
+ * style de carte (0 entrepot, 1 labyrinthe, 2 forteresse, 3 champ de tir, 4 allees, 5 grand labyrinthe), et
+ * l'arme et l'enable de chaque joueur. Carte : . sol, c caisse, w mur, b buisson.
  */
 export class RoyaleGameStartParser implements IMessageParser
 {
@@ -60,11 +65,19 @@ export class RoyaleGameStartParser implements IMessageParser
                 name: wrapper.readString(),
                 figure: wrapper.readString(),
                 gender: wrapper.readString(),
-                bot: wrapper.readBoolean()
+                bot: wrapper.readBoolean(),
+                weapon: 0,
+                effect: 0
             });
         }
 
         if(wrapper.bytesAvailable) this._mapStyle = wrapper.readInt();
+        for(const player of this._players)
+        {
+            if(!wrapper.bytesAvailable) break;
+            player.weapon = wrapper.readInt();
+            player.effect = wrapper.readInt();
+        }
 
         return true;
     }
