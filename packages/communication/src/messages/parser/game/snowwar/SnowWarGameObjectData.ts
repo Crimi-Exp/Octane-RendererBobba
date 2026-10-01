@@ -7,6 +7,10 @@ export class SnowWarGameObjectData
     public static OBJECT_TYPE_MACHINE = 3;
     public static OBJECT_TYPE_TREE = 4;
     public static OBJECT_TYPE_PILE = 5;
+    // BobbaTok : mur de neige, bonus au sol, bonus d'un avatar
+    public static OBJECT_TYPE_WALL = 6;
+    public static OBJECT_TYPE_BONUS = 7;
+    public static OBJECT_TYPE_BUFF = 8;
 
     private _objectType: number;
     private _objectId: number = -1;
@@ -44,6 +48,7 @@ export class SnowWarGameObjectData
     private _maximumHits: number = 0;
     private _hits: number = 0;
     private _maxSnowballs: number = 0;
+    private _values: number[] = [];
 
     constructor(wrapper: IMessageDataWrapper)
     {
@@ -108,7 +113,24 @@ export class SnowWarGameObjectData
                 this._maxSnowballs = wrapper.readInt();
                 this._snowballCount = wrapper.readInt();
                 break;
+            case SnowWarGameObjectData.OBJECT_TYPE_WALL:
+            case SnowWarGameObjectData.OBJECT_TYPE_BONUS:
+                // objet, case x, case y, points du mur / type du bonus
+                this._objectId = wrapper.readInt();
+                this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
+                break;
+            case SnowWarGameObjectData.OBJECT_TYPE_BUFF:
+                // avatar, bouclier, tirs triples, boules gratuites, vitesse
+                this._objectId = wrapper.readInt();
+                this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
+                break;
         }
+    }
+
+    /** Champs des objets BobbaTok (mur, bonus, bonus d'un avatar). */
+    public get values(): number[]
+    {
+        return this._values;
     }
 
     public get objectType(): number

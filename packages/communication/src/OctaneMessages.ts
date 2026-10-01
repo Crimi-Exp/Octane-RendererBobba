@@ -1,3 +1,4 @@
+import { SnowWarBuildWallComposer } from './messages';
 import { IMessageConfiguration } from '@octane/api';
 import { GoToBreedingNestFailureEvent, GroupMemberUpdateEvent, GroupMembersRefreshEvent, WallTagAddedMessageEvent, WallTagPlaceComposer, WallTagRemoveComposer, WallTagRemovedMessageEvent, WallTagsMessageEvent } from './messages';
 import { UnsupportedOutgoingHeader } from './messages/outgoing/UnsupportedOutgoingHeader';
@@ -1029,6 +1030,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SNOWWAR_EXIT_GAME, SnowWarExitGameComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_WALK, SnowWarWalkComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_THROW_AT_LOCATION, SnowWarThrowAtLocationComposer);
+        this._composers.set(OutgoingHeader.SNOWWAR_BUILD_WALL, SnowWarBuildWallComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_THROW_AT_PLAYER, SnowWarThrowAtPlayerComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_CREATE_SNOWBALL, SnowWarCreateSnowballComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_REQUEST_FULL_GAME_STATUS, SnowWarRequestFullGameStatusComposer);

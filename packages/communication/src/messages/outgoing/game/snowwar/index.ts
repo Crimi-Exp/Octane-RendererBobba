@@ -3,6 +3,7 @@ export * from './SnowWarEditRoomComposer';
 export * from './SnowWarExitGameComposer';
 export * from './SnowWarWalkComposer';
 export * from './SnowWarThrowAtLocationComposer';
+export * from './SnowWarBuildWallComposer';
 export * from './SnowWarThrowAtPlayerComposer';
 export * from './SnowWarCreateSnowballComposer';
 export * from './SnowWarRequestFullGameStatusComposer';

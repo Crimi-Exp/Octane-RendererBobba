@@ -729,6 +729,8 @@ export class OutgoingHeader
     public static SNOWWAR_LEAVE_QUEUE = 6013;
     public static SNOWWAR_EXIT_EDITOR = 6014;
     public static SNOWWAR_SELECT_ARENA = 6015;
+    // BobbaTok : mur de neige
+    public static SNOWWAR_BUILD_WALL = 6016;
     public static SNOWWAR_GET_ALL_TIME_LEADERBOARD = 6027;
     public static SNOWWAR_GET_ALL_TIME_FRIENDS_LEADERBOARD = 6028;
     public static SNOWWAR_GET_WEEKLY_LEADERBOARD = 6029;

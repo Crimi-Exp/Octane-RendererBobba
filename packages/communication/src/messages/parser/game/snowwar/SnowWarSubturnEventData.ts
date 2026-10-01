@@ -12,6 +12,15 @@ export class SnowWarSubturnEventData
     public static EVENT_TYPE_STUN = 9;
     public static EVENT_TYPE_RAY_GUN_BURST = 10;
     public static EVENT_TYPE_TREE_HIT = 13;
+    // BobbaTok : murs de neige, boule chargee, tir triple, bonus au sol
+    public static EVENT_TYPE_WALL_ADD = 20;
+    public static EVENT_TYPE_WALL_HIT = 21;
+    public static EVENT_TYPE_LAUNCH_BIG = 22;
+    public static EVENT_TYPE_LAUNCH_EXTRA = 23;
+    public static EVENT_TYPE_BONUS_ADD = 24;
+    public static EVENT_TYPE_BONUS_TAKE = 25;
+    public static EVENT_TYPE_BUFF = 26;
+    public static EVENT_TYPE_SHIELD_BLOCK = 27;
 
     private _eventType: number;
     private _objectId: number = -1;
@@ -25,6 +34,8 @@ export class SnowWarSubturnEventData
     private _avatarObjectId: number = -1;
     private _height: number = 0;
     private _state: number = 0;
+    /** Champs des evenements BobbaTok (20 a 27), dans l'ordre d'envoi. */
+    private _values: number[] = [];
 
     constructor(wrapper: IMessageDataWrapper)
     {
@@ -42,6 +53,8 @@ export class SnowWarSubturnEventData
                 break;
             case SnowWarSubturnEventData.EVENT_TYPE_LAUNCH_SNOWBALL:
             case SnowWarSubturnEventData.EVENT_TYPE_RAY_GUN_BURST:
+            case SnowWarSubturnEventData.EVENT_TYPE_LAUNCH_BIG:
+            case SnowWarSubturnEventData.EVENT_TYPE_LAUNCH_EXTRA:
                 this._objectId = wrapper.readInt();
                 this._throwerObjectId = wrapper.readInt();
                 this._targetX = wrapper.readInt();
@@ -77,7 +90,25 @@ export class SnowWarSubturnEventData
                 this._targetY = wrapper.readInt();
                 this._state = wrapper.readInt();
                 break;
+            default: {
+                // Nombre de champs des evenements BobbaTok
+                const count = SnowWarSubturnEventData.EXTRA_FIELD_COUNTS[this._eventType] ?? 0;
+                for(let i = 0; i < count; i++) this._values.push(wrapper.readInt());
+                break;
+            }
         }
+        if(this._eventType === SnowWarSubturnEventData.EVENT_TYPE_LAUNCH_BIG || this._eventType === SnowWarSubturnEventData.EVENT_TYPE_LAUNCH_EXTRA)
+        {
+            this._values = [ this._objectId, this._throwerObjectId, this._targetX, this._targetY, this._trajectory ];
+        }
+    }
+
+    /** Champs de chaque evenement BobbaTok : mur pose, mur touche, bonus pose, pris, bonus d'un avatar, bouclier. */
+    private static EXTRA_FIELD_COUNTS: Record<number, number> = { 20: 5, 21: 2, 24: 4, 25: 3, 26: 6, 27: 2 };
+
+    public get values(): number[]
+    {
+        return this._values;
     }
 
     public get eventType(): number
