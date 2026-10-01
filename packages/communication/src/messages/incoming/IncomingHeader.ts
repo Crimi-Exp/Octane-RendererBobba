@@ -711,6 +711,10 @@ export class IncomingHeader
     public static FASTFOOD_GAME_START = 9691;
     public static FASTFOOD_STATE = 9692;
     public static FASTFOOD_GAME_END = 9693;
+    public static UNO_QUEUE = 9730;
+    public static UNO_GAME_START = 9731;
+    public static UNO_STATE = 9732;
+    public static UNO_GAME_END = 9733;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
