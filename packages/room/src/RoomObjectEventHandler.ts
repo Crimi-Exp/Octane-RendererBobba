@@ -192,6 +192,27 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     {
         if(!event) return;
 
+        // BobbaTok : les mobis du Brainrot sont dessines par le client (ids <= -1 500 000 000). Ils ne se selectionnent
+        // pas et ne se deplacent pas ; un double-clic (qui « utilise » le mobi) previent seulement le jeu.
+        if(event.objectId <= -1500000000)
+        {
+            if(event instanceof RoomObjectMouseEvent)
+            {
+                if((event.type === RoomObjectMouseEvent.CLICK) || (event.type === RoomObjectMouseEvent.MOUSE_DOWN) || (event.type === RoomObjectMouseEvent.MOUSE_DOWN_LONG)) return;
+
+                this.handleRoomObjectMouseEvent(event, roomId);
+
+                return;
+            }
+
+            if((event.type === RoomObjectStateChangedEvent.STATE_CHANGE) || (event.type === RoomObjectStateChangedEvent.STATE_RANDOM) || (event instanceof RoomObjectWidgetRequestEvent) || (event instanceof RoomObjectFurnitureActionEvent))
+            {
+                GetEventDispatcher()?.dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.DOUBLE_CLICK, roomId, event.objectId, RoomObjectCategory.FLOOR));
+            }
+
+            return;
+        }
+
         if(event instanceof RoomObjectMouseEvent)
         {
             this.handleRoomObjectMouseEvent(event, roomId);

@@ -16,6 +16,7 @@ import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistor
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
 import { SnowWarGetAllTimeFriendsLeaderboardComposer, SnowWarGetAllTimeLeaderboardComposer, SnowWarGetWeeklyFriendsLeaderboardComposer, SnowWarGetWeeklyLeaderboardComposer, SnowWarSelectArenaComposer } from './messages';
 import { BrainrotBasesEvent, BrainrotLabelsEvent, BrainrotRequestComposer, BrainrotStateEvent } from './messages';
+import { BrainrotMobisEvent } from './messages';
 import { UnoOpenEvent, UnoRoomStatusEvent, UnoTableActionComposer, UnoTableEvent } from './messages';
 import { UnoActionComposer, UnoGameEndEvent, UnoGameStartEvent, UnoJoinComposer, UnoLeaveComposer, UnoQueueEvent, UnoStateEvent } from './messages';
 import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
@@ -765,6 +766,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.BRAINROT_STATE, BrainrotStateEvent);
         this._events.set(IncomingHeader.BRAINROT_LABELS, BrainrotLabelsEvent);
         this._events.set(IncomingHeader.BRAINROT_BASES, BrainrotBasesEvent);
+        this._events.set(IncomingHeader.BRAINROT_MOBIS, BrainrotMobisEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
