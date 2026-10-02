@@ -25,6 +25,10 @@ export interface IBrainrotMobi
     unitId: number;
     /** socle : son etage (le client n'en affiche qu'un a la fois par base) */
     floor: number;
+    /** version ultra : 0 aucune, 1 or, 2 diamant, 3 arc-en-ciel */
+    mutation: number;
+    /** porte : c'est un mobi vole */
+    stolen: boolean;
 }
 
 /** Brainrot : les mobis du jeu, dessines par le client (liste complete ou mise a jour). */
@@ -65,7 +69,9 @@ export class BrainrotMobisParser implements IMessageParser
             const endX = wrapper.readInt();
             const unitId = wrapper.readInt();
             const floor = wrapper.readInt();
-            this._mobis.push({ id, kind, itemName, rarity, value, ownerId, x, y, z, rotation, ageMs, stepMs, endX, unitId, floor });
+            const mutation = wrapper.readInt();
+            const stolen = wrapper.readInt() === 1;
+            this._mobis.push({ id, kind, itemName, rarity, value, ownerId, x, y, z, rotation, ageMs, stepMs, endX, unitId, floor, mutation, stolen });
         }
 
         return true;

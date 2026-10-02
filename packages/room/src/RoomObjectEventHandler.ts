@@ -205,12 +205,15 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 return;
             }
 
-            if((event.type === RoomObjectStateChangedEvent.STATE_CHANGE) || (event.type === RoomObjectStateChangedEvent.STATE_RANDOM) || (event instanceof RoomObjectWidgetRequestEvent) || (event instanceof RoomObjectFurnitureActionEvent))
+            // Le survol (curseur main / fleche) reste un survol ; seul un vrai « utiliser » previent le jeu
+            const isHover = (event.type === RoomObjectFurnitureActionEvent.MOUSE_BUTTON) || (event.type === RoomObjectFurnitureActionEvent.MOUSE_ARROW);
+
+            if(!isHover && ((event.type === RoomObjectStateChangedEvent.STATE_CHANGE) || (event.type === RoomObjectStateChangedEvent.STATE_RANDOM) || (event instanceof RoomObjectWidgetRequestEvent) || (event instanceof RoomObjectFurnitureActionEvent)))
             {
                 GetEventDispatcher()?.dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.DOUBLE_CLICK, roomId, event.objectId, RoomObjectCategory.FLOOR));
             }
 
-            return;
+            if(!isHover) return;
         }
 
         if(event instanceof RoomObjectMouseEvent)

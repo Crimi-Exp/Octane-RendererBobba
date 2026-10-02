@@ -26,6 +26,11 @@ export class BrainrotStateParser implements IMessageParser
     private _nextLevel: number;
     private _price: number;
     private _requirements: IBrainrotRequirement[];
+    private _lockExtraMs: number;
+    private _lockExtraPrice: number;
+    private _freezePrice: number;
+    private _hitReadyMs: number;
+    private _freezeReadyMs: number;
 
     public flush(): boolean
     {
@@ -41,6 +46,11 @@ export class BrainrotStateParser implements IMessageParser
         this._nextLevel = 0;
         this._price = 0;
         this._requirements = [];
+        this._lockExtraMs = 0;
+        this._lockExtraPrice = 0;
+        this._freezePrice = 0;
+        this._hitReadyMs = 0;
+        this._freezeReadyMs = 0;
 
         return true;
     }
@@ -69,6 +79,12 @@ export class BrainrotStateParser implements IMessageParser
             const owned = wrapper.readInt() === 1;
             this._requirements.push({ itemName, rarity, owned });
         }
+
+        this._lockExtraMs = wrapper.readInt();
+        this._lockExtraPrice = Number(wrapper.readString()) || 0;
+        this._freezePrice = Number(wrapper.readString()) || 0;
+        this._hitReadyMs = wrapper.readInt();
+        this._freezeReadyMs = wrapper.readInt();
 
         return true;
     }
@@ -120,5 +136,25 @@ export class BrainrotStateParser implements IMessageParser
     public get requirements(): IBrainrotRequirement[]
     {
         return this._requirements;
+    }
+    public get lockExtraMs(): number
+    {
+        return this._lockExtraMs;
+    }
+    public get lockExtraPrice(): number
+    {
+        return this._lockExtraPrice;
+    }
+    public get freezePrice(): number
+    {
+        return this._freezePrice;
+    }
+    public get hitReadyMs(): number
+    {
+        return this._hitReadyMs;
+    }
+    public get freezeReadyMs(): number
+    {
+        return this._freezeReadyMs;
     }
 }
