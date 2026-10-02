@@ -17,7 +17,7 @@ export interface IBrainrotMobi
     /** hauteur (pour un mobi porte : au-dessus des pieds de l'avatar) */
     z: number;
     rotation: number;
-    /** tapis : age du mobi a l'envoi, temps par case, derniere case */
+    /** tapis : progression du mobi a l'envoi (ms), temps par case (negatif = tapis arrete), derniere case */
     ageMs: number;
     stepMs: number;
     endX: number;
