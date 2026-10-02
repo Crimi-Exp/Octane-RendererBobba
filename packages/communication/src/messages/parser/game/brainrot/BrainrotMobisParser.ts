@@ -23,6 +23,8 @@ export interface IBrainrotMobi
     endX: number;
     /** porte : id de l'avatar qui le porte */
     unitId: number;
+    /** socle : son etage (le client n'en affiche qu'un a la fois par base) */
+    floor: number;
 }
 
 /** Brainrot : les mobis du jeu, dessines par le client (liste complete ou mise a jour). */
@@ -62,7 +64,8 @@ export class BrainrotMobisParser implements IMessageParser
             const stepMs = wrapper.readInt();
             const endX = wrapper.readInt();
             const unitId = wrapper.readInt();
-            this._mobis.push({ id, kind, itemName, rarity, value, ownerId, x, y, z, rotation, ageMs, stepMs, endX, unitId });
+            const floor = wrapper.readInt();
+            this._mobis.push({ id, kind, itemName, rarity, value, ownerId, x, y, z, rotation, ageMs, stepMs, endX, unitId, floor });
         }
 
         return true;
