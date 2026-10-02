@@ -15,6 +15,7 @@ import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomF
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
 import { SnowWarGetAllTimeFriendsLeaderboardComposer, SnowWarGetAllTimeLeaderboardComposer, SnowWarGetWeeklyFriendsLeaderboardComposer, SnowWarGetWeeklyLeaderboardComposer, SnowWarSelectArenaComposer } from './messages';
+import { BrainrotBasesEvent, BrainrotLabelsEvent, BrainrotRequestComposer, BrainrotStateEvent } from './messages';
 import { UnoOpenEvent, UnoRoomStatusEvent, UnoTableActionComposer, UnoTableEvent } from './messages';
 import { UnoActionComposer, UnoGameEndEvent, UnoGameStartEvent, UnoJoinComposer, UnoLeaveComposer, UnoQueueEvent, UnoStateEvent } from './messages';
 import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
@@ -761,6 +762,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.UNO_OPEN, UnoOpenEvent);
         this._events.set(IncomingHeader.UNO_TABLE, UnoTableEvent);
         this._events.set(IncomingHeader.UNO_ROOM_STATUS, UnoRoomStatusEvent);
+        this._events.set(IncomingHeader.BRAINROT_STATE, BrainrotStateEvent);
+        this._events.set(IncomingHeader.BRAINROT_LABELS, BrainrotLabelsEvent);
+        this._events.set(IncomingHeader.BRAINROT_BASES, BrainrotBasesEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
@@ -1608,6 +1612,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.UNO_LEAVE, UnoLeaveComposer);
         this._composers.set(OutgoingHeader.UNO_ACTION, UnoActionComposer);
         this._composers.set(OutgoingHeader.UNO_TABLE_ACTION, UnoTableActionComposer);
+        this._composers.set(OutgoingHeader.BRAINROT_REQUEST, BrainrotRequestComposer);
         this._composers.set(OutgoingHeader.CLAIM_REWARD_TRACK_PRIZE, ClaimRewardTrackPrizeMessageComposer);
         this._composers.set(OutgoingHeader.PURCHASE_REWARD_TRACK_PREMIUM, PurchaseRewardTrackPremiumMessageComposer);
         this._composers.set(OutgoingHeader.GET_QUESTS, GetQuestsMessageComposer);

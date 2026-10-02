@@ -8,3 +8,4 @@ export * from './wobble';
 export * from './royale';
 export * from './fastfood';
 export * from './uno';
+export * from './brainrot';

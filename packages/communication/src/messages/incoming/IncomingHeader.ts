@@ -718,6 +718,9 @@ export class IncomingHeader
     public static UNO_OPEN = 9734;
     public static UNO_TABLE = 9735;
     public static UNO_ROOM_STATUS = 9736;
+    public static BRAINROT_STATE = 9750;
+    public static BRAINROT_LABELS = 9751;
+    public static BRAINROT_BASES = 9752;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;
