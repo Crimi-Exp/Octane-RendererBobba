@@ -64,6 +64,24 @@ export class AvatarRenderManager implements IAvatarRenderManager
         this._effectAssetDownloadManager?.dispose();
     }
 
+    // Corrections pour coller au HabboAvatarActions.xml officiel quand le JSON du serveur s'en ecarte.
+    // Coucou : HabboAvatarAnimation anime la main GAUCHE (lh, lhs, ls, lc...), donc Wave doit cibler
+    // handLeft ; avec handRight, seule une image fixe de la main droite s'affiche (et de profil seulement).
+    public static fixOfficialActions<T>(data: T): T
+    {
+        const actions = (data as { actions?: { id?: string; activePartSet?: string }[] })?.actions;
+
+        if(Array.isArray(actions))
+        {
+            for(const action of actions)
+            {
+                if(action && (action.id === 'Wave')) action.activePartSet = 'handLeft';
+            }
+        }
+
+        return data;
+    }
+
     private async loadActions(): Promise<void>
     {
         const defaultActions = GetConfiguration().getValue<string>('avatar.default.actions');
@@ -76,7 +94,7 @@ export class AvatarRenderManager implements IAvatarRenderManager
 
         try
         {
-            this._structure.updateActions(await loadGamedata(url));
+            this._structure.updateActions(AvatarRenderManager.fixOfficialActions(await loadGamedata(url)));
         }
         catch (err)
         {

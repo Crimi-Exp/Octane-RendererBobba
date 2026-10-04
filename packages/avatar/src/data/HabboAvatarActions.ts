@@ -83,7 +83,7 @@ export const HabboAvatarActions = {
             'id': 'Wave',
             'state': 'wave',
             'precedence': 500,
-            'activePartSet': 'handRight',
+            'activePartSet': 'handLeft',
             'assetPartDefinition': 'wav',
             'prevents': [],
             'animation': true
