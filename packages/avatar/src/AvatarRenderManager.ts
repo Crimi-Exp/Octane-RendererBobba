@@ -67,6 +67,9 @@ export class AvatarRenderManager implements IAvatarRenderManager
     // Corrections pour coller au HabboAvatarActions.xml officiel quand le JSON du serveur s'en ecarte.
     // Coucou : HabboAvatarAnimation anime la main GAUCHE (lh, lhs, ls, lc...), donc Wave doit cibler
     // handLeft ; avec handRight, seule une image fixe de la main droite s'affiche (et de profil seulement).
+    // Danse : AvatarImage.setActionToParts (comme le client Flash) ignore une action sans assetPartDefinition ;
+    // avec "" les animations dance.* (danses, geste « 67 ») ne sont jamais posees sur le corps. "std" =
+    // posture debout pour les parties que l'animation ne remplace pas.
     public static fixOfficialActions<T>(data: T): T
     {
         const actions = (data as { actions?: { id?: string; activePartSet?: string }[] })?.actions;
@@ -76,6 +79,8 @@ export class AvatarRenderManager implements IAvatarRenderManager
             for(const action of actions)
             {
                 if(action && (action.id === 'Wave')) action.activePartSet = 'handLeft';
+
+                if(action && (action.id === 'Dance') && !(action as { assetPartDefinition?: string }).assetPartDefinition) (action as { assetPartDefinition?: string }).assetPartDefinition = 'std';
             }
         }
 

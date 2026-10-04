@@ -158,7 +158,7 @@ export const HabboAvatarActions = {
             'main': true,
             'geometryType': 'vertical',
             'activePartSet': 'figure',
-            'assetPartDefinition': '',
+            'assetPartDefinition': 'std',
             'prevents': [],
             'animation': true,
             'preventHeadTurn': true,
