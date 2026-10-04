@@ -13,13 +13,17 @@ export interface IDuelPlayerInfo
     effect: number;
 }
 
-/** Debut d'un Duel des Sorciers : duel, index du destinataire, allee (largeur, hauteur), temps, les deux joueurs. */
+/**
+ * Debut d'un Duel des Sorciers : duel, index du destinataire, salle (largeur, hauteur, lignes separees par | :
+ * . sol, c colonne, b bloc), temps, les deux joueurs.
+ */
 export class DuelStartParser implements IMessageParser
 {
     private _matchId: number;
     private _yourIndex: number;
     private _width: number;
     private _height: number;
+    private _map: string;
     private _countdownMs: number;
     private _fightMs: number;
     private _players: IDuelPlayerInfo[];
@@ -30,6 +34,7 @@ export class DuelStartParser implements IMessageParser
         this._yourIndex = -1;
         this._width = 11;
         this._height = 5;
+        this._map = '';
         this._countdownMs = 0;
         this._fightMs = 0;
         this._players = [];
@@ -45,6 +50,7 @@ export class DuelStartParser implements IMessageParser
         this._yourIndex = wrapper.readInt();
         this._width = wrapper.readInt();
         this._height = wrapper.readInt();
+        this._map = wrapper.readString();
         this._countdownMs = wrapper.readInt();
         this._fightMs = wrapper.readInt();
         const count = wrapper.readInt();
@@ -79,6 +85,10 @@ export class DuelStartParser implements IMessageParser
     public get height(): number
     {
         return this._height;
+    }
+    public get map(): string
+    {
+        return this._map;
     }
     public get countdownMs(): number
     {
