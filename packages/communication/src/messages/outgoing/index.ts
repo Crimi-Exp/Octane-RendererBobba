@@ -3,6 +3,7 @@ export * from './UnsupportedOutgoingHeader';
 export * from './advertisement';
 export * from './avatar';
 export * from './camera';
+export * from './collectibles';
 export * from './campaign';
 export * from './catalog';
 export * from './competition';

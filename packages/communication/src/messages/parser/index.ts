@@ -3,6 +3,7 @@ export * from './availability';
 export * from './avatar';
 export * from './bots';
 export * from './callforhelp';
+export * from './collectibles';
 export * from './camera';
 export * from './campaign';
 export * from './catalog';

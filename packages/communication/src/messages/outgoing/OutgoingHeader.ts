@@ -452,6 +452,7 @@ export class OutgoingHeader
     public static BATTLEBALL_LEAVE = 9641;
     public static BATTLEBALL_MOVE = 9642;
     public static BATTLEBALL_POWER = 9643;
+    public static COLLECTIBLES_REQUEST = 9766;
     public static DUEL_JOIN = 9760;
     public static DUEL_LEAVE = 9761;
     public static DUEL_ACTION = 9762;
