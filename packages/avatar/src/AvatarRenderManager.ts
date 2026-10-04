@@ -11,6 +11,7 @@ import { EffectAssetDownloadManager } from './EffectAssetDownloadManager';
 import { FigureDataContainer } from './FigureDataContainer';
 import { PlaceHolderAvatarImage } from './PlaceHolderAvatarImage';
 import { AssetAliasCollection } from './alias';
+import { DanceSixSevenAnimation } from './data/DanceSixSevenAnimation';
 import { HabboAvatarAnimations } from './data/HabboAvatarAnimations';
 import { HabboAvatarGeometry } from './data/HabboAvatarGeometry';
 import { HabboAvatarPartSets } from './data/HabboAvatarPartSets';
@@ -81,6 +82,10 @@ export class AvatarRenderManager implements IAvatarRenderManager
         {
             throw new Error(`Could not load avatar actions from "${ url }" — check "avatar.actions.url" in renderer-config.json (${ err?.message || err })`);
         }
+
+        // animations integrees au client (Habbo AIR : BUILT_IN_ANIMATION_ASSET_NAMES), apres les actions
+        // car leurs images referencent CarryItem / Talk
+        this._structure.registerAnimation({ [DanceSixSevenAnimation.name]: DanceSixSevenAnimation });
     }
 
     private async loadFigureData(): Promise<void>

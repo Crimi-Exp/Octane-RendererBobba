@@ -13,6 +13,10 @@ export class AvatarAction
     public static EXPRESSION_SNOWBOARD_OLLIE = 'sbollie';
     public static EXPRESSION_SNOWBORD_360 = 'sb360';
     public static EXPRESSION_WAVE = 'wave';
+    // geste « 67 » de Habbo AIR : expression 67, jouee comme dance + sixseven
+    public static EXPRESSION_67 = '67';
+    public static EXPRESSION_67_ID = 67;
+    public static DANCE_SIX_SEVEN = 'sixseven';
     public static GESTURE = 'gest';
     public static GESTURE_AGGRAVATED = 'agr';
     public static GESTURE_SAD = 'sad';
@@ -77,6 +81,8 @@ export class AvatarAction
                 return 1500;
             case 10:
                 return 1500;
+            case 67:
+                return 990;
             default:
                 return 0;
         }
@@ -84,11 +90,15 @@ export class AvatarAction
 
     public static getExpressionId(expression: string): number
     {
+        if(expression === AvatarAction.EXPRESSION_67) return AvatarAction.EXPRESSION_67_ID;
+
         return AvatarAction.EXPRESSION_MAP.indexOf(expression);
     }
 
     public static getExpression(expressionId: number): string
     {
+        if(expressionId === AvatarAction.EXPRESSION_67_ID) return AvatarAction.EXPRESSION_67;
+
         if(expressionId > AvatarAction.EXPRESSION_MAP.length) return null;
 
         return AvatarAction.EXPRESSION_MAP[expressionId];

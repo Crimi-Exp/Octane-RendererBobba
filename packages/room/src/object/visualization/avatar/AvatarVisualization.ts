@@ -1084,6 +1084,9 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     case AvatarAction.DANCE:
                         this._avatarImage.appendAction(AvatarAction.DANCE, 2);
                         break;
+                    case AvatarAction.EXPRESSION_67:
+                        this._avatarImage.appendAction(AvatarAction.DANCE, AvatarAction.DANCE_SIX_SEVEN);
+                        break;
                     default:
                         this._avatarImage.appendAction(expression);
                         break;
