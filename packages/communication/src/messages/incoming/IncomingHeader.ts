@@ -703,6 +703,10 @@ export class IncomingHeader
     public static BATTLEBALL_GAME_START = 9651;
     public static BATTLEBALL_STATE = 9652;
     public static BATTLEBALL_GAME_END = 9653;
+    public static DUEL_QUEUE = 9770;
+    public static DUEL_START = 9771;
+    public static DUEL_STATE = 9772;
+    public static DUEL_END = 9773;
     public static ROYALE_QUEUE = 9670;
     public static ROYALE_GAME_START = 9671;
     public static ROYALE_STATE = 9672;

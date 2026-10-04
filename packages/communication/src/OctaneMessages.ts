@@ -21,6 +21,7 @@ import { BrainrotFxEvent } from './messages';
 import { UnoOpenEvent, UnoRoomStatusEvent, UnoTableActionComposer, UnoTableEvent } from './messages';
 import { UnoActionComposer, UnoGameEndEvent, UnoGameStartEvent, UnoJoinComposer, UnoLeaveComposer, UnoQueueEvent, UnoStateEvent } from './messages';
 import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
+import { DuelActionComposer, DuelEndEvent, DuelJoinComposer, DuelLeaveComposer, DuelQueueEvent, DuelStartEvent, DuelStateEvent } from './messages';
 import { RoyaleAttackComposer, RoyaleGameEndEvent, RoyaleGameStartEvent, RoyaleJoinComposer, RoyaleLeaveComposer, RoyaleMoveComposer, RoyaleQueueEvent, RoyaleStateEvent } from './messages';
 import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinComposer, BattleBallLeaveComposer, BattleBallMoveComposer, BattleBallPowerComposer, BattleBallQueueEvent, BattleBallStateEvent } from './messages';
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
@@ -748,6 +749,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.BATTLEBALL_GAME_START, BattleBallGameStartEvent);
         this._events.set(IncomingHeader.BATTLEBALL_STATE, BattleBallStateEvent);
         this._events.set(IncomingHeader.BATTLEBALL_GAME_END, BattleBallGameEndEvent);
+        this._events.set(IncomingHeader.DUEL_QUEUE, DuelQueueEvent);
+        this._events.set(IncomingHeader.DUEL_START, DuelStartEvent);
+        this._events.set(IncomingHeader.DUEL_STATE, DuelStateEvent);
+        this._events.set(IncomingHeader.DUEL_END, DuelEndEvent);
         this._events.set(IncomingHeader.ROYALE_QUEUE, RoyaleQueueEvent);
         this._events.set(IncomingHeader.ROYALE_GAME_START, RoyaleGameStartEvent);
         this._events.set(IncomingHeader.ROYALE_STATE, RoyaleStateEvent);
@@ -1598,6 +1603,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.BATTLEBALL_LEAVE, BattleBallLeaveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_MOVE, BattleBallMoveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_POWER, BattleBallPowerComposer);
+        this._composers.set(OutgoingHeader.DUEL_JOIN, DuelJoinComposer);
+        this._composers.set(OutgoingHeader.DUEL_LEAVE, DuelLeaveComposer);
+        this._composers.set(OutgoingHeader.DUEL_ACTION, DuelActionComposer);
         this._composers.set(OutgoingHeader.ROYALE_JOIN, RoyaleJoinComposer);
         this._composers.set(OutgoingHeader.ROYALE_LEAVE, RoyaleLeaveComposer);
         this._composers.set(OutgoingHeader.ROYALE_MOVE, RoyaleMoveComposer);

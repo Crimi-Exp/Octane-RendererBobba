@@ -5,6 +5,7 @@ export * from './snowwar';
 export * from './battleball';
 export * from './kart';
 export * from './wobble';
+export * from './duel';
 export * from './royale';
 export * from './fastfood';
 export * from './uno';
