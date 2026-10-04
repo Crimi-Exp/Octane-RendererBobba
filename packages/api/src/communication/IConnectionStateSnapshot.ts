@@ -8,4 +8,6 @@ export interface IConnectionStateSnapshot
     readonly authenticated: boolean;
     readonly closeCode: number | null;
     readonly closeReason: string;
+    /** The DisconnectReason code the server sent before closing (no reconnect follows), if any. */
+    readonly disconnectReason?: number;
 }

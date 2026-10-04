@@ -8,6 +8,7 @@ export interface IConnection
     init(socketUrl: string): void;
     dispose(): void;
     ready(): void;
+    serverDisconnected(reason: number): void;
     authenticated(): void;
     send(...composers: IMessageComposer<unknown[]>[]): void;
     processReceivedData(): void;

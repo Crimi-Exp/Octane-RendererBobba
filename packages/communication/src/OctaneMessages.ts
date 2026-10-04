@@ -581,7 +581,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.CUSTOM_USER_NOTIFICATION, CustomUserNotificationMessageEvent);
         this._events.set(IncomingHeader.ROOM_MESSAGE_NOTIFICATION, RoomMessageNotificationMessageEvent);
         this._events.set(IncomingHeader.ROOM_POPULAR_TAGS_RESULT, PopularRoomTagsResultEvent);
-        this._events.set(IncomingHeader.ROOM_POPULAR_TAGS_RESULT, PopularRoomTagsResultEvent);
 
         // ROOM SETTINGS
         this._events.set(IncomingHeader.ROOM_RIGHTS_LIST, FlatControllersEvent);
@@ -1524,12 +1523,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.REQUEST_MENTIONS, RequestMentionsComposer);
         this._composers.set(OutgoingHeader.MARK_MENTIONS_READ, MarkMentionsReadComposer);
         this._composers.set(OutgoingHeader.DELETE_MENTION, DeleteMentionComposer);
-
-        // BOTS
-        this._composers.set(OutgoingHeader.USER_BOTS, GetBotInventoryComposer);
-
-        // PETS
-        this._composers.set(OutgoingHeader.USER_PETS, RequestPetsComposer);
 
         // CURRENCY
         this._composers.set(OutgoingHeader.USER_CURRENCY, UserCurrencyComposer);

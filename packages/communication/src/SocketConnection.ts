@@ -56,7 +56,8 @@ export class SocketConnection implements IConnection
             reconnectAttempt: 0,
             authenticated: false,
             closeCode: null,
-            closeReason: ''
+            closeReason: '',
+            disconnectReason: undefined
         });
 
         this.createSocket(socketUrl);
@@ -479,8 +480,46 @@ export class SocketConnection implements IConnection
             reconnectAttempt: 0,
             authenticated: false,
             closeCode: null,
-            closeReason: ''
+            closeReason: '',
+            disconnectReason: undefined
         });
+    }
+
+    /**
+     * The server said why it is ending the session (ban, login elsewhere, logout, closing).
+     * Reconnecting would only be refused or kick the other session, so the socket closes for good.
+     */
+    public serverDisconnected(reason: number): void
+    {
+        this._intentionalClose = true;
+
+        if(this._reconnectTimer)
+        {
+            clearTimeout(this._reconnectTimer);
+            this._reconnectTimer = null;
+        }
+
+        this._isReconnecting = false;
+
+        this.setConnectionState({ disconnectReason: reason });
+
+        const socket = this._socket;
+
+        // Still open: its close event ends the session (no reconnect, as the close is intentional).
+        if(socket && ((socket.readyState === WebSocket.OPEN) || (socket.readyState === WebSocket.CONNECTING)))
+        {
+            socket.close();
+
+            return;
+        }
+
+        // Already closed (the reason was still being decrypted): end it here instead of reconnecting.
+        this._isAuthenticated = false;
+        this._isReady = false;
+
+        this.setConnectionState({ phase: 'disconnected', reconnectAttempt: 0, authenticated: false });
+
+        GetEventDispatcher().dispatchEvent(new OctaneEvent(OctaneEventType.SOCKET_CLOSED));
     }
 
     public ready(): void

@@ -4,7 +4,7 @@ import { GetEventDispatcher, OctaneEventType, SocketReauthenticatedEvent } from 
 import { GetTickerTime, OctaneLogger } from '@octane/utils';
 import { OctaneMessages } from './OctaneMessages';
 import { SocketConnection } from './SocketConnection';
-import { AuthenticatedEvent, ClientHelloMessageComposer, ClientPingEvent, InfoRetrieveMessageComposer, PongMessageComposer, SSOTicketMessageComposer, UniqueIDMessageComposer } from './messages';
+import { AuthenticatedEvent, ClientHelloMessageComposer, ClientPingEvent, DisconnectReasonEvent, InfoRetrieveMessageComposer, PongMessageComposer, SSOTicketMessageComposer, UniqueIDMessageComposer } from './messages';
 import { Thumbmark } from '@thumbmarkjs/thumbmarkjs';
 
 export class CommunicationManager implements ICommunicationManager
@@ -134,9 +134,19 @@ export class CommunicationManager implements ICommunicationManager
                 }
             });
 
-            this._messageEvents.push(pingEvent, authEvent);
+            const disconnectEvent = new DisconnectReasonEvent((event: DisconnectReasonEvent) =>
+            {
+                const reason = event.getParser()?.reason ?? -1;
+
+                OctaneLogger.log('[CommunicationManager] Server disconnect reason ' + reason);
+
+                this._connection.serverDisconnected(reason);
+            });
+
+            this._messageEvents.push(pingEvent, authEvent, disconnectEvent);
             this._connection.addMessageEvent(pingEvent);
             this._connection.addMessageEvent(authEvent);
+            this._connection.addMessageEvent(disconnectEvent);
 
             this._connection.init(GetConfiguration().getValue<string>('socket.url'));
         });
