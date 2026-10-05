@@ -39,7 +39,8 @@ implements
         idleSleepEnabled?: boolean,
         idleSleepTimeoutSeconds?: number,
         idleAutokickEnabled?: boolean,
-        idleAutokickTimeoutSeconds?: number
+        idleAutokickTimeoutSeconds?: number,
+        minimumRank?: number
     )
     {
         //@ts-ignore
@@ -85,6 +86,9 @@ implements
             idleAutokickEnabled ?? false,
             idleAutokickTimeoutSeconds ?? 0
         );
+
+        // Extension : rang minimum pour entrer (0 = aucun), envoye apres le bloc ci-dessus.
+        if(muteAllPets !== undefined && minimumRank !== undefined) this._data.push(minimumRank);
     }
 
     public getMessageArray()

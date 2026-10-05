@@ -63,6 +63,9 @@ export class RoomSettingsDataParser implements IMessageParser
             this._roomSettingsData.idleAutokickTimeoutSeconds = wrapper.readInt();
         }
 
+        // Extension : rang minimum pour entrer dans l'appart (0 = ouvert a tous les rangs).
+        if(wrapper.bytesAvailable) this._roomSettingsData.minimumRank = wrapper.readInt();
+
         return true;
     }
 

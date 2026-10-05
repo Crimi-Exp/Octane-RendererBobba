@@ -44,6 +44,7 @@ export class RoomSettingsData
     private _idleSleepTimeoutSeconds: number = 0;
     private _idleAutokickEnabled: boolean = false;
     private _idleAutokickTimeoutSeconds: number = 0;
+    private _minimumRank: number = 0;
 
     public static from(settings: RoomSettingsData)
     {
@@ -79,6 +80,7 @@ export class RoomSettingsData
         instance._idleSleepTimeoutSeconds = settings._idleSleepTimeoutSeconds;
         instance._idleAutokickEnabled = settings._idleAutokickEnabled;
         instance._idleAutokickTimeoutSeconds = settings._idleAutokickTimeoutSeconds;
+        instance._minimumRank = settings._minimumRank;
 
         return instance;
     }
@@ -412,5 +414,16 @@ export class RoomSettingsData
     public set idleAutokickTimeoutSeconds(value: number)
     {
         this._idleAutokickTimeoutSeconds = value;
+    }
+
+    /** Rang minimum pour entrer (0 = aucun) : appart reserve au staff a partir de ce rang. */
+    public get minimumRank(): number
+    {
+        return this._minimumRank;
+    }
+
+    public set minimumRank(value: number)
+    {
+        this._minimumRank = value;
     }
 }
