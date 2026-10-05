@@ -32,6 +32,7 @@ export * from './GetHabboClubExtendOfferMessageComposer';
 export * from './GetIsOfferGiftableComposer';
 export * from './GetLimitedOfferAppearingNextComposer';
 export * from './GetNextTargetedOfferComposer';
+export * from './CatalogFurniOfferComposer';
 export * from './GetProductOfferComposer';
 export * from './GetRoomAdPurchaseInfoComposer';
 export * from './GetSeasonalCalendarDailyOfferComposer';

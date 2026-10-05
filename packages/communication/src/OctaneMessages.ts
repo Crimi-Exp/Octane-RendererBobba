@@ -21,7 +21,7 @@ import { BrainrotFxEvent } from './messages';
 import { UnoOpenEvent, UnoRoomStatusEvent, UnoTableActionComposer, UnoTableEvent } from './messages';
 import { UnoActionComposer, UnoGameEndEvent, UnoGameStartEvent, UnoJoinComposer, UnoLeaveComposer, UnoQueueEvent, UnoStateEvent } from './messages';
 import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
-import { CollectiblesDataEvent, CollectiblesImportComposer, CollectiblesRequestComposer } from './messages';
+import { CatalogFurniOfferComposer, CollectiblesDataEvent, CollectiblesImportComposer, CollectiblesRequestComposer } from './messages';
 import { DuelActionComposer, DuelEndEvent, DuelJoinComposer, DuelLeaveComposer, DuelQueueEvent, DuelStartEvent, DuelStateEvent } from './messages';
 import { RoyaleAttackComposer, RoyaleGameEndEvent, RoyaleGameStartEvent, RoyaleJoinComposer, RoyaleLeaveComposer, RoyaleMoveComposer, RoyaleQueueEvent, RoyaleStateEvent } from './messages';
 import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinComposer, BattleBallLeaveComposer, BattleBallMoveComposer, BattleBallPowerComposer, BattleBallQueueEvent, BattleBallStateEvent } from './messages';
@@ -1610,6 +1610,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.BATTLEBALL_POWER, BattleBallPowerComposer);
         this._composers.set(OutgoingHeader.COLLECTIBLES_REQUEST, CollectiblesRequestComposer);
         this._composers.set(OutgoingHeader.COLLECTIBLES_IMPORT, CollectiblesImportComposer);
+        this._composers.set(OutgoingHeader.CATALOG_FURNI_OFFER, CatalogFurniOfferComposer);
         this._composers.set(OutgoingHeader.DUEL_JOIN, DuelJoinComposer);
         this._composers.set(OutgoingHeader.DUEL_LEAVE, DuelLeaveComposer);
         this._composers.set(OutgoingHeader.DUEL_ACTION, DuelActionComposer);
