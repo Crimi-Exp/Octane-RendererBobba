@@ -19,6 +19,7 @@ export class UserSettingsParser implements IMessageParser
     private _chatBubbleWidth: number;
     private _chatScrollSpeed: number;
     private _onlineIndicatorPreference: number;
+    private _profileVisible: boolean;
 
     public flush(): boolean
     {
@@ -39,6 +40,7 @@ export class UserSettingsParser implements IMessageParser
         this._chatBubbleWidth = 1;
         this._chatScrollSpeed = 1;
         this._onlineIndicatorPreference = 0;
+        this._profileVisible = true;
 
         return true;
     }
@@ -66,6 +68,8 @@ export class UserSettingsParser implements IMessageParser
         this._chatBubbleWidth = wrapper.bytesAvailable ? wrapper.readInt() : 1;
         this._chatScrollSpeed = wrapper.bytesAvailable ? wrapper.readInt() : 1;
         this._onlineIndicatorPreference = wrapper.bytesAvailable ? wrapper.readInt() : 0;
+        // Whether other users see the full extended profile; visible when the server does not say.
+        this._profileVisible = wrapper.bytesAvailable ? wrapper.readBoolean() : true;
 
         return true;
     }
@@ -153,5 +157,10 @@ export class UserSettingsParser implements IMessageParser
     public get onlineIndicatorPreference(): number
     {
         return this._onlineIndicatorPreference;
+    }
+
+    public get profileVisible(): boolean
+    {
+        return this._profileVisible;
     }
 }

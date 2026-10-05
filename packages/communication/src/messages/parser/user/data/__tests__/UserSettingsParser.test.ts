@@ -118,6 +118,30 @@ describe('UserSettingsParser per-user preferences', () =>
         expect(parser.onlineIndicatorPreference).toBe(2);
     });
 
+    it('reads whether the extended profile is visible to others', () =>
+    {
+        const writer = new BinaryWriter();
+        writeLegacySettings(writer);
+        writer.writeInt(40);
+        writer.writeByte(0);
+        writer.writeInt(1);
+        writer.writeInt(2);
+        writer.writeInt(0);
+        writer.writeInt(2);
+        writer.writeByte(0);
+
+        expect(parse(writer).profileVisible).toBe(false);
+    });
+
+    it('keeps the profile visible when the emulator does not send the flag', () =>
+    {
+        const writer = new BinaryWriter();
+        writeLegacySettings(writer);
+        writer.writeInt(40);
+
+        expect(parse(writer).profileVisible).toBe(true);
+    });
+
     it('keeps the official defaults when the emulator stops at the soundboard volume', () =>
     {
         const writer = new BinaryWriter();

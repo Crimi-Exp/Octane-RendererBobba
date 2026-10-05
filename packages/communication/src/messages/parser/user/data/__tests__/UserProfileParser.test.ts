@@ -86,6 +86,22 @@ describe('UserProfileParser presence and level', () =>
         expect(parser.nextLevelStart).toBe(500);
     });
 
+    it('reads the hidden profile flag after the level block', () =>
+    {
+        const writer = new BinaryWriter();
+
+        writeProfile(writer);
+        writer.writeInt(1);
+        writer.writeInt(3);
+        writer.writeInt(150);
+        writer.writeByte(1);
+
+        const parser = parse(writer);
+
+        expect(parser.nextLevelStart).toBe(150);
+        expect(parser.isHidden).toBe(true);
+    });
+
     it('keeps the defaults when the server stops at the badge total', () =>
     {
         const writer = new BinaryWriter();
@@ -98,5 +114,6 @@ describe('UserProfileParser presence and level', () =>
         expect(parser.onlineStatus).toBe(-1);
         expect(parser.level).toBe(0);
         expect(parser.nextLevelStart).toBe(0);
+        expect(parser.isHidden).toBe(false);
     });
 });

@@ -16,6 +16,7 @@ export class OctaneSettingsEvent extends OctaneEvent
     private _onlineStatusVisible: boolean;
     private _friendsCanFollow: boolean;
     private _friendRequestsAllowed: boolean;
+    private _profileVisible: boolean = true;
 
     constructor()
     {
@@ -38,6 +39,7 @@ export class OctaneSettingsEvent extends OctaneEvent
         clone._onlineStatusVisible = this._onlineStatusVisible;
         clone._friendsCanFollow = this._friendsCanFollow;
         clone._friendRequestsAllowed = this._friendRequestsAllowed;
+        clone._profileVisible = this._profileVisible;
 
         return clone;
     }
@@ -160,5 +162,16 @@ export class OctaneSettingsEvent extends OctaneEvent
     public set friendRequestsAllowed(value: boolean)
     {
         this._friendRequestsAllowed = value;
+    }
+
+    /** Whether other users see the full extended profile. */
+    public get profileVisible(): boolean
+    {
+        return this._profileVisible;
+    }
+
+    public set profileVisible(value: boolean)
+    {
+        this._profileVisible = value;
     }
 }
