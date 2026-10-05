@@ -49,6 +49,7 @@ import { GetHotLooksComposer, HotLooksEvent } from './messages';
 import { WheelBuySpinComposer, WheelDataEvent, WheelOpenComposer, WheelRecentWinsEvent, WheelResultEvent, WheelSpinComposer } from './messages';
 import { WheelAdminGetPrizesComposer, WheelAdminPrizesEvent, WheelAdminSavePrizesComposer } from './messages';
 import { ChestDataEvent, ChestDepositComposer, ChestDepositFurniComposer, ChestDepositInventoryItemComposer, ChestFurniChunkEvent, ChestFurniDeltaEvent, ChestOpenComposer, ChestOpenEvent, ChestStartDepositComposer, ChestWithdrawAllFurniComposer, ChestWithdrawComposer, ChestWithdrawFurniComposer, ChestLogEvent, ChestCloseComposer, ChestEnableWiredComposer, ChestSaveOptionsComposer, ChestSaveSettingsComposer, ChestSaveNotificationsComposer, ChestUpgradeCapacityComposer, ChestNotificationEvent, ChestUpgradeResultEvent, ChestRequestLogComposer, WiredChestRoomLogsComposer, WiredChestLockComposer, WiredChestTransactionDetailsComposer, WiredChestRoomLogsEvent, WiredChestLockStateEvent, WiredChestTransactionDetailsEvent, WiredTradeOpenEvent, WiredTradeItemsEvent, WiredTradeCancelledEvent, WiredTradeCompletedEvent, WiredTradeOfferItemsComposer, WiredTradeAcceptComposer, WiredTradeCancelComposer } from './messages';
+import { BobbaBotAlertEvent, BobbaBotToolActionComposer, BobbaBotToolDataEvent, BobbaBotToolRequestComposer } from './messages';
 import { SoundboardCatalogEvent, SoundboardCatalogReorderComposer, SoundboardCatalogRequestComposer, SoundboardCatalogResultEvent, SoundboardCatalogUpsertComposer, SoundboardPlayComposer, SoundboardPlayDeniedEvent, SoundboardPlayEvent, SoundboardRequestSettingsComposer, SoundboardSaveVolumeComposer, SoundboardSetEnabledComposer, SoundboardSettingsEvent } from './messages';
 import { PressKeybindComposer } from './messages';
 import { EarningsCenterEvent, EarningsClaimResultEvent, IncomeRewardNotificationEvent, RequestEarningsCenterComposer, ClaimEarningsRewardComposer, ClaimAllEarningsRewardsComposer } from './messages';
@@ -689,6 +690,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.WHEEL_RECENT_WINS, WheelRecentWinsEvent);
         this._events.set(IncomingHeader.WHEEL_ADMIN_PRIZES, WheelAdminPrizesEvent);
         this._events.set(IncomingHeader.SOUNDBOARD_SETTINGS, SoundboardSettingsEvent);
+        this._events.set(IncomingHeader.BOBBABOT_TOOL_DATA, BobbaBotToolDataEvent);
+        this._events.set(IncomingHeader.BOBBABOT_ALERT, BobbaBotAlertEvent);
         this._events.set(IncomingHeader.SOUNDBOARD_PLAY, SoundboardPlayEvent);
         this._events.set(IncomingHeader.SOUNDBOARD_PLAY_DENIED, SoundboardPlayDeniedEvent);
         this._events.set(IncomingHeader.SOUNDBOARD_CATALOG, SoundboardCatalogEvent);
@@ -1734,6 +1737,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.WHEEL_ADMIN_GET_PRIZES, WheelAdminGetPrizesComposer);
         this._composers.set(OutgoingHeader.WHEEL_ADMIN_SAVE_PRIZES, WheelAdminSavePrizesComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_PLAY, SoundboardPlayComposer);
+        this._composers.set(OutgoingHeader.BOBBABOT_TOOL_REQUEST, BobbaBotToolRequestComposer);
+        this._composers.set(OutgoingHeader.BOBBABOT_TOOL_ACTION, BobbaBotToolActionComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SET_ENABLED, SoundboardSetEnabledComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_REQUEST_SETTINGS, SoundboardRequestSettingsComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SAVE_VOLUME, SoundboardSaveVolumeComposer);

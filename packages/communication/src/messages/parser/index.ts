@@ -1,6 +1,7 @@
 export * from './advertisement';
 export * from './availability';
 export * from './avatar';
+export * from './bobbabot';
 export * from './bots';
 export * from './callforhelp';
 export * from './collectibles';

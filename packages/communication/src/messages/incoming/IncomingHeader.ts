@@ -682,6 +682,9 @@ export class IncomingHeader
     public static REWARD_TRACK = 9490;
     // BobbaTok : tags muraux (graffitis)
     public static WALL_TAGS = 9495;
+    // BobbaBot : outil de gestion et infractions en direct pour le staff
+    public static BOBBABOT_TOOL_DATA = 9582;
+    public static BOBBABOT_ALERT = 9583;
     public static WALL_TAG_ADDED = 9496;
     public static WALL_TAG_REMOVED = 9497;
     // BobbaTok : Wobble Squabble (duel sur la bouee du Lido)

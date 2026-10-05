@@ -2,6 +2,7 @@ export * from './OutgoingHeader';
 export * from './UnsupportedOutgoingHeader';
 export * from './advertisement';
 export * from './avatar';
+export * from './bobbabot';
 export * from './camera';
 export * from './collectibles';
 export * from './campaign';

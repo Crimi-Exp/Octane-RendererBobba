@@ -435,6 +435,9 @@ export class OutgoingHeader
     public static GET_REWARD_TRACKS = 9450;
     // BobbaTok : tags muraux (graffitis)
     public static WALL_TAG_PLACE = 9493;
+    // BobbaBot : outil de gestion du robot de moderation (staff)
+    public static BOBBABOT_TOOL_REQUEST = 9580;
+    public static BOBBABOT_TOOL_ACTION = 9581;
     public static WALL_TAG_REMOVE = 9494;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;

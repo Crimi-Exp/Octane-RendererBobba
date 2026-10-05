@@ -28390,6 +28390,70 @@
         "path": "packages/communication/src/messages/parser/roomevents/WiredVariableFxStatusRemovedParser.ts"
       },
       "reason": "Java analyzer: Data-dependent packet operations in ForEachStmt inside composeInternal; TypeScript analyzer: Data-dependent packet operations in ForStatement inside parse"
+    },
+    {
+      "name": "BOBBABOT_TOOL_REQUEST",
+      "direction": "client_to_server",
+      "header": 9580,
+      "java": {
+        "symbol": "BobbaBotToolRequestEvent",
+        "className": "BobbaBotToolRequestEvent",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/incoming/modtool/bobbabot/BobbaBotToolRequestEvent.java"
+      },
+      "typescript": {
+        "symbol": "BOBBABOT_TOOL_REQUEST",
+        "className": "BobbaBotToolRequestComposer",
+        "path": "packages/communication/src/messages/outgoing/bobbabot/BobbaBotToolRequestComposer.ts"
+      },
+      "reason": "BobbaBot tool: data-dependent loops (lists, log entries, settings) paired by hand"
+    },
+    {
+      "name": "BOBBABOT_TOOL_ACTION",
+      "direction": "client_to_server",
+      "header": 9581,
+      "java": {
+        "symbol": "BobbaBotToolActionEvent",
+        "className": "BobbaBotToolActionEvent",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/incoming/modtool/bobbabot/BobbaBotToolActionEvent.java"
+      },
+      "typescript": {
+        "symbol": "BOBBABOT_TOOL_ACTION",
+        "className": "BobbaBotToolActionComposer",
+        "path": "packages/communication/src/messages/outgoing/bobbabot/BobbaBotToolActionComposer.ts"
+      },
+      "reason": "BobbaBot tool: data-dependent loops (lists, log entries, settings) paired by hand"
+    },
+    {
+      "name": "BOBBABOT_TOOL_DATA",
+      "direction": "server_to_client",
+      "header": 9582,
+      "java": {
+        "symbol": "BobbaBotToolDataComposer",
+        "className": "BobbaBotToolDataComposer",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/modtool/bobbabot/BobbaBotToolDataComposer.java"
+      },
+      "typescript": {
+        "symbol": "BOBBABOT_TOOL_DATA",
+        "className": "BobbaBotToolDataParser",
+        "path": "packages/communication/src/messages/parser/bobbabot/BobbaBotToolDataParser.ts"
+      },
+      "reason": "BobbaBot tool: data-dependent loops (lists, log entries, settings) paired by hand"
+    },
+    {
+      "name": "BOBBABOT_ALERT",
+      "direction": "server_to_client",
+      "header": 9583,
+      "java": {
+        "symbol": "BobbaBotAlertComposer",
+        "className": "BobbaBotAlertComposer",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/modtool/bobbabot/BobbaBotAlertComposer.java"
+      },
+      "typescript": {
+        "symbol": "BOBBABOT_ALERT",
+        "className": "BobbaBotAlertParser",
+        "path": "packages/communication/src/messages/parser/bobbabot/BobbaBotAlertParser.ts"
+      },
+      "reason": "BobbaBot tool: data-dependent loops (lists, log entries, settings) paired by hand"
     }
   ]
 }
