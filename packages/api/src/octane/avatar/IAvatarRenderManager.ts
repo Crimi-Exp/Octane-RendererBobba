@@ -11,6 +11,7 @@ export interface IAvatarRenderManager
     createFigureContainer(figure: string): IAvatarFigureContainer;
     isFigureContainerReady(container: IAvatarFigureContainer): boolean;
     createAvatarImage(figure: string, size: string, gender: string, listener?: IAvatarImageListener, effectListener?: IAvatarEffectListener): IAvatarImage;
+    createBlockedAvatarImage(size: string): IAvatarImage;
     downloadAvatarFigure(container: IAvatarFigureContainer, listener: IAvatarImageListener): void;
     getFigureClubLevel(container: IAvatarFigureContainer, gender: string, searchParts?: string[]): number;
     isValidFigureSetForGender(setId: number, gender: string): boolean;

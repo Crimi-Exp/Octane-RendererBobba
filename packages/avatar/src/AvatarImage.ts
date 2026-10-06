@@ -964,6 +964,11 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         return false;
     }
 
+    public isBlocked(): boolean
+    {
+        return false;
+    }
+
     public get animationHasResetOnToggle(): boolean
     {
         return this._animationHasResetOnToggle;

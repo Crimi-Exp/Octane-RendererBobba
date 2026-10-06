@@ -9,6 +9,7 @@ import { AvatarImage } from './AvatarImage';
 import { AvatarStructure } from './AvatarStructure';
 import { EffectAssetDownloadManager } from './EffectAssetDownloadManager';
 import { FigureDataContainer } from './FigureDataContainer';
+import { BlockedAvatarImage } from './BlockedAvatarImage';
 import { PlaceHolderAvatarImage } from './PlaceHolderAvatarImage';
 import { AssetAliasCollection } from './alias';
 import { DanceSixSevenAnimation } from './data/DanceSixSevenAnimation';
@@ -161,6 +162,14 @@ export class AvatarRenderManager implements IAvatarRenderManager
         this._avatarAssetDownloadManager.downloadAvatarFigure(figureContainer, listener);
 
         return new PlaceHolderAvatarImage(this._structure, this._aliasCollection, this._placeHolderFigure, size, this._effectAssetDownloadManager);
+    }
+
+    /** Official `createBlockedAvatarImage`: the anonymous placeholder figure, for a player the session blocks. */
+    public createBlockedAvatarImage(size: string): IAvatarImage
+    {
+        if(!this._structure) return null;
+
+        return new BlockedAvatarImage(this._structure, this._aliasCollection, this._placeHolderFigure, size, this._effectAssetDownloadManager);
     }
 
     public downloadAvatarFigure(container: IAvatarFigureContainer, listener: IAvatarImageListener): void

@@ -6,6 +6,7 @@ export * from './AvatarImageBodyPartContainer';
 export * from './AvatarImagePartContainer';
 export * from './AvatarRenderManager';
 export * from './AvatarStructure';
+export * from './BlockedAvatarImage';
 export * from './EffectAssetDownloadLibrary';
 export * from './EffectAssetDownloadManager';
 export * from './FigureDataContainer';

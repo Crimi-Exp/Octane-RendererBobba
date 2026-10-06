@@ -67,6 +67,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private _carryObject: number;
     private _useObject: number;
     private _ownUser: boolean;
+    private _isBlocked: boolean;
     private _habbiconTriggerSequence: number;
     private _habbiconSpinOffset: number;
 
@@ -133,6 +134,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         this._carryObject = 0;
         this._useObject = 0;
         this._ownUser = false;
+        this._isBlocked = false;
         this._habbiconTriggerSequence = 0;
         this._habbiconSpinOffset = 0;
 
@@ -249,14 +251,18 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
                 const sprite = this.getSprite(AvatarVisualization.AVATAR_LAYER_ID);
 
-                if((sprite && this._avatarImage) && this._avatarImage.isPlaceholder())
+                if((sprite && this._avatarImage) && (this._avatarImage.isPlaceholder() || this._avatarImage.isBlocked()))
                 {
+                    // official AvatarVisualization: placeholder and blocked players are see-through,
+                    // and a blocked player is also darkened (0x666666) into a grey ghost
                     sprite.alpha = 150;
+                    sprite.color = (this._avatarImage.isBlocked() ? 0x666666 : 0xFFFFFF);
                 }
 
                 else if(sprite)
                 {
                     sprite.alpha = 255;
+                    sprite.color = 0xFFFFFF;
                 }
             }
 
@@ -546,7 +552,9 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         if(!cachedImage)
         {
-            cachedImage = this._data.createAvatarImage(this._figure, scale, this._gender, this, this);
+            cachedImage = this._isBlocked
+                ? this._data.createBlockedAvatarImage(scale)
+                : this._data.createAvatarImage(this._figure, scale, this._gender, this, this);
 
             if(cachedImage)
             {
@@ -957,6 +965,17 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         if(this.updateFigure(model.getValue<string>(RoomObjectVariable.FIGURE))) needsUpdate = true;
 
+        const isBlocked = (model.getValue<number>(RoomObjectVariable.FIGURE_BLOCKED) > 0);
+
+        if(isBlocked !== this._isBlocked)
+        {
+            this._isBlocked = isBlocked;
+
+            this.clearAvatar();
+
+            needsUpdate = true;
+        }
+
         let sign = model.getValue<number>(RoomObjectVariable.FIGURE_SIGN);
 
         if(sign === null) sign = -1;
@@ -1300,6 +1319,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         {
             sprite.texture = Texture.EMPTY;
             sprite.alpha = 255;
+            sprite.color = 0xFFFFFF;
         }
 
 

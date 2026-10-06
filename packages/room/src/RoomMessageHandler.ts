@@ -1,5 +1,5 @@
 import { AvatarGuideStatus, IConnection, IMessageEvent, IRoomCreator, IRoomObjectController, IRoomObject, IVector3D, LegacyDataType, ObjectRolling, PetType, RoomObjectCategory, RoomObjectType, RoomObjectUserType, RoomObjectVariable } from '@octane/api';
-import { AreaHideMessageEvent, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
+import { AreaHideMessageEvent, BlockResultEvent, BlockResultParser, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { OctaneLogger, Vector3d } from '@octane/utils';
 import { FloorHeightMapMessageParser } from '@octane/communication';
@@ -111,6 +111,7 @@ export class RoomMessageHandler
             new YouArePlayingGameEvent(this.onYouArePlayingGameEvent.bind(this)),
             new DiceValueMessageEvent(this.onDiceValueMessageEvent.bind(this)),
             new IgnoreResultEvent(this.onIgnoreResultEvent.bind(this)),
+            new BlockResultEvent(this.onBlockResultEvent.bind(this)),
             new GuideSessionStartedMessageEvent(this.onGuideSessionStartedMessageEvent.bind(this)),
             new GuideSessionEndedMessageEvent(this.onGuideSessionEndedMessageEvent.bind(this)),
             new GuideSessionErrorMessageEvent(this.onGuideSessionErrorMessageEvent.bind(this))
@@ -1545,6 +1546,12 @@ export class RoomMessageHandler
             }
 
             this._roomEngine.updateRoomObjectUserAction(this._currentRoomId, user.roomIndex, RoomObjectVariable.FIGURE_IS_MUTED, (GetSessionDataManager().isUserIgnored(user.name) ? 1 : 0));
+
+            // official RoomEngine.addObjectUser: a player this session blocks is drawn as a ghost
+            if((RoomObjectUserType.getTypeString(user.userType) === RoomObjectUserType.USER) && GetSessionDataManager().isBlocked(user.webID))
+            {
+                this._roomEngine.updateRoomObjectUserAction(this._currentRoomId, user.roomIndex, RoomObjectVariable.FIGURE_BLOCKED, 1);
+            }
         }
 
         this.updateGuideMarker();
@@ -1928,6 +1935,26 @@ export class RoomMessageHandler
                 this._roomEngine.updateRoomObjectUserAction(this._currentRoomId, userData.roomIndex, RoomObjectVariable.FIGURE_IS_MUTED, 0);
                 return;
         }
+    }
+
+    /** Official `onBlockUserUpdate`: blocking or unblocking someone in the room turns their avatar into a ghost, or back. */
+    private onBlockResultEvent(event: BlockResultEvent): void
+    {
+        if(!event) return;
+
+        const parser = event.getParser();
+
+        if(!parser) return;
+
+        const roomSession = GetRoomSessionManager().getSession(this._currentRoomId);
+
+        if(!roomSession) return;
+
+        const userData = roomSession.userDataManager.getUserData(parser.userId);
+
+        if(!userData) return;
+
+        this._roomEngine.updateRoomObjectUserAction(this._currentRoomId, userData.roomIndex, RoomObjectVariable.FIGURE_BLOCKED, ((parser.result === BlockResultParser.BLOCKED) ? 1 : 0));
     }
 
     private onGuideSessionStartedMessageEvent(event: GuideSessionStartedMessageEvent): void

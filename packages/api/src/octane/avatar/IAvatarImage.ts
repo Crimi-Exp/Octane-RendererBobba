@@ -29,6 +29,7 @@ export interface IAvatarImage
     endActionAppends(): void;
     appendAction(action: string, ..._args: any[]): boolean;
     isPlaceholder(): boolean;
+    isBlocked(): boolean;
     animationHasResetOnToggle: boolean;
     resetAnimationFrameCounter(): void;
 }

@@ -22,6 +22,12 @@ export class AvatarVisualizationData implements IObjectVisualizationData
         return avatarImage;
     }
 
+    /** Official `getAvatar(..., blocked)`: a blocked player is drawn with the anonymous placeholder figure. */
+    public createBlockedAvatarImage(size: number): IAvatarImage
+    {
+        return GetAvatarRenderManager().createBlockedAvatarImage((size > 48) ? AvatarScaleType.LARGE : AvatarScaleType.SMALL);
+    }
+
     public get layerCount(): number
     {
         return 0;
