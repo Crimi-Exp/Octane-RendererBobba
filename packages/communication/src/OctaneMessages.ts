@@ -33,6 +33,7 @@ import { WiredArrayInspectionDataEvent, WiredArrayInspectionRequestComposer, Wir
 import { WiredMovementsEvent } from './messages';
 import { ConfInvisStateMessageEvent } from './messages';
 import { HanditemBlockStateMessageEvent } from './messages';
+import { EventLogMessageComposer } from './messages';
 import { TranslationLanguagesEvent, TranslationLanguagesRequestComposer, TranslationResultEvent, TranslationTextRequestComposer } from './messages';
 import { YouTubeRoomBroadcastEvent, YouTubeRoomPlayComposer, YouTubeRoomSettingsComposer, YouTubeRoomSettingsEvent, YouTubeRoomWatchersEvent, YouTubeRoomWatchingComposer } from './messages';
 import { HousekeepingActionLogEvent, HousekeepingActionResultEvent, HousekeepingBanUserComposer, HousekeepingDashboardEvent, HousekeepingDeleteRoomComposer, HousekeepingFindRoomByIdComposer, HousekeepingFindUserByIdComposer, HousekeepingFindUserByNameComposer, HousekeepingForceDisconnectUserComposer, HousekeepingGetDashboardComposer, HousekeepingGiveCreditsComposer, HousekeepingGiveCurrencyComposer, HousekeepingGrantItemComposer, HousekeepingKickAllFromRoomComposer, HousekeepingKickUserComposer, HousekeepingListActionLogComposer, HousekeepingMuteRoomComposer, HousekeepingMuteUserComposer, HousekeepingResetUserPasswordComposer, HousekeepingRoomDetailEvent, HousekeepingRoomListEvent, HousekeepingRoomStateComposer, HousekeepingSearchRoomsComposer, HousekeepingSendHotelAlertComposer, HousekeepingSetHcSubscriptionComposer, HousekeepingSetUserRankComposer, HousekeepingTradeLockUserComposer, HousekeepingTransferRoomOwnershipComposer, HousekeepingUnbanUserComposer, HousekeepingUserDetailEvent } from './messages';
@@ -1648,6 +1649,7 @@ export class OctaneMessages implements IMessageConfiguration
 
         // TALENT
         this._composers.set(OutgoingHeader.HELPER_TALENT_TRACK, TalentTrackComposer);
+        this._composers.set(OutgoingHeader.EVENT_TRACKER, EventLogMessageComposer);
         this._composers.set(OutgoingHeader.TALENT_TRACK_GET_LEVEL, GetTalentTrackLevelMessageComposer);
 
         //NUX
