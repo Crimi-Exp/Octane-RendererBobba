@@ -20,6 +20,7 @@ export class UserProfileParser implements IMessageParser
     private _standId: number;
     private _overlayId: number;
     private _cardBackgroundId: number;
+    private _borderId: number;
     private _totalBadges: number;
     private _nickIcon: string;
     private _prefixText: string;
@@ -52,6 +53,7 @@ export class UserProfileParser implements IMessageParser
         this._standId = 0;
         this._overlayId = 0;
         this._cardBackgroundId = 0;
+        this._borderId = 0;
         this._totalBadges = 0;
         this._nickIcon = '';
         this._prefixText = '';
@@ -140,6 +142,11 @@ export class UserProfileParser implements IMessageParser
 
         this._isHidden = wrapper.readBoolean();
 
+        // Cadre du joueur (borderId de l'infostand), pour encadrer la fenetre de profil.
+        if(!wrapper.bytesAvailable) return true;
+
+        this._borderId = wrapper.readInt();
+
         return true;
     }
 
@@ -221,6 +228,11 @@ export class UserProfileParser implements IMessageParser
     public get overlayId(): number
     {
         return this._overlayId;
+    }
+
+    public get borderId(): number
+    {
+        return this._borderId;
     }
 
     public get cardBackgroundId(): number
