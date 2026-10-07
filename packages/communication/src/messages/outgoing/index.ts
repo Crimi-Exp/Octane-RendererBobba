@@ -4,6 +4,7 @@ export * from './advertisement';
 export * from './avatar';
 export * from './bobbabot';
 export * from './security';
+export * from './catalogfavorites';
 export * from './camera';
 export * from './collectibles';
 export * from './campaign';

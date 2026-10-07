@@ -440,6 +440,9 @@ export class OutgoingHeader
     public static BOBBABOT_TOOL_ACTION = 9581;
     // BobbaTok anti DevTools (client -> server), custom range.
     public static DEVTOOLS_DETECTED = 9780;
+    // BobbaTok : mobis favoris du catalogue
+    public static GET_CATALOG_FAVORITES = 9810;
+    public static TOGGLE_CATALOG_FAVORITE = 9811;
     public static WALL_TAG_REMOVE = 9494;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;

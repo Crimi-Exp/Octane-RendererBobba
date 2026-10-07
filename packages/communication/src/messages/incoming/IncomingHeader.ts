@@ -741,6 +741,8 @@ export class IncomingHeader
     // AIR 13 treasure hunt (server -> client). Official 1631 is taken by UNIT_EXPRESSION,
     // so the first-winner packet uses the reserved custom id 9485; the other two are official.
     public static TREASURE_HUNT_FIRST_WINNER = 9485;
+    // BobbaTok : mobis favoris du catalogue
+    public static CATALOG_FAVORITES = 9812;
     public static TREASURE_HUNT_FAIL = 2383;
     public static TREASURE_HUNT_UPDATE = 3368;
     // AIR 13 self donation tool result (server -> client), official id.
