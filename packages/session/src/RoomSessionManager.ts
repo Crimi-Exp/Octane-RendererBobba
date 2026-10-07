@@ -220,6 +220,10 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
 
         if(existingSession)
         {
+            // Re-entering the same session: it is no longer a spectator unless the server says so again
+            // (YouAreSpectator), otherwise the spectator frame would stay after a normal re-entry.
+            existingSession.isSpectator = false;
+
             GetCommunication().connection.send(new RoomEnterComposer(roomId, password, this._savedPosX, this._savedPosY));
 
             this.clearGuardTimer();
