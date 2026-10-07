@@ -56,3 +56,4 @@ export * from './PurchaseSnowWarGameTokensOfferComposer';
 export * from './studio';
 export * from './metadata';
 export * from './configuration';
+export * from './BuildersClubRecolorFurniMessageComposer';
