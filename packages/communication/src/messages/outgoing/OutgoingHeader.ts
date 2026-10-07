@@ -438,6 +438,8 @@ export class OutgoingHeader
     // BobbaBot : outil de gestion du robot de moderation (staff)
     public static BOBBABOT_TOOL_REQUEST = 9580;
     public static BOBBABOT_TOOL_ACTION = 9581;
+    // BobbaTok anti DevTools (client -> server), custom range.
+    public static DEVTOOLS_DETECTED = 9780;
     public static WALL_TAG_REMOVE = 9494;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;

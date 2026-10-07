@@ -51,6 +51,7 @@ import { WheelBuySpinComposer, WheelDataEvent, WheelOpenComposer, WheelRecentWin
 import { WheelAdminGetPrizesComposer, WheelAdminPrizesEvent, WheelAdminSavePrizesComposer } from './messages';
 import { ChestDataEvent, ChestDepositComposer, ChestDepositFurniComposer, ChestDepositInventoryItemComposer, ChestFurniChunkEvent, ChestFurniDeltaEvent, ChestOpenComposer, ChestOpenEvent, ChestStartDepositComposer, ChestWithdrawAllFurniComposer, ChestWithdrawComposer, ChestWithdrawFurniComposer, ChestLogEvent, ChestCloseComposer, ChestEnableWiredComposer, ChestSaveOptionsComposer, ChestSaveSettingsComposer, ChestSaveNotificationsComposer, ChestUpgradeCapacityComposer, ChestNotificationEvent, ChestUpgradeResultEvent, ChestRequestLogComposer, WiredChestRoomLogsComposer, WiredChestLockComposer, WiredChestTransactionDetailsComposer, WiredChestRoomLogsEvent, WiredChestLockStateEvent, WiredChestTransactionDetailsEvent, WiredTradeOpenEvent, WiredTradeItemsEvent, WiredTradeCancelledEvent, WiredTradeCompletedEvent, WiredTradeOfferItemsComposer, WiredTradeAcceptComposer, WiredTradeCancelComposer } from './messages';
 import { BobbaBotAlertEvent, BobbaBotToolActionComposer, BobbaBotToolDataEvent, BobbaBotToolRequestComposer } from './messages';
+import { DevToolsDetectedComposer } from './messages';
 import { SoundboardCatalogEvent, SoundboardCatalogReorderComposer, SoundboardCatalogRequestComposer, SoundboardCatalogResultEvent, SoundboardCatalogUpsertComposer, SoundboardPlayComposer, SoundboardPlayDeniedEvent, SoundboardPlayEvent, SoundboardRequestSettingsComposer, SoundboardSaveVolumeComposer, SoundboardSetEnabledComposer, SoundboardSettingsEvent } from './messages';
 import { PressKeybindComposer } from './messages';
 import { EarningsCenterEvent, EarningsClaimResultEvent, IncomeRewardNotificationEvent, RequestEarningsCenterComposer, ClaimEarningsRewardComposer, ClaimAllEarningsRewardsComposer } from './messages';
@@ -1742,6 +1743,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SOUNDBOARD_PLAY, SoundboardPlayComposer);
         this._composers.set(OutgoingHeader.BOBBABOT_TOOL_REQUEST, BobbaBotToolRequestComposer);
         this._composers.set(OutgoingHeader.BOBBABOT_TOOL_ACTION, BobbaBotToolActionComposer);
+        this._composers.set(OutgoingHeader.DEVTOOLS_DETECTED, DevToolsDetectedComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SET_ENABLED, SoundboardSetEnabledComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_REQUEST_SETTINGS, SoundboardRequestSettingsComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SAVE_VOLUME, SoundboardSaveVolumeComposer);
