@@ -1274,7 +1274,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         {
             const stackingHeightMap = this._roomEngine.getFurnitureStackingHeightMap(roomId);
 
-            if(!(((event instanceof RoomObjectTileMouseEvent)) && (this.handleFurnitureMove(roomObject, selectedData, Math.trunc(event.tileX + 0.5), Math.trunc(event.tileY + 0.5), stackingHeightMap))))
+            if(!(((event instanceof RoomObjectTileMouseEvent)) && (this.handleFurnitureMove(roomObject, selectedData, this.getBuildHeightTileX(event, selectedData.category), this.getBuildHeightTileY(event, selectedData.category), stackingHeightMap))))
             {
                 this.handleFurnitureMove(roomObject, selectedData, selectedData.loc.x, selectedData.loc.y, stackingHeightMap);
 
@@ -1400,7 +1400,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
             if(selectedData.category === RoomObjectCategory.FLOOR)
             {
-                if(!((event instanceof RoomObjectTileMouseEvent) && this.handleFurnitureMove(roomObject, selectedData, Math.trunc(event.tileX + 0.5), Math.trunc(event.tileY + 0.5), stackingHeightMap)))
+                if(!((event instanceof RoomObjectTileMouseEvent) && this.handleFurnitureMove(roomObject, selectedData, this.getBuildHeightTileX(event, selectedData.category), this.getBuildHeightTileY(event, selectedData.category), stackingHeightMap)))
                 {
                     this._roomEngine.removeRoomObjectFloor(roomId, selectedData.id);
 
@@ -1447,6 +1447,30 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
             this._roomEngine.setObjectMoverIconSpriteVisible(!placementValid);
         }
+    }
+
+    /**
+     * BobbaTok : avec la hauteur de construction (:setz), le mobi est pose a une hauteur absolue. La case visee est celle
+     * qui se trouve sous le curseur A CETTE HAUTEUR, pas celle du sol touche : sinon, sur un sol sureleve, le mobi
+     * (enfonce plus bas que le sol) s'affiche une case a cote du curseur. Un ecart de hauteur d decale la case de d en x et en y.
+     */
+    private getBuildHeightDelta(event: RoomObjectTileMouseEvent, category: number): number
+    {
+        if((category !== RoomObjectCategory.FLOOR) || (RoomBuildHeightPreview.override === null)) return 0;
+
+        const delta = (RoomBuildHeightPreview.previewZ(0, 0) - event.tileZ);
+
+        return (Number.isFinite(delta) ? delta : 0);
+    }
+
+    private getBuildHeightTileX(event: RoomObjectTileMouseEvent, category: number): number
+    {
+        return Math.floor(event.tileX + this.getBuildHeightDelta(event, category) + 0.5);
+    }
+
+    private getBuildHeightTileY(event: RoomObjectTileMouseEvent, category: number): number
+    {
+        return Math.floor(event.tileY + this.getBuildHeightDelta(event, category) + 0.5);
     }
 
     private handleFurnitureMove(roomObject: IRoomObjectController, selectedObjectData: ISelectedRoomObjectData, x: number, y: number, stackingHeightMap: IFurnitureStackingHeightMap): boolean

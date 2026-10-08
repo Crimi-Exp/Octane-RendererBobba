@@ -2541,9 +2541,11 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         const selectedData = this.getSelectedRoomObjectData(this._activeRoomId);
 
+        // BobbaTok : avec un mobi en main (OBJECT_PLACE) on peut quand meme faire glisser la piece ; le clic qui
+        // suit un glisser est ignore plus bas (MOUSE_CLICK), donc le mobi n'est pose que sur un vrai clic.
+        // Le deplacement d'un mobi deja pose (OBJECT_MOVE) garde la souris pour lui.
         if(selectedData &&
-            ((selectedData.operation === RoomObjectOperationType.OBJECT_PLACE) ||
-            (selectedData.operation === RoomObjectOperationType.OBJECT_MOVE) ||
+            ((selectedData.operation === RoomObjectOperationType.OBJECT_MOVE) ||
             (selectedData.operation === RoomObjectOperationType.OBJECT_MOVE_TO)))
         {
             this._activeRoomIsDragged = false;
