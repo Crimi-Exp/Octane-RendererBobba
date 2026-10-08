@@ -445,6 +445,15 @@ export class OutgoingHeader
     public static TOGGLE_CATALOG_FAVORITE = 9811;
     public static GET_HIDDEN_CLOTHING = 9813;
     public static TOGGLE_HIDDEN_CLOTHING = 9814;
+    // BobbaTok : Hub YouTube d'appart
+    public static YOUTUBE_HUB_OPEN = 9816;
+    public static YOUTUBE_HUB_CLOSE = 9817;
+    public static YOUTUBE_HUB_SEARCH = 9818;
+    public static YOUTUBE_HUB_ADD = 9819;
+    public static YOUTUBE_HUB_REMOVE = 9820;
+    public static YOUTUBE_HUB_PLAY = 9821;
+    public static YOUTUBE_HUB_VOTE = 9822;
+    public static GET_YOUTUBE_HUB_ROOMS = 9823;
     public static WALL_TAG_REMOVE = 9494;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;

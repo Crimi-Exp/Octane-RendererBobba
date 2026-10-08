@@ -82,6 +82,7 @@ export * from './roomsettings';
 export * from './security';
 export * from './catalogfavorites';
 export * from './wardrobehidden';
+export * from './youtubehub';
 export * from './sound';
 export * from './talent';
 export * from './translation';

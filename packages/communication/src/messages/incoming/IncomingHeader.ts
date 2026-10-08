@@ -744,6 +744,11 @@ export class IncomingHeader
     // BobbaTok : mobis favoris du catalogue
     public static CATALOG_FAVORITES = 9812;
     public static HIDDEN_CLOTHING = 9815;
+    // BobbaTok : Hub YouTube d'appart
+    public static YOUTUBE_HUB_STATE = 9824;
+    public static YOUTUBE_HUB_SEARCH_RESULTS = 9825;
+    public static YOUTUBE_HUB_REACTION = 9826;
+    public static YOUTUBE_HUB_ROOMS = 9827;
     public static TREASURE_HUNT_FAIL = 2383;
     public static TREASURE_HUNT_UPDATE = 3368;
     // AIR 13 self donation tool result (server -> client), official id.

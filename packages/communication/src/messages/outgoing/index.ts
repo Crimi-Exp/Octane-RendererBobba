@@ -6,6 +6,7 @@ export * from './bobbabot';
 export * from './security';
 export * from './catalogfavorites';
 export * from './wardrobehidden';
+export * from './youtubehub';
 export * from './camera';
 export * from './collectibles';
 export * from './campaign';

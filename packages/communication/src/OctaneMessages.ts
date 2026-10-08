@@ -53,6 +53,7 @@ import { WheelAdminGetPrizesComposer, WheelAdminPrizesEvent, WheelAdminSavePrize
 import { ChestDataEvent, ChestDepositComposer, ChestDepositFurniComposer, ChestDepositInventoryItemComposer, ChestFurniChunkEvent, ChestFurniDeltaEvent, ChestOpenComposer, ChestOpenEvent, ChestStartDepositComposer, ChestWithdrawAllFurniComposer, ChestWithdrawComposer, ChestWithdrawFurniComposer, ChestLogEvent, ChestCloseComposer, ChestEnableWiredComposer, ChestSaveOptionsComposer, ChestSaveSettingsComposer, ChestSaveNotificationsComposer, ChestUpgradeCapacityComposer, ChestNotificationEvent, ChestUpgradeResultEvent, ChestRequestLogComposer, WiredChestRoomLogsComposer, WiredChestLockComposer, WiredChestTransactionDetailsComposer, WiredChestRoomLogsEvent, WiredChestLockStateEvent, WiredChestTransactionDetailsEvent, WiredTradeOpenEvent, WiredTradeItemsEvent, WiredTradeCancelledEvent, WiredTradeCompletedEvent, WiredTradeOfferItemsComposer, WiredTradeAcceptComposer, WiredTradeCancelComposer } from './messages';
 import { BobbaBotAlertEvent, BobbaBotToolActionComposer, BobbaBotToolDataEvent, BobbaBotToolRequestComposer } from './messages';
 import { DevToolsDetectedComposer } from './messages';
+import { GetYoutubeHubRoomsComposer, YoutubeHubAddComposer, YoutubeHubCloseComposer, YoutubeHubOpenComposer, YoutubeHubPlayComposer, YoutubeHubReactionEvent, YoutubeHubRemoveComposer, YoutubeHubRoomsEvent, YoutubeHubSearchComposer, YoutubeHubSearchResultsEvent, YoutubeHubStateEvent, YoutubeHubVoteComposer } from './messages';
 import { CatalogFavoritesEvent, GetHiddenClothingComposer, HiddenClothingEvent, ToggleHiddenClothingComposer, GetCatalogFavoritesComposer, ToggleCatalogFavoriteComposer } from './messages';
 import { SoundboardCatalogEvent, SoundboardCatalogReorderComposer, SoundboardCatalogRequestComposer, SoundboardCatalogResultEvent, SoundboardCatalogUpsertComposer, SoundboardPlayComposer, SoundboardPlayDeniedEvent, SoundboardPlayEvent, SoundboardRequestSettingsComposer, SoundboardSaveVolumeComposer, SoundboardSetEnabledComposer, SoundboardSettingsEvent } from './messages';
 import { PressKeybindComposer } from './messages';
@@ -852,6 +853,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.RECYCLER_FINISHED, RecyclerFinishedMessageEvent);
         this._events.set(IncomingHeader.CATALOG_FAVORITES, CatalogFavoritesEvent);
         this._events.set(IncomingHeader.HIDDEN_CLOTHING, HiddenClothingEvent);
+        this._events.set(IncomingHeader.YOUTUBE_HUB_STATE, YoutubeHubStateEvent);
+        this._events.set(IncomingHeader.YOUTUBE_HUB_SEARCH_RESULTS, YoutubeHubSearchResultsEvent);
+        this._events.set(IncomingHeader.YOUTUBE_HUB_REACTION, YoutubeHubReactionEvent);
+        this._events.set(IncomingHeader.YOUTUBE_HUB_ROOMS, YoutubeHubRoomsEvent);
         // EMAIL
         this._events.set(IncomingHeader.EMAIL_STATUS, EmailStatusResultEvent);
         this._events.set(IncomingHeader.CHANGE_EMAIL_RESULT, ChangeEmailResultEvent);
@@ -1753,6 +1758,14 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.TOGGLE_CATALOG_FAVORITE, ToggleCatalogFavoriteComposer);
         this._composers.set(OutgoingHeader.GET_HIDDEN_CLOTHING, GetHiddenClothingComposer);
         this._composers.set(OutgoingHeader.TOGGLE_HIDDEN_CLOTHING, ToggleHiddenClothingComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_OPEN, YoutubeHubOpenComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_CLOSE, YoutubeHubCloseComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_SEARCH, YoutubeHubSearchComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_ADD, YoutubeHubAddComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_REMOVE, YoutubeHubRemoveComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_PLAY, YoutubeHubPlayComposer);
+        this._composers.set(OutgoingHeader.YOUTUBE_HUB_VOTE, YoutubeHubVoteComposer);
+        this._composers.set(OutgoingHeader.GET_YOUTUBE_HUB_ROOMS, GetYoutubeHubRoomsComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SET_ENABLED, SoundboardSetEnabledComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_REQUEST_SETTINGS, SoundboardRequestSettingsComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SAVE_VOLUME, SoundboardSaveVolumeComposer);
