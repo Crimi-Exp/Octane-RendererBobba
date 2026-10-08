@@ -391,99 +391,108 @@ export class AvatarStructure
                 if(itemOverrides.get(figurePartType)) continue;
             }
 
-            const partSetId = figureContainer.getPartSetId(figurePartType);
-            const partColorIds = figureContainer.getPartColorIds(figurePartType);
+            // BobbaTok : la piece principale puis ses couches superposees (meme categorie), dans l'ordre
+            const figureLayers = [
+                { setId: figureContainer.getPartSetId(figurePartType), colorIds: figureContainer.getPartColorIds(figurePartType) },
+                ...(figureContainer.getPartLayers?.(figurePartType) ?? [])
+            ];
             const setType = this._figureData.getSetType(figurePartType);
 
-            if(setType)
+            for(const figureLayer of figureLayers)
             {
-                const palette = this._figureData.getPalette(setType.paletteID);
+                const partSetId = figureLayer.setId;
+                const partColorIds = figureLayer.colorIds;
 
-                if(palette)
+                if(setType)
                 {
-                    const figurePartSet = setType.getPartSet(partSetId);
+                    const palette = this._figureData.getPalette(setType.paletteID);
 
-                    if(figurePartSet)
+                    if(palette)
                     {
-                        removes = removes.concat(figurePartSet.hiddenLayers);
+                        const figurePartSet = setType.getPartSet(partSetId);
 
-                        let petHasVisibleSit = false;
-
-                        if(isSittingPosture && figurePartType === 'pt')
+                        if(figurePartSet)
                         {
-                            for(const fp of figurePartSet.parts)
+                            removes = removes.concat(figurePartSet.hiddenLayers);
+
+                            let petHasVisibleSit = false;
+
+                            if(isSittingPosture && figurePartType === 'pt')
                             {
-                                if(fp.type === 'pt')
+                                for(const fp of figurePartSet.parts)
                                 {
-                                    for(const dir of ['0', '2'])
+                                    if(fp.type === 'pt')
                                     {
-                                        const assetName = 'h_sit_pt_' + fp.id + '_' + dir + '_0';
-                                        const testAsset = this._renderManager.getAssetByName(assetName);
-
-                                        if(testAsset && testAsset.width > 1 && testAsset.height > 1 && testAsset.source === assetName)
+                                        for(const dir of ['0', '2'])
                                         {
-                                            const stdName = 'h_std_pt_' + fp.id + '_' + dir + '_0';
-                                            const stdAsset = this._renderManager.getAssetByName(stdName);
+                                            const assetName = 'h_sit_pt_' + fp.id + '_' + dir + '_0';
+                                            const testAsset = this._renderManager.getAssetByName(assetName);
 
-                                            if(!stdAsset || stdAsset.source !== assetName)
+                                            if(testAsset && testAsset.width > 1 && testAsset.height > 1 && testAsset.source === assetName)
                                             {
-                                                petHasVisibleSit = true;
-                                                break;
+                                                const stdName = 'h_std_pt_' + fp.id + '_' + dir + '_0';
+                                                const stdAsset = this._renderManager.getAssetByName(stdName);
+
+                                                if(!stdAsset || stdAsset.source !== assetName)
+                                                {
+                                                    petHasVisibleSit = true;
+                                                    break;
+                                                }
                                             }
                                         }
-                                    }
 
-                                    break;
+                                        break;
+                                    }
                                 }
                             }
-                        }
 
-                        for(const figurePart of figurePartSet.parts)
-                        {
-                            if(hidePetPart && figurePartType === 'pt')
+                            for(const figurePart of figurePartSet.parts)
                             {
-                                if(petHasVisibleSit && figurePart.type !== 'pt') continue;
-                                if(!petHasVisibleSit) continue;
-                            }
-                            if(visiblePartTypes.indexOf(figurePart.type) > -1)
-                            {
-                                if(animationAction)
+                                if(hidePetPart && figurePartType === 'pt')
                                 {
-                                    const animationPart = animationAction.getPart(figurePart.type);
-
-                                    if(animationPart)
+                                    if(petHasVisibleSit && figurePart.type !== 'pt') continue;
+                                    if(!petHasVisibleSit) continue;
+                                }
+                                if(visiblePartTypes.indexOf(figurePart.type) > -1)
+                                {
+                                    if(animationAction)
                                     {
-                                        animationFrames = animationPart.frames;
+                                        const animationPart = animationAction.getPart(figurePart.type);
+
+                                        if(animationPart)
+                                        {
+                                            animationFrames = animationPart.frames;
+                                        }
+                                        else
+                                        {
+                                            animationFrames = this.getFigurePartFrames(action.definition.assetPartDefinition, figurePart.type, figurePart.id, direction, defaultFrames);
+                                        }
                                     }
                                     else
                                     {
                                         animationFrames = this.getFigurePartFrames(action.definition.assetPartDefinition, figurePart.type, figurePart.id, direction, defaultFrames);
                                     }
+
+                                    actionDefinition = action.definition;
+
+                                    if(activePartTypes.indexOf(figurePart.type) === -1) actionDefinition = this._defaultAction;
+
+                                    const partDefinition = this._partSetsData.getPartDefinition(figurePart.type);
+
+                                    let flippedPartType = (!partDefinition) ? figurePart.type : partDefinition.flippedSetType;
+
+                                    if(!flippedPartType || (flippedPartType === '')) flippedPartType = figurePart.type;
+
+                                    if(partColorIds && (partColorIds.length > (figurePart.colorLayerIndex - 1)))
+                                    {
+                                        partColor = palette.getColor(partColorIds[(figurePart.colorLayerIndex - 1)]);
+                                    }
+
+                                    const isColorable = (figurePart.colorLayerIndex > 0);
+                                    const container = new AvatarImagePartContainer(bodyPartId, figurePart.type, figurePart.id.toString(), partColor, animationFrames, actionDefinition, isColorable, figurePart.paletteMap, flippedPartType);
+
+                                    partContainers.push(container);
                                 }
-                                else
-                                {
-                                    animationFrames = this.getFigurePartFrames(action.definition.assetPartDefinition, figurePart.type, figurePart.id, direction, defaultFrames);
-                                }
-
-                                actionDefinition = action.definition;
-
-                                if(activePartTypes.indexOf(figurePart.type) === -1) actionDefinition = this._defaultAction;
-
-                                const partDefinition = this._partSetsData.getPartDefinition(figurePart.type);
-
-                                let flippedPartType = (!partDefinition) ? figurePart.type : partDefinition.flippedSetType;
-
-                                if(!flippedPartType || (flippedPartType === '')) flippedPartType = figurePart.type;
-
-                                if(partColorIds && (partColorIds.length > (figurePart.colorLayerIndex - 1)))
-                                {
-                                    partColor = palette.getColor(partColorIds[(figurePart.colorLayerIndex - 1)]);
-                                }
-
-                                const isColorable = (figurePart.colorLayerIndex > 0);
-                                const container = new AvatarImagePartContainer(bodyPartId, figurePart.type, figurePart.id.toString(), partColor, animationFrames, actionDefinition, isColorable, figurePart.paletteMap, flippedPartType);
-
-                                partContainers.push(container);
                             }
                         }
                     }

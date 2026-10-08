@@ -244,19 +244,22 @@ export class AvatarRenderManager implements IAvatarRenderManager
 
             if(!set) continue;
 
-            const setId = container.getPartSetId(part);
-            const partSet = set.getPartSet(setId);
+            // BobbaTok : les couches superposees comptent aussi pour le niveau HC
+            const layers = [ { setId: container.getPartSetId(part), colorIds: container.getPartColorIds(part) }, ...(container.getPartLayers?.(part) ?? []) ];
 
-            if(partSet)
+            for(const layer of layers)
             {
+                const partSet = set.getPartSet(layer.setId);
+
+                if(!partSet) continue;
+
                 clubLevel = Math.max(partSet.clubLevel, clubLevel);
 
                 const palette = figureData.getPalette(set.paletteID);
-                const colors = container.getPartColorIds(part);
 
                 if(!palette) continue;
 
-                for(const colorId of colors)
+                for(const colorId of layer.colorIds)
                 {
                     const color = palette.getColor(colorId);
 

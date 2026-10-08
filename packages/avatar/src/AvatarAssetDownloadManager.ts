@@ -217,26 +217,32 @@ export class AvatarAssetDownloadManager
 
             if(!set) continue;
 
-            const figurePartSet = set.getPartSet(container.getPartSetId(key));
+            // BobbaTok : les couches superposees ont aussi besoin de leurs bibliotheques
+            const layerSetIds = [ container.getPartSetId(key), ...(container.getPartLayers?.(key) ?? []).map(layer => layer.setId) ];
 
-            if(!figurePartSet) continue;
-
-            for(const part of figurePartSet.parts)
+            for(const layerSetId of layerSetIds)
             {
-                if(!part) continue;
+                const figurePartSet = set.getPartSet(layerSetId);
 
-                const name = (part.type + ':' + part.id);
-                const existing = this._figureMap.get(name);
+                if(!figurePartSet) continue;
 
-                if(existing === undefined) continue;
-
-                for(const library of existing)
+                for(const part of figurePartSet.parts)
                 {
-                    if(!library || library.isLoaded) continue;
+                    if(!part) continue;
 
-                    if(pendingLibraries.indexOf(library) >= 0) continue;
+                    const name = (part.type + ':' + part.id);
+                    const existing = this._figureMap.get(name);
 
-                    pendingLibraries.push(library);
+                    if(existing === undefined) continue;
+
+                    for(const library of existing)
+                    {
+                        if(!library || library.isLoaded) continue;
+
+                        if(pendingLibraries.indexOf(library) >= 0) continue;
+
+                        pendingLibraries.push(library);
+                    }
                 }
             }
         }

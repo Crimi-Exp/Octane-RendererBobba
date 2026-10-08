@@ -1,12 +1,17 @@
-import { IAvatarFigureContainer } from '@octane/api';
+import { IAvatarFigureContainer, IAvatarFigurePartLayer } from '@octane/api';
 
+/* BobbaTok : une meme categorie peut apparaitre plusieurs fois dans la tenue (vetements superposes),
+   ex. "hr-100-61.hr-515-45". La premiere occurrence reste la piece "principale" (toutes les API
+   historiques la voient seule) ; les suivantes sont des couches dessinees par-dessus, dans l'ordre. */
 export class AvatarFigureContainer implements IAvatarFigureContainer
 {
     private _parts: Map<string, Map<string, any>>;
+    private _layers: Map<string, IAvatarFigurePartLayer[]>;
 
     constructor(figure: string)
     {
         this._parts = new Map();
+        this._layers = new Map();
 
         this.parseFigure(figure);
     }
@@ -39,6 +44,11 @@ export class AvatarFigureContainer implements IAvatarFigureContainer
         return (existing.get('colorids') ?? []);
     }
 
+    public getPartLayers(partType: string): IAvatarFigurePartLayer[]
+    {
+        return (this._layers?.get(partType) ?? []);
+    }
+
     public updatePart(setType: string, partSetId: number, colorIds: number[]): void
     {
         const set: Map<string, any> = new Map();
@@ -53,9 +63,28 @@ export class AvatarFigureContainer implements IAvatarFigureContainer
         existingSets.set(setType, set);
     }
 
+    public addPartLayer(setType: string, partSetId: number, colorIds: number[]): void
+    {
+        if(!this.hasPartType(setType))
+        {
+            this.updatePart(setType, partSetId, colorIds);
+
+            return;
+        }
+
+        if(!this._layers) this._layers = new Map();
+
+        const layers = this._layers.get(setType) ?? [];
+
+        layers.push({ setId: partSetId, colorIds });
+
+        this._layers.set(setType, layers);
+    }
+
     public removePart(partType: string): void
     {
         this.partSets().delete(partType);
+        this._layers?.delete(partType);
     }
 
     public getFigureString(): string
@@ -74,6 +103,8 @@ export class AvatarFigureContainer implements IAvatarFigureContainer
             setParts = setParts.concat(this.getPartColorIds(key));
 
             parts.push(setParts.join('-'));
+
+            for(const layer of this.getPartLayers(key)) parts.push([ key, layer.setId, ...layer.colorIds ].join('-'));
         }
 
         return parts.join('.');
@@ -109,7 +140,8 @@ export class AvatarFigureContainer implements IAvatarFigureContainer
                     index++;
                 }
 
-                this.updatePart(type, setId, colors);
+                if(this.hasPartType(type)) this.addPartLayer(type, setId, colors);
+                else this.updatePart(type, setId, colors);
             }
         }
     }

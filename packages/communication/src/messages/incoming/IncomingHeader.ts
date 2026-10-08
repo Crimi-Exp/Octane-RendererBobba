@@ -743,6 +743,7 @@ export class IncomingHeader
     public static TREASURE_HUNT_FIRST_WINNER = 9485;
     // BobbaTok : mobis favoris du catalogue
     public static CATALOG_FAVORITES = 9812;
+    public static HIDDEN_CLOTHING = 9815;
     public static TREASURE_HUNT_FAIL = 2383;
     public static TREASURE_HUNT_UPDATE = 3368;
     // AIR 13 self donation tool result (server -> client), official id.

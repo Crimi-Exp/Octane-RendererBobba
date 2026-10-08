@@ -53,7 +53,7 @@ import { WheelAdminGetPrizesComposer, WheelAdminPrizesEvent, WheelAdminSavePrize
 import { ChestDataEvent, ChestDepositComposer, ChestDepositFurniComposer, ChestDepositInventoryItemComposer, ChestFurniChunkEvent, ChestFurniDeltaEvent, ChestOpenComposer, ChestOpenEvent, ChestStartDepositComposer, ChestWithdrawAllFurniComposer, ChestWithdrawComposer, ChestWithdrawFurniComposer, ChestLogEvent, ChestCloseComposer, ChestEnableWiredComposer, ChestSaveOptionsComposer, ChestSaveSettingsComposer, ChestSaveNotificationsComposer, ChestUpgradeCapacityComposer, ChestNotificationEvent, ChestUpgradeResultEvent, ChestRequestLogComposer, WiredChestRoomLogsComposer, WiredChestLockComposer, WiredChestTransactionDetailsComposer, WiredChestRoomLogsEvent, WiredChestLockStateEvent, WiredChestTransactionDetailsEvent, WiredTradeOpenEvent, WiredTradeItemsEvent, WiredTradeCancelledEvent, WiredTradeCompletedEvent, WiredTradeOfferItemsComposer, WiredTradeAcceptComposer, WiredTradeCancelComposer } from './messages';
 import { BobbaBotAlertEvent, BobbaBotToolActionComposer, BobbaBotToolDataEvent, BobbaBotToolRequestComposer } from './messages';
 import { DevToolsDetectedComposer } from './messages';
-import { CatalogFavoritesEvent, GetCatalogFavoritesComposer, ToggleCatalogFavoriteComposer } from './messages';
+import { CatalogFavoritesEvent, GetHiddenClothingComposer, HiddenClothingEvent, ToggleHiddenClothingComposer, GetCatalogFavoritesComposer, ToggleCatalogFavoriteComposer } from './messages';
 import { SoundboardCatalogEvent, SoundboardCatalogReorderComposer, SoundboardCatalogRequestComposer, SoundboardCatalogResultEvent, SoundboardCatalogUpsertComposer, SoundboardPlayComposer, SoundboardPlayDeniedEvent, SoundboardPlayEvent, SoundboardRequestSettingsComposer, SoundboardSaveVolumeComposer, SoundboardSetEnabledComposer, SoundboardSettingsEvent } from './messages';
 import { PressKeybindComposer } from './messages';
 import { EarningsCenterEvent, EarningsClaimResultEvent, IncomeRewardNotificationEvent, RequestEarningsCenterComposer, ClaimEarningsRewardComposer, ClaimAllEarningsRewardsComposer } from './messages';
@@ -851,6 +851,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.RECYCLER_STATUS, RecyclerStatusMessageEvent);
         this._events.set(IncomingHeader.RECYCLER_FINISHED, RecyclerFinishedMessageEvent);
         this._events.set(IncomingHeader.CATALOG_FAVORITES, CatalogFavoritesEvent);
+        this._events.set(IncomingHeader.HIDDEN_CLOTHING, HiddenClothingEvent);
         // EMAIL
         this._events.set(IncomingHeader.EMAIL_STATUS, EmailStatusResultEvent);
         this._events.set(IncomingHeader.CHANGE_EMAIL_RESULT, ChangeEmailResultEvent);
@@ -1750,6 +1751,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.DEVTOOLS_DETECTED, DevToolsDetectedComposer);
         this._composers.set(OutgoingHeader.GET_CATALOG_FAVORITES, GetCatalogFavoritesComposer);
         this._composers.set(OutgoingHeader.TOGGLE_CATALOG_FAVORITE, ToggleCatalogFavoriteComposer);
+        this._composers.set(OutgoingHeader.GET_HIDDEN_CLOTHING, GetHiddenClothingComposer);
+        this._composers.set(OutgoingHeader.TOGGLE_HIDDEN_CLOTHING, ToggleHiddenClothingComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SET_ENABLED, SoundboardSetEnabledComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_REQUEST_SETTINGS, SoundboardRequestSettingsComposer);
         this._composers.set(OutgoingHeader.SOUNDBOARD_SAVE_VOLUME, SoundboardSaveVolumeComposer);

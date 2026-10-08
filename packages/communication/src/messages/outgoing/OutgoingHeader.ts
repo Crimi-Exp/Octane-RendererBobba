@@ -443,6 +443,8 @@ export class OutgoingHeader
     // BobbaTok : mobis favoris du catalogue
     public static GET_CATALOG_FAVORITES = 9810;
     public static TOGGLE_CATALOG_FAVORITE = 9811;
+    public static GET_HIDDEN_CLOTHING = 9813;
+    public static TOGGLE_HIDDEN_CLOTHING = 9814;
     public static WALL_TAG_REMOVE = 9494;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;
