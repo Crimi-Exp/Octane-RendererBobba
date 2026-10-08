@@ -115,8 +115,13 @@ export function halvePixels(source: Uint8ClampedArray, width: number, height: nu
 
 type PixelArtSource = Texture['source'] & { octaneFixedScaleMode?: boolean };
 
-/** Furniture sprite sheets are pinned to nearest sampling when they are loaded (AssetManager). */
-export const isPixelArtTexture = (texture: Texture): boolean => !!(texture?.source as PixelArtSource)?.octaneFixedScaleMode;
+/** Furniture sprite sheets are pinned to nearest sampling when they are loaded (AssetManager); photos stay linear. */
+export const isPixelArtTexture = (texture: Texture): boolean =>
+{
+    const source = texture?.source as PixelArtSource;
+
+    return !!source?.octaneFixedScaleMode && (source.scaleMode === 'nearest');
+};
 
 const halfSizeTextures = new WeakMap<Texture, Map<number, Texture | null>>();
 

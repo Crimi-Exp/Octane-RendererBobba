@@ -1,5 +1,5 @@
 import { AlphaTolerance, AvatarAction, AvatarGuideStatus, AvatarSetType, IAdvancedMap, IAvatarEffectListener, IAvatarImage, IAvatarImageListener, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObject, IRoomObjectModel, IRoomObjectSprite, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
-import { GetAssetManager } from '@octane/assets';
+import { GetAssetManager, getHalfSizeTexture, halfSizeOffset, halfSizePadding, isPixelArtTexture } from '@octane/assets';
 import { AdvancedMap, GetRenderer, Vector3d } from '@octane/utils';
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
@@ -504,13 +504,26 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                         const assetName = ((((((this._avatarImage.getScale() + '_') + spriteData.member) + '_') + dd) + '_') + frameNumber);
 
                         const asset = GetAssetManager().getAsset(assetName);
+                        // .hab effects ship only large art: draw it as a real half-size sprite when zoomed out.
+                        const largeAsset = ((!asset && (scale < 48)) ? GetAssetManager().getAsset(('h_' + spriteData.member + '_' + dd + '_' + frameNumber)) : null);
+                        const halfTexture = (isPixelArtTexture(largeAsset?.texture) ? getHalfSizeTexture(largeAsset.texture, halfSizePadding(largeAsset.offsetX), halfSizePadding(largeAsset.offsetY)) : null);
 
-                        if(!asset) continue;
+                        if(!asset && !halfTexture) continue;
 
-                        sprite.texture = asset.texture;
-                        sprite.offsetX = ((asset.offsetX - (scale / 2)) + offsetX);
-                        sprite.offsetY = (asset.offsetY + offsetY);
-                        sprite.flipH = asset.flipH;
+                        if(asset)
+                        {
+                            sprite.texture = asset.texture;
+                            sprite.offsetX = ((asset.offsetX - (scale / 2)) + offsetX);
+                            sprite.offsetY = (asset.offsetY + offsetY);
+                            sprite.flipH = asset.flipH;
+                        }
+                        else
+                        {
+                            sprite.texture = halfTexture;
+                            sprite.offsetX = ((halfSizeOffset(largeAsset.offsetX, largeAsset.flipH) - (scale / 2)) + offsetX);
+                            sprite.offsetY = (halfSizeOffset(largeAsset.offsetY, false) + offsetY);
+                            sprite.flipH = largeAsset.flipH;
+                        }
 
                         if(spriteData.hasStaticY)
                         {
