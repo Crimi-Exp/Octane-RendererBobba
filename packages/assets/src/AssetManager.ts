@@ -5,6 +5,7 @@ import { assetImageFallbackUrl, isAssetJsonUrl } from './AssetJsonUrl';
 import { GraphicAssetCollection } from './GraphicAssetCollection';
 import { detectImageFormat, ImageLoadRequest, LoadedImageResource, loadImageResource, normalizedSourceExtension } from './image';
 
+/** Bundles of an asset json and its sheet: Octane's .nitro and Habbo's .hab. */
 const isBundleExtension = (extension: string): boolean => extension === 'nitro' || extension === 'hab';
 
 export interface AssetManagerDependencies
@@ -119,6 +120,7 @@ export class AssetManager implements IAssetManager
 
             if(url.startsWith('local://')) return this.downloadLocalAsset(url);
 
+            // A .hab with the same json and sheet as a .nitro is read by the same bundle reader.
             if(isBundleExtension(normalizedSourceExtension(url)))
             {
                 const response = await this.fetchAsset(url);

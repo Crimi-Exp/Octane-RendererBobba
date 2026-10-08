@@ -1,3 +1,4 @@
+import { getHalfSizeTexture, halfSizeOffset, halfSizePadding, isPixelArtTexture } from '@octane/assets';
 import { AlphaTolerance, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObjectSprite, IVector3D, RoomObjectVariable, RoomObjectVisualizationType } from '@octane/api';
 import { ChooserSelectionFilter, OctaneLogger, PickerHighlightFilter, Vector3d } from '@octane/utils';
 import { BLEND_MODES, Filter, Texture } from 'pixi.js';
@@ -829,6 +830,25 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         this._alphaChanged = false;
     }
 
+    /** Offsets in full-size pixels; with halfSize the sprite gets a half-size texture placed on whole pixels. */
+    private setSpriteOffsets(sprite: IRoomObjectSprite, texture: Texture, halfSize: boolean, sizeScale: number, offsetX: number, offsetY: number): void
+    {
+        const half = (halfSize ? getHalfSizeTexture(texture, halfSizePadding(offsetX), halfSizePadding(offsetY)) : null);
+
+        if(half)
+        {
+            sprite.texture = half;
+            sprite.scale = 1;
+            sprite.offsetX = halfSizeOffset(offsetX, sprite.flipH);
+            sprite.offsetY = halfSizeOffset(offsetY, sprite.flipV);
+
+            return;
+        }
+
+        sprite.offsetX = ((offsetX * sizeScale) + this._scaleShiftX);
+        sprite.offsetY = ((offsetY * sizeScale) + this._scaleShiftY);
+    }
+
     protected updateSprite(scale: number, layerId: number): void
     {
         if(this.isStarLayer(layerId))
@@ -849,12 +869,16 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
             {
                 sprite.visible = true;
                 sprite.type = this._type;
-                sprite.texture = this.getTexture(scale, layerId, assetData);
+                const texture = this.getTexture(scale, layerId, assetData);
+
+                sprite.texture = texture;
                 sprite.flipH = assetData.flipH;
                 sprite.flipV = assetData.flipV;
                 sprite.direction = this._direction;
 
                 const sizeScale = (((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1) * this._displayScale;
+                // No size 32 in the bundle (.hab): draw a real half-size sprite instead of scaling the 64 one.
+                const halfSize = ((sizeScale === 0.5) && (this._displayScale === 1) && isPixelArtTexture(texture));
 
                 sprite.scale = sizeScale;
 
@@ -865,8 +889,9 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                     sprite.tag = this.getLayerTag(scale, this._direction, layerId);
                     sprite.alpha = this.getLayerAlpha(scale, this._direction, layerId);
                     sprite.color = this.getLayerColor(scale, layerId, this._selectedColor);
-                    sprite.offsetX = (((assetData.offsetX + this.getLayerXOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftX);
-                    sprite.offsetY = (((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftY);
+                    this.setSpriteOffsets(sprite, texture, halfSize, sizeScale,
+                        (assetData.offsetX + this.getLayerXOffset(scale, this._direction, layerId)),
+                        (assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)));
                     sprite.blendMode = this.getLayerBlendMode(scale, this._direction, layerId);
                     sprite.alphaTolerance = furnitureAlphaTolerance(this.getLayerIgnoreMouse(scale, this._direction, layerId), this._wiredClickThrough);
 
@@ -881,8 +906,9 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 }
                 else
                 {
-                    sprite.offsetX = ((assetData.offsetX * sizeScale) + this._scaleShiftX);
-                    sprite.offsetY = (((assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)) * sizeScale) + this._scaleShiftY);
+                    this.setSpriteOffsets(sprite, texture, halfSize, sizeScale,
+                        assetData.offsetX,
+                        (assetData.offsetY + this.getLayerYOffset(scale, this._direction, layerId)));
                     sprite.alpha = (48 * this._alphaMultiplier);
 
                     sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
