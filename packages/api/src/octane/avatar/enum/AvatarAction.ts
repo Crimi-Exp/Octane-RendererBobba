@@ -113,7 +113,7 @@ export class AvatarAction
         if(expressionId === AvatarAction.EXPRESSION_MAGIE_ID) return AvatarAction.EXPRESSION_MAGIE;
         if(AvatarAction.FIGHT_EXPRESSION_FRAMES[expressionId]) return AvatarAction.EXPRESSION_FIGHT;
 
-        if(expressionId > AvatarAction.EXPRESSION_MAP.length) return null;
+        if(expressionId >= AvatarAction.EXPRESSION_MAP.length) return null;
 
         return AvatarAction.EXPRESSION_MAP[expressionId];
     }

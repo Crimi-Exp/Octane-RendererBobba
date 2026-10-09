@@ -1194,7 +1194,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         {
             const expression = AvatarAction.getExpression(this._expression);
 
-            if(expression !== '')
+            if(expression)
             {
                 switch(expression)
                 {

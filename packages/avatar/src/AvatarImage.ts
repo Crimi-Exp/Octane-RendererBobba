@@ -47,6 +47,9 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
     private _lastActionsString: string = null;
     private _currentActionsString: string = null;
     private _effectIdInUse: number = -1;
+    // The running effect animation keeps the frame it started on, so other actions don't restart it.
+    private _effectAnimationId: string = null;
+    private _effectAnimationStartFrame: number = 0;
     private _animationFrameCount: number = -1;
     private _cachedBodyParts: string[] = [];
     private _cachedBodyPartsDirection: number = -1;
@@ -190,7 +193,11 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
     public getLayerData(sprite: ISpriteDataContainer): IAnimationLayerData
     {
-        return this._structure.getBodyPartData(sprite.animation.id, this._frameCounter, sprite.id);
+        let frame = this._frameCounter;
+
+        if(sprite.animation.id === this._effectAnimationId) frame -= this._effectAnimationStartFrame;
+
+        return this._structure.getBodyPartData(sprite.animation.id, frame, sprite.id);
     }
 
     public updateAnimationByFrames(frameCount: number = 1): void
@@ -202,6 +209,7 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
     public resetAnimationFrameCounter(): void
     {
         this._frameCounter = 0;
+        this._effectAnimationStartFrame = 0;
         this._changes = true;
     }
 
@@ -752,7 +760,14 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             action.actionType === actionType && action.actionParameter === actionParameter
         );
 
-        if(!actionExists) this._actions.push(new ActiveActionData(actionType, actionParameter, this._frameCounter));
+        if(actionExists) return;
+
+        let startFrame = this._frameCounter;
+
+        // The same effect again keeps the frame it started on.
+        if((actionType === AvatarAction.EFFECT) && (actionParameter === this._effectIdInUse.toString()) && (this._effectAnimationId !== null)) startFrame = this._effectAnimationStartFrame;
+
+        this._actions.push(new ActiveActionData(actionType, actionParameter, startFrame));
     }
 
     public isAnimating(): boolean
@@ -767,6 +782,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         this._sprites = [];
         this._avatarSpriteData = null;
         this._directionOffset = 0;
+        this._effectAnimationId = null;
+        this._effectAnimationStartFrame = 0;
         this._structure.removeDynamicItems(this);
         this._mainAction = this._defaultAction;
         this._mainAction.definition = this._defaultAction.definition;
@@ -911,6 +928,12 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
                     if(animation)
                     {
+                        if(action.actionType === AvatarAction.EFFECT)
+                        {
+                            this._effectAnimationId = animation.id;
+                            this._effectAnimationStartFrame = action.startFrame;
+                        }
+
                         this._sprites = [...this._sprites, ...animation.spriteData];
 
                         if(animation.hasDirectionData()) this._directionOffset = animation.directionData.offset;
