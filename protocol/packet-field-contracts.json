@@ -16945,6 +16945,16 @@
           "kind": "scalar",
           "type": "string",
           "name": ""
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": ""
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": ""
         }
       ]
     },
