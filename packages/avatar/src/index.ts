@@ -16,6 +16,7 @@ export * from './actions';
 export * from './alias';
 export * from './animation';
 export * from './cache';
+export * from './data/BobbatokFightEffects';
 export * from './data/HabboAvatarAnimations';
 export * from './data/HabboAvatarGeometry';
 export * from './data/HabboAvatarPartSets';

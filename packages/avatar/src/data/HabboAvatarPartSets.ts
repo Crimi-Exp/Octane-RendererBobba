@@ -129,6 +129,50 @@ export const HabboAvatarPartSets = {
         ],
         'activePartSets': [
             {
+                'id': 'magie',
+                'activeParts': [
+                    {
+                        'setType': 'lh'
+                    },
+                    {
+                        'setType': 'lhs'
+                    },
+                    {
+                        'setType': 'ls'
+                    },
+                    {
+                        'setType': 'lc'
+                    },
+                    {
+                        'setType': 'li'
+                    },
+                    {
+                        'setType': 'rh'
+                    },
+                    {
+                        'setType': 'rhs'
+                    },
+                    {
+                        'setType': 'rs'
+                    },
+                    {
+                        'setType': 'rc'
+                    },
+                    {
+                        'setType': 'ri'
+                    },
+                    {
+                        'setType': 'ey'
+                    },
+                    {
+                        'setType': 'fc'
+                    },
+                    {
+                        'setType': 'hd'
+                    }
+                ]
+            },
+            {
                 'id': 'figure',
                 'activeParts': [
                     {

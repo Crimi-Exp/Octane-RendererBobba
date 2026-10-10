@@ -24,7 +24,8 @@ export class AvatarAssetDownloadManager
         this._structure = structure;
     }
 
-    private static DEFAULT_MANDATORY_LIBS: string[] = ['hh_human_face'];
+    // hh_human_body : contient les sprites du geste « Magie » (h_mag_lh_*), utiles meme pour les peaux d'une autre librairie
+    private static DEFAULT_MANDATORY_LIBS: string[] = ['hh_human_face', 'hh_human_body'];
 
     public async init(): Promise<void>
     {

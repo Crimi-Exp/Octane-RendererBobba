@@ -43,6 +43,8 @@ export class BlockedAvatarImage extends AvatarImage
             case AvatarAction.USE_OBJECT:
             case AvatarAction.EXPRESSION_BLOW_A_KISS:
             case AvatarAction.EXPRESSION_67:
+            case AvatarAction.EXPRESSION_MAGIE:
+            case AvatarAction.EXPRESSION_FIGHT:
                 super.appendAction(actionType, ...actionParameters);
                 break;
         }

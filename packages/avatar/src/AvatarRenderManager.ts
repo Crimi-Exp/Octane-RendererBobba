@@ -12,6 +12,7 @@ import { FigureDataContainer } from './FigureDataContainer';
 import { BlockedAvatarImage } from './BlockedAvatarImage';
 import { PlaceHolderAvatarImage } from './PlaceHolderAvatarImage';
 import { AssetAliasCollection } from './alias';
+import { BOBBATOK_FIGHT_ACTIONS } from './data/BobbatokFightEffects';
 import { DanceSixSevenAnimation } from './data/DanceSixSevenAnimation';
 import { HabboAvatarAnimations } from './data/HabboAvatarAnimations';
 import { HabboAvatarGeometry } from './data/HabboAvatarGeometry';
@@ -71,6 +72,10 @@ export class AvatarRenderManager implements IAvatarRenderManager
     // Danse : AvatarImage.setActionToParts (comme le client Flash) ignore une action sans assetPartDefinition ;
     // avec "" les animations dance.* (danses, geste « 67 ») ne sont jamais posees sur le corps. "std" =
     // posture debout pour les parties que l'animation ne remplace pas.
+    public static MAGIE_ACTION = { id: 'Magie', state: 'magie', precedence: 500, activePartSet: 'magie', assetPartDefinition: 'mag', prevents: [] as string[], animation: true, startFromFrameZero: true };
+
+    public static FIGHT_ACTION = { id: 'BobbaFight', state: 'bfight', precedence: 500, main: true, geometryType: 'vertical', activePartSet: 'figure', assetPartDefinition: 'std', prevents: [] as string[], animation: true, preventHeadTurn: true, startFromFrameZero: true };
+
     public static fixOfficialActions<T>(data: T): T
     {
         const actions = (data as { actions?: { id?: string; activePartSet?: string }[] })?.actions;
@@ -82,6 +87,20 @@ export class AvatarRenderManager implements IAvatarRenderManager
                 if(action && (action.id === 'Wave')) action.activePartSet = 'handLeft';
 
                 if(action && (action.id === 'Dance') && !(action as { assetPartDefinition?: string }).assetPartDefinition) (action as { assetPartDefinition?: string }).assetPartDefinition = 'std';
+            }
+
+            // geste « Magie » BobbaTok (expression 68) : absent du JSON officiel, on l'ajoute
+            if(!actions.some(action => (action && (action.id === AvatarRenderManager.MAGIE_ACTION.id)))) actions.push({ ...AvatarRenderManager.MAGIE_ACTION });
+
+            // animations combat jouees sur l'avatar comme un geste (expression 6000 a 6153 -> bfight.<numero>)
+            if(!actions.some(action => (action && (action.id === AvatarRenderManager.FIGHT_ACTION.id)))) actions.push({ ...AvatarRenderManager.FIGHT_ACTION });
+
+            // actions des images du pack combat (Punch, FightCmb...)
+            for(const fight of BOBBATOK_FIGHT_ACTIONS)
+            {
+                if(actions.some(action => (action && (action.id === fight.id)))) continue;
+
+                actions.push({ id: fight.id, state: ('bobba_' + fight.id.toLowerCase()), precedence: 1000, activePartSet: 'figure', assetPartDefinition: fight.code, prevents: [], animation: false } as { id?: string; activePartSet?: string });
             }
         }
 

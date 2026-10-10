@@ -1079,6 +1079,101 @@ export const HabboAvatarAnimations = {
             ]
         },
         {
+            // geste « Magie » BobbaTok : les deux bras sont dans le sprite h_mag_lh_* (hh_human_body), la tete est decalee comme sur le modele
+            'id': 'Magie',
+            'parts': [
+                {
+                    'setType': 'lh',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                },
+                {
+                    'setType': 'rh',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                },
+                {
+                    'setType': 'ls',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                },
+                {
+                    'setType': 'lc',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                },
+                {
+                    'setType': 'rs',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                },
+                {
+                    'setType': 'rc',
+                    'frames': [
+                        { 'number': 0, 'assetPartDefinition': 'mag', 'repeats': 4 },
+                        { 'number': 1, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 2, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 3, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 4, 'assetPartDefinition': 'mag', 'repeats': 3 },
+                        { 'number': 5, 'assetPartDefinition': 'mag', 'repeats': 1 },
+                        { 'number': 6, 'assetPartDefinition': 'mag', 'repeats': 3 }
+                    ]
+                }
+            ],
+            'offsets': {
+                'frames': [
+                    {
+                        'id': 0,
+                        'directions': [
+                            { 'id': 0, 'bodyParts': [ { 'id': 'head', 'dx': 0, 'dy': 2 } ] },
+                            { 'id': 1, 'bodyParts': [ { 'id': 'head', 'dx': 2, 'dy': 2 } ] },
+                            { 'id': 2, 'bodyParts': [ { 'id': 'head', 'dx': 1, 'dy': -1 } ] },
+                            { 'id': 3, 'bodyParts': [ { 'id': 'head', 'dx': 0, 'dy': -1 } ] },
+                            { 'id': 4, 'bodyParts': [ { 'id': 'head', 'dx': -1, 'dy': -1 } ] },
+                            { 'id': 5, 'bodyParts': [ { 'id': 'head', 'dx': -2, 'dy': 2 } ] },
+                            { 'id': 6, 'bodyParts': [ { 'id': 'head', 'dx': 0, 'dy': 2 } ] },
+                            { 'id': 7, 'bodyParts': [ { 'id': 'head', 'dx': 0, 'dy': 3 } ] }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
             'id': 'Wave',
             'parts': [
                 {

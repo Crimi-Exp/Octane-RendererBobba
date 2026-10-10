@@ -212,7 +212,14 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
     private buildAvatarContainer(avatarCanvas: AvatarCanvas, setType: string): Container
     {
-        const bodyParts = this.getBodyParts(setType, this._mainAction.definition.geometryType, this._mainDirection);
+        let bodyParts = this.getBodyParts(setType, this._mainAction.definition.geometryType, this._mainDirection);
+
+        const magieAction = this.getMagieAction();
+
+        // geste « Magie » : le sprite contient exactement les pixels de bras visibles sur le modele, il se dessine
+        // donc par-dessus le torse et la tete dans toutes les directions (sinon de profil le bras passe derriere le corps)
+        if(magieAction) bodyParts = [ ...bodyParts.filter(part => ((part === 'leftarm') || (part === 'rightarm'))), ...bodyParts.filter(part => ((part !== 'leftarm') && (part !== 'rightarm'))) ];
+
         const container = new Container();
 
         this._transientBodyParts.length = 0;
@@ -241,6 +248,22 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
                     point.x += avatarCanvas.regPoint.x;
                     point.y += avatarCanvas.regPoint.y;
+
+                    // geste « Magie » : la tete est decalee comme sur le modele, meme quand une autre action
+                    // (clignement des yeux, parole...) a pris la tete pendant le geste
+                    if(magieAction && (set === 'head'))
+                    {
+                        const headCache = this._cache.getBodyPartCache('head');
+
+                        if(headCache && (headCache.getAction() !== magieAction))
+                        {
+                            const headOffset = this._structure.getFrameBodyPartOffset(magieAction, headCache.getDirection(), 0, 'head');
+                            const divider = (this._scale === AvatarScaleType.LARGE) ? 1 : 2;
+
+                            point.x += (headOffset.x / divider);
+                            point.y += (headOffset.y / divider);
+                        }
+                    }
 
                     partContainer.x = Math.floor(point.x);
                     partContainer.y = Math.floor(point.y);
@@ -626,6 +649,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             case AvatarAction.EXPRESSION_SNOWBOARD_OLLIE:
             case AvatarAction.EXPRESSION_SNOWBORD_360:
             case AvatarAction.EXPRESSION_RIDE_JUMP:
+            case AvatarAction.EXPRESSION_MAGIE:
+            case AvatarAction.EXPRESSION_FIGHT:
                 if(actionParameter === AvatarAction.EFFECT)
                 {
                     if((((((actionParameter === '33') || (actionParameter === '34')) || (actionParameter === '35')) || (actionParameter === '36')) || (actionParameter === '38')) || (actionParameter === '39'))
@@ -753,6 +778,18 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         this._actionsSorted = true;
 
         return hasChanges;
+    }
+
+    private getMagieAction(): IActiveActionData
+    {
+        if(!this._sortedActions) return null;
+
+        for(const action of this._sortedActions)
+        {
+            if(action && action.definition && (action.definition.assetPartDefinition === 'mag')) return action;
+        }
+
+        return null;
     }
 
     private setActionsToParts(): void

@@ -4,6 +4,7 @@ import { AvatarRenderEffectLibraryEvent, GetEventDispatcher, OctaneEvent, Octane
 import { loadGamedata } from '@octane/utils';
 import { AvatarStructure } from './AvatarStructure';
 import { EffectAssetDownloadLibrary } from './EffectAssetDownloadLibrary';
+import { BOBBATOK_FIGHT_EFFECTS, withBobbatokFightEffects } from './data/BobbatokFightEffects';
 
 export class EffectAssetDownloadManager
 {
@@ -43,7 +44,10 @@ export class EffectAssetDownloadManager
             throw new Error(`Could not load effect map from "${ url }" — check "avatar.effectmap.url" in renderer-config.json (${ err?.message || err })`);
         }
 
-        this.processEffectMap(responseData.effects);
+        this.processEffectMap(withBobbatokFightEffects(responseData.effects));
+
+        // les animations combat sont jouees comme des gestes : leurs bibliotheques sont chargees d'office
+        this._missingMandatoryLibs = [ ...(this._missingMandatoryLibs || []), ...BOBBATOK_FIGHT_EFFECTS.map(effect => effect.id) ];
 
         // Store callback for cleanup
         this._libraryLoadedCallback = (event: AvatarRenderEffectLibraryEvent) => this.onLibraryLoaded(event);
@@ -119,6 +123,20 @@ export class EffectAssetDownloadManager
         const loadedEffects: string[] = [];
 
         this._structure.registerAnimation(event.library.animation);
+
+        // pack combat : la meme animation sous le nom bfight.<numero>, jouee par l'action geste BobbaFight
+        const animations = event.library.animation;
+
+        if(animations)
+        {
+            for(const key of Object.keys(animations))
+            {
+                const animation = animations[key];
+                const id = (animation && animation.name && animation.name.startsWith('fx.')) ? animation.name.substring(3) : null;
+
+                if(id && BOBBATOK_FIGHT_EFFECTS.some(effect => (effect.id === id))) this._structure.registerAnimation({ [key]: { ...animation, name: ('bfight.' + id) } });
+            }
+        }
 
         for(const [id, libraries] of this._incompleteEffects.entries())
         {

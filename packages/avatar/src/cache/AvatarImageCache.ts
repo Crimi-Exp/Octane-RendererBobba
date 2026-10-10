@@ -7,6 +7,7 @@ import { AvatarImagePartContainer } from '../AvatarImagePartContainer';
 import { AvatarStructure } from '../AvatarStructure';
 import { AssetAliasCollection } from '../alias';
 import { AvatarAnimationLayerData } from '../animation';
+import { BOBBATOK_FIGHT_SHIFTS } from '../data/BobbatokFightShifts';
 import { AvatarCanvas } from '../structure';
 import { AvatarImageActionCache } from './AvatarImageActionCache';
 import { AvatarImageBodyPartCache } from './AvatarImageBodyPartCache';
@@ -19,6 +20,11 @@ export class AvatarImageCache
     // Shared read-only defaults for the per-frame hot path — never mutate.
     private static EMPTY_REMOVE_DATA: string[] = [];
     private static EMPTY_ITEMS: Map<string, string> = new Map();
+    private static MAGIE_WARNED = false;
+    private static MAGIE_HIDDEN_PARTS: string[] = [ 'rh', 'rhs', 'rs', 'rc', 'ri', 'lhs', 'li' ];
+    private static MAGIE_SLEEVE_PARTS: string[] = [ 'ls', 'lc' ];
+    private static FIGHT_HIDDEN_PARTS: string[] = [ 'ls', 'lc', 'rs', 'rc', 'lhs', 'rhs', 'li', 'ri' ];
+    private static MAGIE_SLEEVE_WARNED: Set<string> = new Set();
 
     private _structure: AvatarStructure;
     private _avatar: IAvatarImage;
@@ -327,6 +333,34 @@ export class AvatarImageCache
         let isCacheable = true;
         let containerIndex = (containers.length - 1);
 
+        // pack combat : les parties sans dessin pour l'action (yeux, cheveux, vetements...) suivent la tete ou le
+        // corps dessines par l'action ; les manches et objets tenus sont masques quand le bras est redessine
+        const fightCode = assetPartDefinition;
+        const fightShifts = BOBBATOK_FIGHT_SHIFTS[fightCode] || null;
+        const fightDirection = (isFlipped && (direction > 3) && (direction < 7)) ? (6 - direction) : direction;
+        let fightBase: string = null;
+        let fightBaseFrame = 0;
+        let fightArmDrawn = false;
+
+        if(fightShifts)
+        {
+            for(const part of containers)
+            {
+                const definition = part.getFrameDefinition(frameCount);
+                const number = definition ? definition.number : part.getFrameIndex(frameCount);
+
+                if(!fightBase && ((part.partType === 'hd') || (part.partType === 'bd')))
+                {
+                    fightBase = part.partType;
+                    fightBaseFrame = number;
+                }
+
+                if(((part.partType === 'lh') || (part.partType === 'rh')) && this._assets.getAsset(AvatarScaleType.LARGE + '_' + fightCode + '_' + part.partType + '_' + part.partId + '_' + fightDirection + '_' + number)) fightArmDrawn = true;
+            }
+        }
+
+        const fightShift = (fightBase && fightShifts[fightBase + fightDirection]) ? (fightShifts[fightBase + fightDirection][fightBaseFrame] || null) : null;
+
         while(containerIndex >= 0)
         {
             const container = containers[containerIndex];
@@ -370,30 +404,82 @@ export class AvatarImageCache
                         }
                     }
 
-                    let assetName = (this._scale + '_' + assetPartDefinition + '_' + partType + '_' + partId + '_' + assetDirection + '_' + frameNumber);
-                    let asset = this._assets.getAsset(assetName);
+                    // geste « Magie » : les deux bras sont dessines dans un seul sprite lh, on masque mains, manches et objets tenus
+                    const isMagie = (assetPartDefinition === 'mag');
+
+                    if(fightArmDrawn && AvatarImageCache.FIGHT_HIDDEN_PARTS.includes(partType))
+                    {
+                        containerIndex--;
+
+                        continue;
+                    }
+
+                    if(isMagie && AvatarImageCache.MAGIE_HIDDEN_PARTS.includes(partType))
+                    {
+                        containerIndex--;
+
+                        continue;
+                    }
+
+                    // manches du geste : seulement les sprites h_mag_ls|lc generes pour ce haut, sinon pas de manche
+                    // (jamais la manche debout, qui flotterait a cote du bras)
+                    let magieSleeve: IGraphicAsset = null;
+
+                    if(isMagie && AvatarImageCache.MAGIE_SLEEVE_PARTS.includes(partType))
+                    {
+                        const sleeveName = (AvatarScaleType.LARGE + '_mag_' + partType + '_' + partId + '_' + assetDirection + '_' + frameNumber);
+
+                        if(this._assets.getAsset(sleeveName)) magieSleeve = (this._scale === AvatarScaleType.LARGE) ? this._assets.getAsset(sleeveName) : this.getSmallScaleFallbackAsset(assetPartDefinition, partType, partId, assetDirection, frameNumber);
+
+                        if(!magieSleeve)
+                        {
+                            if(!AvatarImageCache.MAGIE_SLEEVE_WARNED.has(sleeveName))
+                            {
+                                AvatarImageCache.MAGIE_SLEEVE_WARNED.add(sleeveName);
+
+                                console.warn('[Magie] manche introuvable : ' + sleeveName);
+                            }
+
+                            containerIndex--;
+
+                            continue;
+                        }
+                    }
+
+                    // les sprites du geste n'existent qu'en partie 1 (hh_human_body), quelle que soit la peau
+                    const assetPartId = (isMagie && (partType === AvatarFigurePartType.LEFT_HAND)) ? '1' : partId;
+
+                    let assetName = (this._scale + '_' + assetPartDefinition + '_' + partType + '_' + assetPartId + '_' + assetDirection + '_' + frameNumber);
+                    let asset = magieSleeve ? magieSleeve : (isMagie && (partType === AvatarFigurePartType.LEFT_HAND) && (this._scale !== AvatarScaleType.LARGE)) ? this.getSmallScaleFallbackAsset(assetPartDefinition, partType, assetPartId, assetDirection, frameNumber) : this._assets.getAsset(assetName);
 
                     if(!asset)
                     {
-                        assetName = (this._scale + '_' + assetPartDefinition + '_' + partType + '_' + partId + '_' + assetDirection + '_0');
+                        assetName = (this._scale + '_' + assetPartDefinition + '_' + partType + '_' + assetPartId + '_' + assetDirection + '_0');
+                        asset = this._assets.getAsset(assetName);
+                    }
+
+                    if(!asset && isMagie && (partType === AvatarFigurePartType.LEFT_HAND) && !AvatarImageCache.MAGIE_WARNED)
+                    {
+                        AvatarImageCache.MAGIE_WARNED = true;
+
+                        console.warn('[Magie] sprite introuvable : ' + assetName + ' (hh_human_body.nitro a jour ?)');
+                    }
+
+                    if(!asset)
+                    {
+                        assetName = (this._scale + '_' + this._defaultAction + '_' + partType + '_' + assetPartId + '_' + assetDirection + '_' + frameNumber);
                         asset = this._assets.getAsset(assetName);
                     }
 
                     if(!asset)
                     {
-                        assetName = (this._scale + '_' + this._defaultAction + '_' + partType + '_' + partId + '_' + assetDirection + '_' + frameNumber);
-                        asset = this._assets.getAsset(assetName);
-                    }
-
-                    if(!asset)
-                    {
-                        assetName = (this._scale + '_' + this._defaultAction + '_' + partType + '_' + partId + '_' + assetDirection + '_0');
+                        assetName = (this._scale + '_' + this._defaultAction + '_' + partType + '_' + assetPartId + '_' + assetDirection + '_0');
                         asset = this._assets.getAsset(assetName);
                     }
 
                     if(!asset && (this._scale !== AvatarScaleType.LARGE))
                     {
-                        asset = this.getSmallScaleFallbackAsset(assetPartDefinition, partType, partId, assetDirection, frameNumber);
+                        asset = this.getSmallScaleFallbackAsset(assetPartDefinition, partType, assetPartId, assetDirection, frameNumber);
                     }
 
                     if(asset)
@@ -411,6 +497,23 @@ export class AvatarImageCache
                             const offset = new Point(-(asset.x), -(asset.y));
 
                             if(flipH) offset.x = (offset.x + ((this._scale === AvatarScaleType.LARGE) ? 65 : 31));
+
+                            if(fightShift && (assetName.indexOf('_' + fightCode + '_') === -1))
+                            {
+                                // tete retournee (salto, K.O.) : le visage et les cheveux debout n'y vont pas
+                                if(fightShift[2] && (fightBase === 'hd'))
+                                {
+                                    containerIndex--;
+
+                                    continue;
+                                }
+
+                                // la table est mesuree en position d'image ; ici l'offset suit le x/y du JSON (sens inverse)
+                                const k = (this._scale === AvatarScaleType.LARGE) ? 1 : 0.5;
+
+                                offset.x -= (fightShift[0] * k);
+                                offset.y -= (fightShift[1] * k);
+                            }
 
                             this._unionImages.push(new ImageData(texture, asset.rectangle, offset, flipH, color));
                         }

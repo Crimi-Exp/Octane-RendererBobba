@@ -17,6 +17,13 @@ export class AvatarAction
     public static EXPRESSION_67 = '67';
     public static EXPRESSION_67_ID = 67;
     public static DANCE_SIX_SEVEN = 'sixseven';
+    // geste « Magie » BobbaTok (bras dessines dans hh_human_body : h_mag_lh_*) : expression 68
+    public static EXPRESSION_MAGIE = 'magie';
+    public static EXPRESSION_MAGIE_ID = 68;
+    // pack d'animations combat BobbaTok : expression = numero de l'animation (6000 a 6153), jouee comme
+    // action bfight.<numero> ; valeur = nombre d'images jouees (82 ms chacune)
+    public static EXPRESSION_FIGHT = 'bfight';
+    public static FIGHT_EXPRESSION_FRAMES: { [id: number]: number } = { 6000: 20, 6001: 24, 6100: 24, 6101: 16, 6110: 16, 6120: 14, 6121: 17, 6122: 8, 6123: 24, 6130: 15, 6131: 10, 6132: 12, 6133: 10, 6134: 10, 6140: 32, 6141: 250, 6142: 10, 6143: 30, 6150: 25, 6151: 25, 6152: 13, 6153: 367 };
     public static GESTURE = 'gest';
     public static GESTURE_AGGRAVATED = 'agr';
     public static GESTURE_SAD = 'sad';
@@ -83,7 +90,11 @@ export class AvatarAction
                 return 1500;
             case 67:
                 return 990;
+            case 68:
+                return 1350;
             default:
+                if(AvatarAction.FIGHT_EXPRESSION_FRAMES[expressionId]) return ((AvatarAction.FIGHT_EXPRESSION_FRAMES[expressionId] * 82) + 100);
+
                 return 0;
         }
     }
@@ -91,6 +102,7 @@ export class AvatarAction
     public static getExpressionId(expression: string): number
     {
         if(expression === AvatarAction.EXPRESSION_67) return AvatarAction.EXPRESSION_67_ID;
+        if(expression === AvatarAction.EXPRESSION_MAGIE) return AvatarAction.EXPRESSION_MAGIE_ID;
 
         return AvatarAction.EXPRESSION_MAP.indexOf(expression);
     }
@@ -98,6 +110,8 @@ export class AvatarAction
     public static getExpression(expressionId: number): string
     {
         if(expressionId === AvatarAction.EXPRESSION_67_ID) return AvatarAction.EXPRESSION_67;
+        if(expressionId === AvatarAction.EXPRESSION_MAGIE_ID) return AvatarAction.EXPRESSION_MAGIE;
+        if(AvatarAction.FIGHT_EXPRESSION_FRAMES[expressionId]) return AvatarAction.EXPRESSION_FIGHT;
 
         if(expressionId > AvatarAction.EXPRESSION_MAP.length) return null;
 
