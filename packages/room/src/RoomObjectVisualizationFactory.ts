@@ -47,7 +47,9 @@ export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationF
             case RoomObjectVisualizationType.PET_ANIMATED:
                 visualization = PetVisualization;
                 break;
+            // wf_label : type « furniture_label » (wired recents), dessine comme un mobi fixe
             case RoomObjectVisualizationType.FURNITURE_STATIC:
+            case 'furniture_label':
                 visualization = FurnitureVisualization;
                 break;
             case RoomObjectVisualizationType.FURNITURE_BRANDED_IMAGE:
@@ -173,6 +175,7 @@ export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationF
         switch(visualization)
         {
             case RoomObjectVisualizationType.FURNITURE_STATIC:
+            case 'furniture_label':
             case RoomObjectVisualizationType.FURNITURE_BRANDED_IMAGE:
             case RoomObjectVisualizationType.FURNITURE_GIFT_WRAPPED:
             case RoomObjectVisualizationType.FURNITURE_BB:
