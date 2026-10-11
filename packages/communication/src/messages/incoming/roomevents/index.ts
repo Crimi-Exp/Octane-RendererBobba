@@ -5,6 +5,8 @@ export * from './WiredFurniMoveStyleEvent';
 export * from './WiredFurniOpacityEvent';
 export * from './WiredFurniRuntimeStateEvent';
 export * from './WiredFurniTriggerEvent';
+export * from './WiredHighlightEvent';
+export * from './WiredUnitOpacityEvent';
 export * from './WiredMonitorDataEvent';
 export * from './WiredOpenEvent';
 export * from './WiredRoomSettingsDataEvent';

@@ -55,6 +55,7 @@ export * from './FurnitureSongDiskLogic';
 export * from './FurnitureSoundBlockLogic';
 export * from './FurnitureSoundMachineLogic';
 export * from './FurnitureStickieLogic';
+export * from './FurnitureLabelLogic';
 export * from './FurnitureTrophyLogic';
 export * from './FurnitureVoteCounterLogic';
 export * from './FurnitureVoteMajorityLogic';

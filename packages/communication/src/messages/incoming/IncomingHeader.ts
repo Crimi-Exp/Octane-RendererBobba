@@ -306,6 +306,10 @@ export class IncomingHeader
     public static WIRED_FURNI_OPACITY = 5109;
     public static WIRED_FURNI_MOVE_STYLE = 5110;
     public static WIRED_ARRAY_INSPECTION_DATA = 5111;
+    // wf_act_set_visibility : opacite des avatars
+    public static WIRED_UNIT_OPACITY = 5112;
+    // wf_act_set_highlight : surbrillance des mobis et des avatars
+    public static WIRED_HIGHLIGHT = 5113;
     // AIR 13 wired leftovers. 420 (WiredClickUserResponse) and 2901 (WiredUserVariablesPage)
     // are already GROUP_LIST / PET_INFO here, so those two take custom ids instead.
     public static WIRED_ENVIRONMENT = 347;

@@ -9,6 +9,8 @@ export * from './WiredFurniMoveStyleParser';
 export * from './WiredFurniOpacityParser';
 export * from './WiredFurniRuntimeStateParser';
 export * from './WiredFurniTriggerParser';
+export * from './WiredHighlightParser';
+export * from './WiredUnitOpacityParser';
 export * from './WiredMonitorDataParser';
 export * from './WiredRoomSettingsDataParser';
 export * from './WiredOpenParser';

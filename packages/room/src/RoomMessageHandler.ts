@@ -1,5 +1,5 @@
 import { AvatarGuideStatus, IConnection, IMessageEvent, IRoomCreator, IRoomObjectController, IRoomObject, IVector3D, LegacyDataType, ObjectRolling, PetType, RoomObjectCategory, RoomObjectType, RoomObjectUserType, RoomObjectVariable } from '@octane/api';
-import { AreaHideMessageEvent, BlockResultEvent, BlockResultParser, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
+import { AreaHideMessageEvent, BlockResultEvent, BlockResultParser, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredHighlightEvent, WiredHighlightParser, WiredUnitOpacityEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { OctaneLogger, Vector3d } from '@octane/utils';
 import { FloorHeightMapMessageParser } from '@octane/communication';
@@ -48,6 +48,8 @@ export class RoomMessageHandler
     private _activeAreaHideControllers = new Map<number, AreaHideControllerState>();
     private _areaHideReapplyTimeouts: ReturnType<typeof setTimeout>[] = [];
     private _isConfInvisControlActive = false;
+    // wf_act_set_visibility : opacite (0-100) par avatar, gardee pour les avatars pas encore crees
+    private _wiredUnitOpacity = new Map<number, number>();
 
     private _currentRoomId: number = 0;
     private _ownUserId: number = 0;
@@ -72,6 +74,8 @@ export class RoomMessageHandler
             new ObjectsRollingEvent(this.onRoomRollingEvent.bind(this)),
             new WiredMovementsEvent(this.onWiredMovementsEvent.bind(this)),
             new WiredFurniMoveStyleEvent(this.onWiredFurniMoveStyleEvent.bind(this)),
+            new WiredUnitOpacityEvent(this.onWiredUnitOpacityEvent.bind(this)),
+            new WiredHighlightEvent(this.onWiredHighlightEvent.bind(this)),
             new ObjectsDataUpdateEvent(this.onObjectsDataUpdateEvent.bind(this)),
             new FurnitureAliasesEvent(this.onFurnitureAliasesEvent.bind(this)),
             new FurnitureFloorAddEvent(this.onFurnitureFloorAddEvent.bind(this)),
@@ -154,6 +158,7 @@ export class RoomMessageHandler
         this._activeAreaHideControllers.clear();
         this.clearAreaHideReapplyTimeouts();
         this._isConfInvisControlActive = false;
+        this._wiredUnitOpacity.clear();
     }
 
     public setRoomId(id: number): void
@@ -175,6 +180,7 @@ export class RoomMessageHandler
         this._activeAreaHideControllers.clear();
         this.clearAreaHideReapplyTimeouts();
         this._isConfInvisControlActive = false;
+        this._wiredUnitOpacity.clear();
     }
 
     public clearRoomId(): void
@@ -191,6 +197,7 @@ export class RoomMessageHandler
         this._activeAreaHideControllers.clear();
         this.clearAreaHideReapplyTimeouts();
         this._isConfInvisControlActive = false;
+        this._wiredUnitOpacity.clear();
     }
 
     private onUserInfoEvent(event: UserInfoEvent): void
@@ -560,6 +567,57 @@ export class RoomMessageHandler
             object.model.setValue(RoomObjectVariable.FURNITURE_MOVE_STYLE_INTENSITY, parser.intensity);
             object.model.setValue(RoomObjectVariable.FURNITURE_MOVE_OVERSHOOT, parser.overshoot);
         }
+    }
+
+    private onWiredUnitOpacityEvent(event: WiredUnitOpacityEvent): void
+    {
+        if(!(event instanceof WiredUnitOpacityEvent) || !event.connection || !this._roomEngine) return;
+
+        const parser = event.getParser();
+
+        if(!parser) return;
+
+        for(const update of parser.updates)
+        {
+            if(update.opacity >= 100) this._wiredUnitOpacity.delete(update.unitId);
+            else this._wiredUnitOpacity.set(update.unitId, update.opacity);
+
+            this.applyWiredUnitOpacity(update.unitId);
+        }
+    }
+
+    /** wf_act_set_highlight : le moteur garde la couleur et l'applique aussi aux objets crees plus tard. */
+    private onWiredHighlightEvent(event: WiredHighlightEvent): void
+    {
+        if(!(event instanceof WiredHighlightEvent) || !event.connection || !this._roomEngine) return;
+
+        const parser = event.getParser();
+
+        if(!parser || (parser.roomId !== this._currentRoomId)) return;
+
+        for(const update of parser.updates)
+        {
+            let category = RoomObjectCategory.FLOOR;
+
+            if(update.kind === WiredHighlightParser.KIND_WALL) category = RoomObjectCategory.WALL;
+            else if(update.kind === WiredHighlightParser.KIND_UNIT) category = RoomObjectCategory.UNIT;
+
+            this._roomEngine.setRoomObjectWiredHighlight(this._currentRoomId, update.id, category, update.color);
+        }
+    }
+
+    /** Pose l'opacite wired connue sur l'avatar s'il existe deja (sinon, a sa creation). */
+    private applyWiredUnitOpacity(unitId: number): void
+    {
+        if(!this._roomEngine) return;
+
+        const object = this._roomEngine.getRoomObjectUser(this._currentRoomId, unitId);
+
+        if(!object || !object.model) return;
+
+        const opacity = this._wiredUnitOpacity.get(unitId);
+
+        object.model.setValue(RoomObjectVariable.FIGURE_WIRED_OPACITY, ((opacity === undefined) ? 1 : (opacity / 100)));
     }
 
     private onWiredMovementsEvent(event: WiredMovementsEvent): void
@@ -1534,6 +1592,8 @@ export class RoomMessageHandler
 
             this._roomEngine.addRoomObjectUser(this._currentRoomId, user.roomIndex, location, direction, user.dir, user.userType, user.figure);
 
+            if(this._wiredUnitOpacity.has(user.roomIndex)) this.applyWiredUnitOpacity(user.roomIndex);
+
             if(user.webID === this._ownUserId)
             {
                 this._ownRoomIndex = user.roomIndex;
@@ -1629,6 +1689,8 @@ export class RoomMessageHandler
             }
         }
 
+        this._wiredUnitOpacity.delete(unitId);
+        this._roomEngine.setRoomObjectWiredHighlight(this._currentRoomId, unitId, RoomObjectCategory.UNIT, -1);
         this._roomEngine.removeRoomObjectUser(this._currentRoomId, unitId);
 
         this.updateGuideMarker();

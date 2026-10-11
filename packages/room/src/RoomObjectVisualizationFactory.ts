@@ -1,6 +1,6 @@
 import { IAssetData, IObjectVisualizationData, IRoomObjectGraphicVisualization, IRoomObjectVisualizationFactory, RoomObjectVisualizationType } from '@octane/api';
 import { OctaneLogger } from '@octane/utils';
-import { AvatarVisualization, AvatarVisualizationData, FurnitureAnimatedVisualization, FurnitureAnimatedVisualizationData, FurnitureBBVisualization, FurnitureBadgeDisplayVisualization, FurnitureBottleVisualization, FurnitureBrandedImageVisualization, FurnitureChestVisualization, FurnitureBuilderPlaceholderVisualization, FurnitureCounterClockVisualization, FurnitureCuboidVisualization, FurnitureExternalImageVisualization, FurnitureFireworksVisualization, FurnitureGiftWrappedFireworksVisualization, FurnitureGiftWrappedVisualization, FurnitureGuildCustomizedVisualization, FurnitureGuildIsometricBadgeVisualization, FurnitureHabboWheelVisualization, FurnitureIsometricBBVisualization, FurnitureMannequinVisualization, FurnitureMannequinVisualizationData, FurniturePartyBeamerVisualization, FurniturePlanetSystemVisualization, FurniturePosterVisualization, FurnitureQueueTileVisualization, FurnitureResettingAnimatedVisualization, FurnitureRoomBackgroundVisualization, FurnitureScoreBoardVisualization, FurnitureSoundBlockVisualization, FurnitureStickieVisualization, FurnitureValRandomizerVisualization, FurnitureVisualization, FurnitureVisualizationData, FurnitureVoteCounterVisualization, FurnitureVoteMajorityVisualization, FurnitureWaterAreaVisualization, FurnitureYoutubeVisualization, PetVisualization, PetVisualizationData, RoomObjectSpriteVisualization, RoomVisualization, RoomVisualizationData, TileCursorVisualization, WallTagVisualization, WallTagVisualizationData } from './object';
+import { AvatarVisualization, AvatarVisualizationData, FurnitureAnimatedVisualization, FurnitureAnimatedVisualizationData, FurnitureBBVisualization, FurnitureBadgeDisplayVisualization, FurnitureBottleVisualization, FurnitureBrandedImageVisualization, FurnitureChestVisualization, FurnitureBuilderPlaceholderVisualization, FurnitureCounterClockVisualization, FurnitureCuboidVisualization, FurnitureExternalImageVisualization, FurnitureFireworksVisualization, FurnitureGiftWrappedFireworksVisualization, FurnitureGiftWrappedVisualization, FurnitureGuildCustomizedVisualization, FurnitureGuildIsometricBadgeVisualization, FurnitureLabelVisualization, FurnitureHabboWheelVisualization, FurnitureIsometricBBVisualization, FurnitureMannequinVisualization, FurnitureMannequinVisualizationData, FurniturePartyBeamerVisualization, FurniturePlanetSystemVisualization, FurniturePosterVisualization, FurnitureQueueTileVisualization, FurnitureResettingAnimatedVisualization, FurnitureRoomBackgroundVisualization, FurnitureScoreBoardVisualization, FurnitureSoundBlockVisualization, FurnitureStickieVisualization, FurnitureValRandomizerVisualization, FurnitureVisualization, FurnitureVisualizationData, FurnitureVoteCounterVisualization, FurnitureVoteMajorityVisualization, FurnitureWaterAreaVisualization, FurnitureYoutubeVisualization, PetVisualization, PetVisualizationData, RoomObjectSpriteVisualization, RoomVisualization, RoomVisualizationData, TileCursorVisualization, WallTagVisualization, WallTagVisualizationData } from './object';
 
 export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationFactory
 {
@@ -47,9 +47,11 @@ export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationF
             case RoomObjectVisualizationType.PET_ANIMATED:
                 visualization = PetVisualization;
                 break;
-            // wf_label : type « furniture_label » (wired recents), dessine comme un mobi fixe
-            case RoomObjectVisualizationType.FURNITURE_STATIC:
+            // wf_label : type « furniture_label » (wired recents), mobi fixe + bulle de texte triee avec la piece
             case 'furniture_label':
+                visualization = FurnitureLabelVisualization;
+                break;
+            case RoomObjectVisualizationType.FURNITURE_STATIC:
                 visualization = FurnitureVisualization;
                 break;
             case RoomObjectVisualizationType.FURNITURE_BRANDED_IMAGE:

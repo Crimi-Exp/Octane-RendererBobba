@@ -19,6 +19,8 @@ export class RoomInstanceData
     private _floorStack: Map<number, RoomFurnitureData>;
     private _wallStack: Map<number, RoomFurnitureData>;
     private _mouseButtonCursorOwners: string[];
+    /** wf_act_set_highlight : couleur 0xRRGGBB par objet (cle "categorie:id"), gardee jusqu'a sa creation. */
+    private _wiredHighlights: Map<string, number> = new Map();
     /** BobbaTok : portes du modele (pour les tags muraux). */
     private _doors: { x: number; y: number; z: number; dir: number }[] = [];
 
@@ -79,6 +81,21 @@ export class RoomInstanceData
         this._wallStack.clear();
         this._mouseButtonCursorOwners = [];
         this._modelName = null;
+        this._wiredHighlights.clear();
+    }
+
+    /** Couleur 0xRRGGBB de la surbrillance wired de l'objet, ou -1 si elle est eteinte. */
+    public getWiredHighlight(category: number, objectId: number): number
+    {
+        return this._wiredHighlights.get(`${ category }:${ objectId }`) ?? -1;
+    }
+
+    public setWiredHighlight(category: number, objectId: number, color: number): void
+    {
+        const key = `${ category }:${ objectId }`;
+
+        if(color < 0) this._wiredHighlights.delete(key);
+        else this._wiredHighlights.set(key, color);
     }
 
     public setModelName(name: string): void

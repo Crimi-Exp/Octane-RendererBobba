@@ -275,6 +275,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
             case RoomObjectWidgetRequestEvent.INERNAL_LINK:
             case RoomObjectWidgetRequestEvent.ROOM_LINK:
             case RoomObjectWidgetRequestEvent.YOUTUBE:
+            case RoomObjectWidgetRequestEvent.WF_LABEL:
                 this.onRoomObjectWidgetRequestEvent((event), roomId);
                 return;
             case RoomObjectFurnitureActionEvent.DICE_ACTIVATE:
@@ -1023,6 +1024,10 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 return;
             case RoomObjectWidgetRequestEvent.YOUTUBE:
                 GetEventDispatcher().dispatchEvent(new RoomEngineTriggerWidgetEvent(RoomEngineTriggerWidgetEvent.REQUEST_YOUTUBE, roomId, objectId, objectCategory));
+                return;
+            // wf_label : double-clic sur le mobi ou sa bulle -> edition du texte
+            case RoomObjectWidgetRequestEvent.WF_LABEL:
+                GetEventDispatcher().dispatchEvent(new RoomEngineTriggerWidgetEvent(RoomEngineTriggerWidgetEvent.REQUEST_WF_LABEL, roomId, objectId, objectCategory));
                 return;
         }
     }

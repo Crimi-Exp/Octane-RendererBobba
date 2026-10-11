@@ -2,6 +2,7 @@ import { AlphaTolerance, IGraphicAsset, IObjectVisualizationData, IRoomGeometry,
 import { ChooserSelectionFilter, OctaneLogger, Vector3d } from '@octane/utils';
 import { BLEND_MODES, Filter, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
+import { WiredHighlightFilters } from '../WiredHighlightFilters';
 import { IWindowReflectionUnitLayer, RoomWindowReflectionState } from '../RoomWindowReflectionState';
 import { ColorData, LayerData } from '../data';
 import { FurnitureVisualizationData } from './FurnitureVisualizationData';
@@ -51,6 +52,7 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     private _needsLookThroughUpdate: boolean;
     private _wiredClickThrough: boolean;
     private _hideInvisibleLayers: boolean;
+    private _wiredHighlightColor: number = -1;
 
     // BobbaTok : mobi agrandissable (x1/x2/x3) avec effet "pop" + nuee d'etoiles au changement.
     protected static POP_DURATION_MS: number = 420;
@@ -748,6 +750,16 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
             this._alphaChanged = true;
         }
 
+        // wf_act_set_highlight : contour noir recolore + teinte, sur toutes les couches du mobi.
+        const wiredHighlightColor = WiredHighlightFilters.normalizeColor(model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_HIGHLIGHT));
+
+        if(wiredHighlightColor !== this._wiredHighlightColor)
+        {
+            this._wiredHighlightColor = wiredHighlightColor;
+            this._filters = WiredHighlightFilters.withHighlight(this._filters, WiredHighlightFilters.furniture(wiredHighlightColor));
+            this._alphaChanged = true;
+        }
+
         const rawScale = model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE);
         const furniScale = Math.max(1, Math.min(3, (rawScale || 1)));
         const scaleUpdateTime = (model.getValue<number>(RoomObjectVariable.FURNITURE_SCALE_UPDATE_TIME) || 0);
@@ -892,7 +904,13 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 {
                     const chooserFilters = (currentFilters || []).filter(f => f instanceof ChooserSelectionFilter);
 
-                    sprite.filters = chooserFilters.length > 0 ? [...this._filters, ...chooserFilters] : this._filters;
+                    // L'ombre et les couches additives ne prennent pas la surbrillance wired (ombre noire recoloree).
+                    const layerFilters = ((layerId === this._shadowLayerIndex) || (sprite.blendMode === 'add'))
+                        ? this._filters.filter(f => !WiredHighlightFilters.isHighlightFilter(f))
+                        : this._filters;
+
+                    // Copie : la selection wired ajoute ses filtres directement dans le tableau du sprite.
+                    sprite.filters = [ ...layerFilters, ...chooserFilters ];
                 }
             }
             else

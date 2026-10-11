@@ -20,6 +20,10 @@ export class RoomObjectVariable
     public static FIGURE_POSTURE_PARAMETER: string = 'figure_posture_parameter';
     public static FIGURE_HIGHLIGHT_ENABLE: string = 'figure_highlight_enable';
     public static FIGURE_HIGHLIGHT: string = 'figure_highlight';
+    // wf_act_set_visibility : opacite wired de l'avatar, 0..1 (1 = normal)
+    public static FIGURE_WIRED_OPACITY: string = 'figure_wired_opacity';
+    // wf_act_set_highlight : couleur 0xRRGGBB de la surbrillance wired, -1 = eteinte
+    public static FIGURE_WIRED_HIGHLIGHT: string = 'figure_wired_highlight';
     public static FURNITURE_PURCHASER_NAME: string = 'furniture_purchaser_name';
     public static FURNITURE_PURCHASER_FIGURE: string = 'furniture_purchaser_figure';
     public static STD: string = 'std';
@@ -104,6 +108,8 @@ export class RoomObjectVariable
     public static FURNITURE_MOVE_STYLE_INTENSITY: string = 'furniture_move_style_intensity';
     public static FURNITURE_MOVE_OVERSHOOT: string = 'furniture_move_overshoot';
     public static FURNITURE_WIRED_OPACITY: string = 'furniture_wired_opacity';
+    // wf_act_set_highlight : couleur 0xRRGGBB de la surbrillance wired, -1 = eteinte
+    public static FURNITURE_WIRED_HIGHLIGHT: string = 'furniture_wired_highlight';
     public static FURNITURE_WIRED_CLICK_THROUGH: string = 'furniture_wired_click_through';
     public static FURNITURE_CONF_INVIS_HIDDEN: string = 'furniture_conf_invis_hidden';
     public static FURNITURE_AREA_HIDE_HIDDEN: string = 'furniture_area_hide_hidden';

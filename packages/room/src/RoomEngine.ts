@@ -16,7 +16,7 @@ import { RoomObjectEventHandler } from './RoomObjectEventHandler';
 import { buildRoomObjectImageKey, DisposableTexture, RoomObjectImageCache, SharedImageResult } from './RoomObjectImageCache';
 import { RoomVariableEnum } from './RoomVariableEnum';
 import { ObjectAvatarBlockedUpdateMessage, ObjectAvatarCarryObjectUpdateMessage, ObjectAvatarChatUpdateMessage, ObjectAvatarDanceUpdateMessage, ObjectAvatarEffectUpdateMessage, ObjectAvatarExperienceUpdateMessage, ObjectAvatarExpressionUpdateMessage, ObjectAvatarFigureUpdateMessage, ObjectAvatarFlatControlUpdateMessage, ObjectAvatarGestureUpdateMessage, ObjectAvatarGuideStatusUpdateMessage, ObjectAvatarHabbiconUpdateMessage, ObjectAvatarMutedUpdateMessage, ObjectAvatarOwnMessage, ObjectAvatarPetGestureUpdateMessage, ObjectAvatarPlayerValueUpdateMessage, ObjectAvatarPlayingGameUpdateMessage, ObjectAvatarPostureUpdateMessage, ObjectAvatarSignUpdateMessage, ObjectAvatarSleepUpdateMessage, ObjectAvatarTypingUpdateMessage, ObjectAvatarUpdateMessage, ObjectAvatarUseObjectUpdateMessage, ObjectDataUpdateMessage, ObjectGroupBadgeUpdateMessage, ObjectHeightUpdateMessage, ObjectItemDataUpdateMessage, ObjectModelDataUpdateMessage, ObjectMoveUpdateMessage, ObjectRoomColorUpdateMessage, ObjectRoomFloorHoleUpdateMessage, ObjectRoomMaskUpdateMessage, ObjectRoomPlanePropertyUpdateMessage, ObjectRoomPlaneVisibilityUpdateMessage, ObjectRoomUpdateMessage, ObjectStateUpdateMessage, RoomObjectUpdateMessage } from './messages';
-import { RoomLogic, RoomMapData } from './object';
+import { FurnitureLabelLogic, RoomLogic, RoomMapData } from './object';
 import { RoomWindowReflectionState } from './object/visualization/RoomWindowReflectionState';
 import { RoomRenderer } from './renderer';
 import { RoomAreaSelectionManager, RoomCamera, RoomData, RoomEnterEffect, RoomFurnitureData, RoomGeometry, RoomInstanceData, RoomObjectBadgeImageAssetListener } from './utils';
@@ -1008,6 +1008,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
             if(!this.updateRoomObjectFloorHeight(roomId, id, data.sizeZ)) return false;
         }
 
+        this.applyRoomObjectWiredHighlight(roomId, id, RoomObjectCategory.FLOOR);
+
         if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.ADDED, roomId, id, RoomObjectCategory.FLOOR));
 
         const selectedRoomObjectData = this.getPlacedRoomObjectData(roomId);
@@ -1070,6 +1072,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         }
 
         if(!this.updateRoomObjectWall(roomId, id, data.location, data.direction, data.state, extra)) return false;
+
+        this.applyRoomObjectWiredHighlight(roomId, id, RoomObjectCategory.WALL);
 
         if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.ADDED, roomId, id, RoomObjectCategory.WALL));
 
@@ -2090,9 +2094,44 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         if(figure) object.processUpdateMessage(new ObjectAvatarFigureUpdateMessage(figure));
 
+        this.applyRoomObjectWiredHighlight(roomId, objectId, RoomObjectCategory.UNIT);
+
         if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.ADDED, roomId, objectId, RoomObjectCategory.UNIT));
 
         return true;
+    }
+
+    /**
+     * wf_act_set_highlight : allume (0xRRGGBB) ou eteint (-1) la surbrillance d'un mobi ou d'un avatar. L'etat
+     * est garde par piece, pour un objet pas encore cree (mobis charges en differe, avatar pas encore entre).
+     */
+    public setRoomObjectWiredHighlight(roomId: number, objectId: number, category: number, color: number): void
+    {
+        const instanceData = this.getRoomInstanceData(roomId);
+
+        if(!instanceData) return;
+
+        instanceData.setWiredHighlight(category, objectId, ((typeof color === 'number') && isFinite(color) && (color >= 0)) ? (Math.floor(color) & 0xFFFFFF) : -1);
+
+        this.applyRoomObjectWiredHighlight(roomId, objectId, category);
+    }
+
+    private applyRoomObjectWiredHighlight(roomId: number, objectId: number, category: number): void
+    {
+        const instanceData = this._roomInstanceDatas.get(roomId);
+        const object = this.getRoomObject(roomId, objectId, category);
+
+        if(!object || !object.model) return;
+
+        const color = instanceData ? instanceData.getWiredHighlight(category, objectId) : -1;
+        const variable = (category === RoomObjectCategory.UNIT) ? RoomObjectVariable.FIGURE_WIRED_HIGHLIGHT : RoomObjectVariable.FURNITURE_WIRED_HIGHLIGHT;
+
+        // Pas d'ecriture inutile : un objet jamais allume garde un modele intact.
+        const current = object.model.getValue<number>(variable);
+
+        if((current === color) || ((current === undefined) && (color < 0))) return;
+
+        object.model.setValue(variable, color);
     }
 
     public updateRoomObjectUserLocation(roomId: number, objectId: number, location: IVector3D, targetLocation: IVector3D, canStandUp: boolean = false, baseY: number = 0, direction: IVector3D = null, headDirection: number = NaN, skipLocationFix: boolean = false, isSlide: boolean = false, duration: number = ObjectMoveUpdateMessage.DEFAULT_DURATION): boolean
@@ -2729,7 +2768,13 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
     {
         if(!this._roomObjectEventHandler) return false;
 
-        if(category !== RoomObjectCategory.WALL) return;
+        if(category !== RoomObjectCategory.WALL)
+        {
+            // wf_label : mobi au sol qui enregistre son texte par le meme paquet que les post-its
+            const roomObject = this.getRoomObject(this._activeRoomId, objectId, category);
+
+            if(!roomObject || !(roomObject.logic instanceof FurnitureLabelLogic)) return;
+        }
 
         this._roomObjectEventHandler.modifyWallItemData(this._activeRoomId, objectId, colorHex, data);
     }

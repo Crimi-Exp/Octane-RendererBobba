@@ -1,9 +1,10 @@
-import { AlphaTolerance, AvatarAction, AvatarGuideStatus, AvatarSetType, IAdvancedMap, IAvatarEffectListener, IAvatarImage, IAvatarImageListener, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObject, IRoomObjectModel, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
+import { AlphaTolerance, AvatarAction, AvatarGuideStatus, AvatarSetType, IAdvancedMap, IAvatarEffectListener, IAvatarImage, IAvatarImageListener, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObject, IRoomObjectModel, IRoomObjectSprite, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
 import { GetAssetManager } from '@octane/assets';
 import { AdvancedMap, GetRenderer, Vector3d } from '@octane/utils';
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { RoomWindowReflectionState } from '../RoomWindowReflectionState';
+import { WiredHighlightFilters } from '../WiredHighlightFilters';
 import { AvatarVisualizationData } from './AvatarVisualizationData';
 import { ExpressionAdditionFactory, FloatingIdleZAddition, GameClickTargetAddition, GuideStatusBubbleAddition, HabbiconBubbleAddition, IAvatarAddition, MutedBubbleAddition, NumberBubbleAddition, TypingBubbleAddition } from './additions';
 
@@ -62,6 +63,11 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private _sign: number;
     private _highlightEnabled: boolean;
     private _highlight: boolean;
+    // wf_act_set_visibility : opacite wired (0..1) et alpha de base du corps (placeholder / bloque = 150)
+    private _wiredAlpha: number = 1;
+    // wf_act_set_highlight : couleur 0xRRGGBB du contour wired, -1 = eteint
+    private _wiredHighlightColor: number = -1;
+    private _avatarBaseAlpha: number = 255;
     private _dance: number;
     private _effect: number;
     private _carryObject: number;
@@ -255,13 +261,15 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                 {
                     // official AvatarVisualization: placeholder and blocked players are see-through,
                     // and a blocked player is also darkened (0x666666) into a grey ghost
-                    sprite.alpha = 150;
+                    this._avatarBaseAlpha = 150;
+                    sprite.alpha = this.wiredSpriteAlpha(this._avatarBaseAlpha);
                     sprite.color = (this._avatarImage.isBlocked() ? 0x666666 : 0xFFFFFF);
                 }
 
                 else if(sprite)
                 {
-                    sprite.alpha = 255;
+                    this._avatarBaseAlpha = 255;
+                    sprite.alpha = this.wiredSpriteAlpha(this._avatarBaseAlpha);
                     sprite.color = 0xFFFFFF;
                 }
             }
@@ -342,6 +350,11 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                 const avatarImage = this._avatarImage.processAsTexture(AvatarSetType.FULL, highlightEnabled);
 
                 if(!this._isAnimating && this._avatarImage.isAnimating()) this._isAnimating = true;
+
+                // wf_act_set_visibility : l'opacite wired peut changer sans recreer l'image de l'avatar.
+                sprite.alpha = this.wiredSpriteAlpha(this._avatarBaseAlpha);
+
+                this.applyWiredHighlight(sprite);
 
                 if(avatarImage)
                 {
@@ -452,6 +465,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     {
                         sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
                         sprite.visible = true;
+                        sprite.alpha = this.wiredSpriteAlpha(255);
 
                         const layerData = this._avatarImage.getLayerData(spriteData);
 
@@ -1008,6 +1022,28 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
             }
         }
 
+        let wiredAlpha = model.getValue<number>(RoomObjectVariable.FIGURE_WIRED_OPACITY);
+
+        if((typeof wiredAlpha !== 'number') || !isFinite(wiredAlpha)) wiredAlpha = 1;
+
+        wiredAlpha = Math.max(0, Math.min(1, wiredAlpha));
+
+        if(wiredAlpha !== this._wiredAlpha)
+        {
+            this._wiredAlpha = wiredAlpha;
+
+            needsUpdate = true;
+        }
+
+        const wiredHighlightColor = WiredHighlightFilters.normalizeColor(model.getValue<number>(RoomObjectVariable.FIGURE_WIRED_HIGHLIGHT));
+
+        if(wiredHighlightColor !== this._wiredHighlightColor)
+        {
+            this._wiredHighlightColor = wiredHighlightColor;
+
+            needsUpdate = true;
+        }
+
         const ownUser = (model.getValue<number>(RoomObjectVariable.OWN_USER) > 0);
 
         if(ownUser !== this._ownUser)
@@ -1020,6 +1056,28 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         this.updateModelCounter = model.updateCounter;
 
         return needsUpdate;
+    }
+
+    /**
+     * wf_act_set_highlight : pose ou retire le contour wired du sprite de l'avatar, sans toucher aux autres
+     * filtres (selection wired, surbrillance des detenteurs de variables...).
+     */
+    private applyWiredHighlight(sprite: IRoomObjectSprite): void
+    {
+        const highlight = WiredHighlightFilters.avatar(this._wiredHighlightColor);
+        const current = sprite.filters || [];
+        const stale = current.some(filter => (filter !== highlight) && WiredHighlightFilters.isHighlightFilter(filter));
+        const missing = (highlight && !current.includes(highlight));
+
+        if(!stale && !missing) return;
+
+        sprite.filters = WiredHighlightFilters.withHighlight(current, highlight);
+    }
+
+    /** Alpha d'un sprite de l'avatar (0-255) avec l'opacite wf_act_set_visibility appliquee. */
+    private wiredSpriteAlpha(baseAlpha: number): number
+    {
+        return Math.round(baseAlpha * this._wiredAlpha);
     }
 
     protected setDirection(direction: number): void
@@ -1321,7 +1379,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         if(sprite)
         {
             sprite.texture = Texture.EMPTY;
-            sprite.alpha = 255;
+            this._avatarBaseAlpha = 255;
+            sprite.alpha = this.wiredSpriteAlpha(255);
             sprite.color = 0xFFFFFF;
         }
 
@@ -1423,7 +1482,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     sprite.texture = this._shadow.texture;
                     sprite.offsetX = offsetX;
                     sprite.offsetY = offsetY;
-                    sprite.alpha = 50;
+                    sprite.alpha = this.wiredSpriteAlpha(50);
                     sprite.relativeDepth = 1;
                 }
                 else
