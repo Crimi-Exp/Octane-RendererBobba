@@ -1,5 +1,5 @@
 import { ColorMatrixFilter } from 'pixi.js';
-import { IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType } from '@octane/api';
+import { AlphaTolerance, IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType } from '@octane/api';
 import { GetConfiguration } from '@octane/configuration';
 import { RoomSpriteMouseEvent } from '@octane/events';
 import { GetTicker, TextureUtils, Vector3d } from '@octane/utils';
@@ -971,11 +971,17 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         {
             const extendedSprite = this.getExtendedSprite(spriteId);
 
-            if(!extendedSprite || extendedSprite.skipMouseHandling || !extendedSprite.visible) continue;
+            if(!extendedSprite || !extendedSprite.visible) continue;
+
+            // Les images de fond (ads_background, room_bg…) laissent passer les clics (ignoreMouse), comme sur
+            // Habbo : le menu du clic droit est justement le moyen de les retrouver, on les teste quand meme.
+            const pickThrough = RoomSpriteCanvas.isPickThroughSprite(extendedSprite);
+
+            if(extendedSprite.skipMouseHandling && !pickThrough) continue;
 
             hitPoint.set((localX - extendedSprite.x), (localY - extendedSprite.y));
 
-            if(!extendedSprite.containsPoint(hitPoint)) continue;
+            if(!RoomSpriteCanvas.pickContainsPoint(extendedSprite, hitPoint, pickThrough)) continue;
 
             const instanceId = parseInt(this.getExtendedSpriteIdentifier(extendedSprite));
 
@@ -985,6 +991,31 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         }
 
         return instanceIds;
+    }
+
+    /** Calque d'image d'un mobi image (tag « branded_image ») rendu traversable a la souris. */
+    public static isPickThroughSprite(sprite: ExtendedSprite): boolean
+    {
+        return !!sprite && (sprite.tag === 'branded_image') && (sprite.alpha > 0) && (sprite.alphaTolerance >= AlphaTolerance.MATCH_NOTHING);
+    }
+
+    /** Test au pixel pres du clic droit : les calques traversables sont testes sur leurs pixels opaques. */
+    public static pickContainsPoint(sprite: ExtendedSprite, point: Point, pickThrough: boolean): boolean
+    {
+        if(!pickThrough) return sprite.containsPoint(point);
+
+        const tolerance = sprite.alphaTolerance;
+
+        sprite.alphaTolerance = AlphaTolerance.MATCH_OPAQUE_PIXELS;
+
+        try
+        {
+            return sprite.containsPoint(point);
+        }
+        finally
+        {
+            sprite.alphaTolerance = tolerance;
+        }
     }
 
     private checkMouseHits(x: number, y: number, type: string, altKey: boolean = false, ctrlKey: boolean = false, shiftKey: boolean = false, buttonDown: boolean = false): boolean
