@@ -735,6 +735,9 @@ export class IncomingHeader
     public static BRAINROT_BASES = 9752;
     public static BRAINROT_MOBIS = 9753;
     public static BRAINROT_FX = 9754;
+    public static MANOIR_STATE = 9840;
+    public static MANOIR_SCARE = 9841;
+    public static MANOIR_FINISH = 9842;
     // Wired variable fx (server -> client): the drawn configs, their removal, the values to draw
     // and the values that went away. Custom ids in the reserved 94xx block.
     public static WIRED_VARIABLE_FX_CONFIGS = 9473;

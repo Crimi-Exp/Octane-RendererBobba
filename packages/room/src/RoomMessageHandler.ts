@@ -37,6 +37,8 @@ export class RoomMessageHandler
     private _roomEngine: IRoomCreator = null;
     private _planeParser = new RoomPlaneParser();
     private _latestEntryTileEvent: RoomEntryTileMessageEvent = null;
+    /** BobbaTok : dernier plan recu du serveur pour l'appart courant (relu par l'Editeur Sol a l'ouverture). */
+    private _latestFloorModel: { roomId: number, model: string, wallHeight: number } = null;
     private _messageEvents: IMessageEvent[] = [];
     private _activeWiredUserMovements = new Map<number, { expiresAt: number, sourceX: number, sourceY: number, sourceZ: number, targetX: number, targetY: number, targetZ: number }>();
     private _activeRoomUserWalks = new Map<number, { startedAt: number, targetX: number, targetY: number, targetZ: number, duration: number }>();
@@ -143,6 +145,7 @@ export class RoomMessageHandler
         this._connection = null;
         this._roomEngine = null;
         this._latestEntryTileEvent = null;
+        this._latestFloorModel = null;
         this._activeWiredUserMovements.clear();
         this._activeRoomUserWalks.clear();
         this._jumpingUnitIds.clear();
@@ -170,6 +173,7 @@ export class RoomMessageHandler
 
         this._currentRoomId = id;
         this._latestEntryTileEvent = null;
+        this._latestFloorModel = null;
         this._activeWiredUserMovements.clear();
         this._activeRoomUserWalks.clear();
         this._jumpingUnitIds.clear();
@@ -187,6 +191,7 @@ export class RoomMessageHandler
     {
         this._currentRoomId = 0;
         this._latestEntryTileEvent = null;
+        this._latestFloorModel = null;
         this._activeWiredUserMovements.clear();
         this._activeRoomUserWalks.clear();
         this._jumpingUnitIds.clear();
@@ -263,11 +268,31 @@ export class RoomMessageHandler
 
         if(!parser) return;
 
+        if(parser.model) this._latestFloorModel = { roomId: this._currentRoomId, model: parser.model, wallHeight: parser.wallHeight };
+
         const roomMap = this._rebuildFloorGeometry(parser);
 
         if(!roomMap) return;
 
         this._roomEngine.createRoomInstance(this._currentRoomId, roomMap);
+    }
+
+    /** Dernier plan envoye par le serveur pour l'appart courant (null hors appart). L'apercu local ne le modifie pas. */
+    public getLatestFloorModel(): { roomId: number, model: string, wallHeight: number } | null
+    {
+        if(!this._latestFloorModel || this._latestFloorModel.roomId !== this._currentRoomId) return null;
+
+        return { ...this._latestFloorModel };
+    }
+
+    /** Derniere case d'entree recue pour l'appart courant (null si pas encore recue). */
+    public getLatestEntryTile(): { x: number, y: number, direction: number } | null
+    {
+        const parser = this._latestEntryTileEvent?.getParser();
+
+        if(!parser) return null;
+
+        return { x: parser.x, y: parser.y, direction: parser.direction };
     }
 
     public applyFloorModelLocally(modelString: string, wallHeight: number, scale: boolean = true): boolean

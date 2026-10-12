@@ -1,5 +1,5 @@
 import { AlphaTolerance, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObjectSprite, IVector3D, RoomObjectVariable, RoomObjectVisualizationType } from '@octane/api';
-import { ChooserSelectionFilter, OctaneLogger, Vector3d } from '@octane/utils';
+import { ChooserSelectionFilter, OctaneLogger, PickerHighlightFilter, Vector3d } from '@octane/utils';
 import { BLEND_MODES, Filter, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
@@ -902,7 +902,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
                 if((currentFilters && currentFilters.length) || this._filters.length)
                 {
-                    const chooserFilters = (currentFilters || []).filter(f => f instanceof ChooserSelectionFilter);
+                    // La surbrillance du menu clic droit (PickerHighlightFilter) est posee par le RoomEngine : on la garde aussi.
+                    const chooserFilters = (currentFilters || []).filter(f => (f instanceof ChooserSelectionFilter) || (f instanceof PickerHighlightFilter));
 
                     // L'ombre et les couches additives ne prennent pas la surbrillance wired (ombre noire recoloree).
                     const layerFilters = ((layerId === this._shadowLayerIndex) || (sprite.blendMode === 'add'))

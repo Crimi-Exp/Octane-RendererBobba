@@ -10,3 +10,4 @@ export * from './royale';
 export * from './fastfood';
 export * from './uno';
 export * from './brainrot';
+export * from './manoir';

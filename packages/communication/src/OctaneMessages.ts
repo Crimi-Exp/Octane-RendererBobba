@@ -18,6 +18,7 @@ import { SnowWarGetAllTimeFriendsLeaderboardComposer, SnowWarGetAllTimeLeaderboa
 import { BrainrotBasesEvent, BrainrotLabelsEvent, BrainrotRequestComposer, BrainrotStateEvent } from './messages';
 import { BrainrotMobisEvent } from './messages';
 import { BrainrotFxEvent } from './messages';
+import { ManoirFinishEvent, ManoirRequestComposer, ManoirScareEvent, ManoirStateEvent } from './messages';
 import { UnoOpenEvent, UnoRoomStatusEvent, UnoTableActionComposer, UnoTableEvent } from './messages';
 import { UnoActionComposer, UnoGameEndEvent, UnoGameStartEvent, UnoJoinComposer, UnoLeaveComposer, UnoQueueEvent, UnoStateEvent } from './messages';
 import { FastFoodActionComposer, FastFoodGameEndEvent, FastFoodGameStartEvent, FastFoodJoinComposer, FastFoodLeaveComposer, FastFoodQueueEvent, FastFoodStateEvent } from './messages';
@@ -785,6 +786,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.BRAINROT_BASES, BrainrotBasesEvent);
         this._events.set(IncomingHeader.BRAINROT_MOBIS, BrainrotMobisEvent);
         this._events.set(IncomingHeader.BRAINROT_FX, BrainrotFxEvent);
+        this._events.set(IncomingHeader.MANOIR_STATE, ManoirStateEvent);
+        this._events.set(IncomingHeader.MANOIR_SCARE, ManoirScareEvent);
+        this._events.set(IncomingHeader.MANOIR_FINISH, ManoirFinishEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FIRST_WINNER, TreasureHuntFirstWinnerMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_FAIL, TreasureHuntFailMessageEvent);
         this._events.set(IncomingHeader.TREASURE_HUNT_UPDATE, TreasureHuntUpdateMessageEvent);
@@ -1640,6 +1644,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.UNO_ACTION, UnoActionComposer);
         this._composers.set(OutgoingHeader.UNO_TABLE_ACTION, UnoTableActionComposer);
         this._composers.set(OutgoingHeader.BRAINROT_REQUEST, BrainrotRequestComposer);
+        this._composers.set(OutgoingHeader.MANOIR_REQUEST, ManoirRequestComposer);
         this._composers.set(OutgoingHeader.CLAIM_REWARD_TRACK_PRIZE, ClaimRewardTrackPrizeMessageComposer);
         this._composers.set(OutgoingHeader.PURCHASE_REWARD_TRACK_PREMIUM, PurchaseRewardTrackPremiumMessageComposer);
         this._composers.set(OutgoingHeader.GET_QUESTS, GetQuestsMessageComposer);

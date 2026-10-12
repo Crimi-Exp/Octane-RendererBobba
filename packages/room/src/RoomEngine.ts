@@ -1,9 +1,9 @@
-import { IFurnitureStackingHeightMap, IGetImageListener, IImageResult, ILegacyWallGeometry, IObjectData, IPetColorResult, IPetCustomPart, IRoomAreaSelectionManager, IRoomContentListener, IRoomContentLoader, IRoomCreator, IRoomEngine, IRoomEngineServices, IRoomGeometry, IRoomInstance, IRoomManager, IRoomManagerListener, IRoomObject, IRoomObjectController, IRoomRenderer, IRoomRenderingCanvas, IRoomSessionManager, ISelectedRoomObjectData, ISessionDataManager, ITileObjectMap, IUpdateReceiver, IVector3D, LegacyDataType, MouseEventType, ObjectDataFactory, PetFigureData, RoomControllerLevel, RoomObjectCategory, RoomObjectOperationType, RoomObjectUserType, RoomObjectVariable, ToolbarIconEnum } from '@octane/api';
+import { IFurnitureStackingHeightMap, IGetImageListener, IImageResult, ILegacyWallGeometry, IObjectData, IPetColorResult, IPetCustomPart, IRoomAreaSelectionManager, IRoomContentListener, IRoomContentLoader, IRoomCreator, IRoomEngine, IRoomEngineServices, IRoomGeometry, IRoomInstance, IRoomManager, IRoomManagerListener, IRoomObject, IRoomObjectController, IRoomObjectSpriteVisualization, IRoomRenderer, IRoomSpriteCanvasContainer, IRoomRenderingCanvas, IRoomSessionManager, ISelectedRoomObjectData, ISessionDataManager, ITileObjectMap, IUpdateReceiver, IVector3D, LegacyDataType, MouseEventType, ObjectDataFactory, PetFigureData, RoomControllerLevel, RoomObjectCategory, RoomObjectOperationType, RoomObjectUserType, RoomObjectVariable, ToolbarIconEnum } from '@octane/api';
 import { GetCommunication, RenderRoomMessageComposer, RenderRoomThumbnailMessageComposer } from '@octane/communication';
 import { GetConfiguration } from '@octane/configuration';
 import { BadgeImageReadyEvent, GetEventDispatcher, OctaneToolbarAnimateIconEvent, RoomBackgroundColorEvent, RoomDragEvent, RoomEngineAreaHideStateEvent, RoomEngineEvent, RoomEngineObjectEvent, RoomEngineWallTagEvent, RoomObjectEvent, RoomObjectFurnitureActionEvent, RoomObjectMouseEvent, RoomSessionEvent, RoomToObjectOwnAvatarMoveEvent } from '@octane/events';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
-import { FurniId, GetTexturePool, GetTickerTime, OctaneLogger, NumberBank, TextureUtils, Vector3d } from '@octane/utils';
+import { FurniId, GetTexturePool, GetTickerTime, OctaneLogger, NumberBank, PickerHighlightFilter, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Matrix, Point, PointData, Rectangle, RenderTexture, Sprite, Texture, Ticker } from 'pixi.js';
 import { DEFAULT_WIRED_CLICK_SETTINGS, normalizeWiredClickSettings, WiredClickSettings } from './utils/WiredClickSettings';
 import { GetRoomContentLoader } from './GetRoomContentLoader';
@@ -2845,6 +2845,86 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         if(!this._roomObjectEventHandler) return;
 
         this._roomObjectEventHandler.setSelectedObject(roomId, objectId, objectCategory);
+    }
+
+    /**
+     * BobbaTok (clic droit Habbo) : mobis, posters et unites sous un point de l'ecran de la piece active, du
+     * premier plan vers le fond. Les sols, murs et le curseur de case ne sont pas renvoyes.
+     */
+    public getRoomObjectsAtPoint(canvasId: number, x: number, y: number): { id: number, category: number, type: string }[]
+    {
+        const roomId = this._activeRoomId;
+        const instance = this.getRoomInstance(roomId);
+        // Le RoomRenderer est le conteneur des sprites : il retrouve un objet par son instanceId.
+        const renderer = (instance ? (instance.renderer as unknown as IRoomSpriteCanvasContainer) : null);
+        const canvas = this.getRoomInstanceRenderingCanvas(roomId, canvasId);
+
+        if(!renderer || !canvas || !canvas.getObjectInstanceIdsAt) return [];
+
+        const objects: { id: number, category: number, type: string }[] = [];
+
+        for(const instanceId of canvas.getObjectInstanceIdsAt(x, y))
+        {
+            const object = renderer.getRoomObject(instanceId);
+
+            if(!object) continue;
+
+            const category = this.getRoomObjectCategoryForType(object.type);
+
+            if((category !== RoomObjectCategory.FLOOR) && (category !== RoomObjectCategory.WALL) && (category !== RoomObjectCategory.UNIT)) continue;
+
+            if(objects.some(entry => (entry.id === object.id) && (entry.category === category))) continue;
+
+            objects.push({ id: object.id, category, type: object.type });
+        }
+
+        return objects;
+    }
+
+    private _pickerHighlight: { roomId: number, objectId: number, category: number } = null;
+
+    /** BobbaTok (clic droit Habbo) : remplit en bleu l'objet survole dans la liste ; une seule surbrillance a la fois. */
+    public setRoomObjectPickerHighlight(roomId: number, objectId: number, category: number, enabled: boolean): void
+    {
+        const previous = this._pickerHighlight;
+
+        if(previous)
+        {
+            if(enabled && (previous.roomId === roomId) && (previous.objectId === objectId) && (previous.category === category)) return;
+
+            this.applyRoomObjectPickerHighlight(previous.roomId, previous.objectId, previous.category, false);
+
+            this._pickerHighlight = null;
+        }
+
+        if(!enabled) return;
+
+        if(this.applyRoomObjectPickerHighlight(roomId, objectId, category, true)) this._pickerHighlight = { roomId, objectId, category };
+    }
+
+    private applyRoomObjectPickerHighlight(roomId: number, objectId: number, category: number, enabled: boolean): boolean
+    {
+        const object = this.getRoomObject(roomId, objectId, category);
+        const visualization = (object ? (object.visualization as IRoomObjectSpriteVisualization) : null);
+
+        if(!visualization || !visualization.sprites) return false;
+
+        const filter = PickerHighlightFilter.shared;
+
+        for(const sprite of visualization.sprites)
+        {
+            if(!sprite) continue;
+
+            const current = (sprite.filters || []);
+            const kept = current.filter(existing => !(existing instanceof PickerHighlightFilter));
+
+            // Les couches additives (lumieres) ne sont pas remplies.
+            if(enabled && (sprite.blendMode !== 'add')) kept.push(filter);
+
+            if((kept.length !== current.length) || kept.some((existing, index) => (existing !== current[index]))) sprite.filters = kept;
+        }
+
+        return true;
     }
 
     public setSelectedAvatar(roomId: number, objectId: number): void

@@ -953,6 +953,39 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
     }
 
     private static SCRATCH_MOUSE_POINT: Point = new Point();
+    private static SCRATCH_PICK_POINT: Point = new Point();
+
+    /**
+     * BobbaTok (clic droit Habbo) : objets cliquables sous un point de l'ecran, du premier plan vers le fond.
+     * Meme conversion de coordonnees et meme test au pixel pres que handleMouseEvent, sans envoyer d'evenement.
+     */
+    public getObjectInstanceIdsAt(x: number, y: number): number[]
+    {
+        const displayScale = this.displayScale;
+        const localX = Math.trunc((x - this._screenOffsetX) / displayScale);
+        const localY = Math.trunc((y - this._screenOffsetY) / displayScale);
+        const hitPoint = RoomSpriteCanvas.SCRATCH_PICK_POINT;
+        const instanceIds: number[] = [];
+
+        for(let spriteId = (this._activeSpriteCount - 1); spriteId >= 0; spriteId--)
+        {
+            const extendedSprite = this.getExtendedSprite(spriteId);
+
+            if(!extendedSprite || extendedSprite.skipMouseHandling || !extendedSprite.visible) continue;
+
+            hitPoint.set((localX - extendedSprite.x), (localY - extendedSprite.y));
+
+            if(!extendedSprite.containsPoint(hitPoint)) continue;
+
+            const instanceId = parseInt(this.getExtendedSpriteIdentifier(extendedSprite));
+
+            if(isNaN(instanceId) || (instanceIds.indexOf(instanceId) >= 0)) continue;
+
+            instanceIds.push(instanceId);
+        }
+
+        return instanceIds;
+    }
 
     private checkMouseHits(x: number, y: number, type: string, altKey: boolean = false, ctrlKey: boolean = false, shiftKey: boolean = false, buttonDown: boolean = false): boolean
     {

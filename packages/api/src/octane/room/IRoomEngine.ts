@@ -68,6 +68,9 @@ export interface IRoomEngine
     getFurnitureFloorName(typeId: number): string;
     getFurnitureWallName(typeId: number, extra?: string): string;
     selectRoomObject(roomId: number, objectId: number, objectCategory: number): void;
+    // BobbaTok : menu clic droit (objets sous le curseur + surbrillance bleue de l'objet survole).
+    getRoomObjectsAtPoint(canvasId: number, x: number, y: number): { id: number, category: number, type: string }[];
+    setRoomObjectPickerHighlight(roomId: number, objectId: number, category: number, enabled: boolean): void;
     setSelectedAvatar(roomId: number, objectId: number): void;
     clearSelectedAvatar(roomId: number): void;
     cancelRoomObjectInsert(): void;

@@ -21,6 +21,8 @@ export interface IRoomRenderingCanvas
     getPlaneSortableSprites(): ISortableSprite[];
     handleMouseEvent(x: number, y: number, type: string, altKey: boolean, ctrlKey: boolean, shiftKey: boolean, buttonDown: boolean): boolean;
     getSortableSpriteList(): RoomObjectSpriteData[];
+    // BobbaTok : objets sous un point de l'ecran (menu clic droit), du premier plan vers le fond.
+    getObjectInstanceIdsAt?(x: number, y: number): number[];
     getDisplayAsTexture(): Texture;
     moveLeft(): void;
     moveRight(): void;
