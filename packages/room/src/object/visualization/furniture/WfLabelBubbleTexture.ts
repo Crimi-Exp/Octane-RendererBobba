@@ -23,6 +23,44 @@ const POINTER_OVERLAP = 3;
 const POINTER_WIDTH = 17;
 const POINTER_HEIGHT = 9;
 
+/**
+ * Couleurs de la bulle. Le paquet de sauvegarde des post-its n'accepte que ses 8 couleurs : chaque couleur de
+ * bulle est donc rangee sous un de ces codes (« code texte » dans les donnees du mobi). FFFF33, la couleur
+ * envoyee jusqu'ici, garde la bulle bleue officielle : les labels existants ne changent pas.
+ * hue : teinte imposee en degres (-1 = garder celle de l'asset) ; saturation : multiplicateur (0 = gris).
+ */
+export interface WfLabelColor
+{
+    code: string;
+    name: string;
+    hue: number;
+    saturation: number;
+    /** Couleur de la pastille du selecteur. */
+    swatch: string;
+}
+
+export const WF_LABEL_DEFAULT_COLOR = 'FFFF33';
+
+export const WF_LABEL_COLORS: WfLabelColor[] = [
+    { code: 'FFFF33', name: 'Bleu', hue: -1, saturation: 1, swatch: '#2f3459' },
+    { code: '9CFF9C', name: 'Vert', hue: 125, saturation: 2, swatch: '#22762a' },
+    { code: '9CFFE8', name: 'Turquoise', hue: 178, saturation: 2, swatch: '#1f7570' },
+    { code: 'C69CFF', name: 'Violet', hue: 272, saturation: 1.8, swatch: '#4f2a86' },
+    { code: 'FF9CFF', name: 'Rose', hue: 318, saturation: 2, swatch: '#7a2364' },
+    { code: 'FF9C9C', name: 'Rouge', hue: 0, saturation: 2.4, swatch: '#8a1b1b' },
+    { code: 'FFC69C', name: 'Orange', hue: 26, saturation: 2.6, swatch: '#8f4a12' },
+    { code: '9CCEFF', name: 'Gris', hue: -1, saturation: 0, swatch: '#434343' }
+];
+
+/** Couleur du label (prefixe « RRGGBB » des donnees) ; une couleur inconnue donne la bulle bleue. */
+export const getWfLabelColor = (data: string): string =>
+{
+    const match = /^([0-9A-Fa-f]{6})(?: |$)/.exec(data || '');
+    const code = (match ? match[1].toUpperCase() : WF_LABEL_DEFAULT_COLOR);
+
+    return WF_LABEL_COLORS.some(color => (color.code === code)) ? code : WF_LABEL_DEFAULT_COLOR;
+};
+
 /** Hauteur dont la pointe depasse sous la bulle. */
 export const WF_LABEL_POINTER_OVERHANG = (POINTER_HEIGHT - POINTER_OVERLAP);
 
@@ -67,6 +105,122 @@ const ensureResources = (): void =>
 
     // Une fois la police du jeu chargee, la bulle est redessinee avec elle.
     fonts.load(FONT).then(() => readyVersion++).catch(() => readyVersion++);
+};
+
+const rgbToHsl = (r: number, g: number, b: number): [ number, number, number ] =>
+{
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = ((max + min) / 2);
+
+    if(max === min) return [ 0, 0, l ];
+
+    const d = (max - min);
+    const s = (l > 0.5) ? (d / (2 - max - min)) : (d / (max + min));
+    let h = (max === r) ? (((g - b) / d) + ((g < b) ? 6 : 0)) : (max === g) ? (((b - r) / d) + 2) : (((r - g) / d) + 4);
+
+    h /= 6;
+
+    return [ h, s, l ];
+};
+
+const hslToRgb = (h: number, s: number, l: number): [ number, number, number ] =>
+{
+    if(s === 0) return [ l, l, l ];
+
+    const hue2rgb = (p: number, q: number, t: number): number =>
+    {
+        if(t < 0) t += 1;
+        if(t > 1) t -= 1;
+        if(t < (1 / 6)) return (p + ((q - p) * 6 * t));
+        if(t < (1 / 2)) return q;
+        if(t < (2 / 3)) return (p + ((q - p) * ((2 / 3) - t) * 6));
+        return p;
+    };
+
+    const q = (l < 0.5) ? (l * (1 + s)) : ((l + s) - (l * s));
+    const p = ((2 * l) - q);
+
+    return [ hue2rgb(p, q, h + (1 / 3)), hue2rgb(p, q, h), hue2rgb(p, q, h - (1 / 3)) ];
+};
+
+/** Recolore un asset : meme luminosite, teinte et saturation de la couleur choisie. */
+const recolor = (image: HTMLImageElement, color: WfLabelColor): HTMLCanvasElement =>
+{
+    const canvas = document.createElement('canvas');
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    const ctx = canvas.getContext('2d');
+
+    if(!ctx) return canvas;
+
+    ctx.drawImage(image, 0, 0);
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const px = data.data;
+
+    for(let i = 0; i < px.length; i += 4)
+    {
+        if(!px[i + 3]) continue;
+
+        let [ h, s, l ] = rgbToHsl((px[i] / 255), (px[i + 1] / 255), (px[i + 2] / 255));
+
+        if(color.hue >= 0) h = (color.hue / 360);
+
+        s = Math.min(1, (s * color.saturation));
+
+        const [ r, g, b ] = hslToRgb(h, s, l);
+
+        px[i] = Math.round(r * 255);
+        px[i + 1] = Math.round(g * 255);
+        px[i + 2] = Math.round(b * 255);
+    }
+
+    ctx.putImageData(data, 0, 0);
+
+    return canvas;
+};
+
+const coloredAssets = new Map<string, { bubble: CanvasImageSource; pointer: CanvasImageSource; bubbleUrl: string; pointerUrl: string }>();
+
+/** Cadre et pointe de la bulle dans une couleur (bleu officiel = assets d'origine) ; null tant qu'ils chargent. */
+const getColoredAssets = (code: string) =>
+{
+    ensureResources();
+
+    if(!imagesReady) return null;
+
+    const color = (WF_LABEL_COLORS.find(entry => (entry.code === code)) || WF_LABEL_COLORS[0]);
+    let assets = coloredAssets.get(color.code);
+
+    if(!assets)
+    {
+        if(color.code === WF_LABEL_DEFAULT_COLOR)
+        {
+            assets = { bubble: bubbleImage, pointer: pointerImage, bubbleUrl: BUBBLE_PNG, pointerUrl: POINTER_PNG };
+        }
+        else
+        {
+            const bubble = recolor(bubbleImage, color);
+            const pointer = recolor(pointerImage, color);
+
+            assets = { bubble, pointer, bubbleUrl: bubble.toDataURL(), pointerUrl: pointer.toDataURL() };
+        }
+
+        coloredAssets.set(color.code, assets);
+    }
+
+    return assets;
+};
+
+/** Images (data URL) du cadre et de la pointe pour l'editeur du client ; null tant qu'elles chargent. */
+export const getWfLabelBubbleImages = (code: string): { bubble: string; pointer: string } =>
+{
+    const assets = getColoredAssets(code);
+
+    return assets ? { bubble: assets.bubbleUrl, pointer: assets.pointerUrl } : null;
 };
 
 /** Change quand une ressource vient d'etre chargee : la bulle doit alors etre redessinee. */
@@ -126,11 +280,18 @@ const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 };
 
 /** Dessine la bulle (cadre, texte, pointe) ; null si pas de texte ou tant que les assets ne sont pas charges. */
-export const createWfLabelBubbleTexture = (text: string): Texture =>
+export const createWfLabelBubbleTexture = (text: string, colorCode: string = WF_LABEL_DEFAULT_COLOR): Texture =>
 {
     ensureResources();
 
     if(!imagesReady || !text) return null;
+
+    const assets = getColoredAssets(colorCode);
+
+    if(!assets) return null;
+
+    const bubble = assets.bubble;
+    const pointer = assets.pointer;
 
     const measure = document.createElement('canvas').getContext('2d');
 
@@ -156,22 +317,22 @@ export const createWfLabelBubbleTexture = (text: string): Texture =>
     ctx.imageSmoothingEnabled = false;
 
     // Cadre 9-slice : coins fixes, bords et centre etires a partir du pixel central de l'asset.
-    const mid = (bubbleImage.width - (s * 2));
+    const mid = ((bubbleImage.width) - (s * 2));
     const innerW = (width - (s * 2));
     const innerH = (height - (s * 2));
 
-    ctx.drawImage(bubbleImage, 0, 0, s, s, 0, 0, s, s);
-    ctx.drawImage(bubbleImage, s, 0, mid, s, s, 0, innerW, s);
-    ctx.drawImage(bubbleImage, (s + mid), 0, s, s, (width - s), 0, s, s);
-    ctx.drawImage(bubbleImage, 0, s, s, mid, 0, s, s, innerH);
-    ctx.drawImage(bubbleImage, s, s, mid, mid, s, s, innerW, innerH);
-    ctx.drawImage(bubbleImage, (s + mid), s, s, mid, (width - s), s, s, innerH);
-    ctx.drawImage(bubbleImage, 0, (s + mid), s, s, 0, (height - s), s, s);
-    ctx.drawImage(bubbleImage, s, (s + mid), mid, s, s, (height - s), innerW, s);
-    ctx.drawImage(bubbleImage, (s + mid), (s + mid), s, s, (width - s), (height - s), s, s);
+    ctx.drawImage(bubble, 0, 0, s, s, 0, 0, s, s);
+    ctx.drawImage(bubble, s, 0, mid, s, s, 0, innerW, s);
+    ctx.drawImage(bubble, (s + mid), 0, s, s, (width - s), 0, s, s);
+    ctx.drawImage(bubble, 0, s, s, mid, 0, s, s, innerH);
+    ctx.drawImage(bubble, s, s, mid, mid, s, s, innerW, innerH);
+    ctx.drawImage(bubble, (s + mid), s, s, mid, (width - s), s, s, innerH);
+    ctx.drawImage(bubble, 0, (s + mid), s, s, 0, (height - s), s, s);
+    ctx.drawImage(bubble, s, (s + mid), mid, s, s, (height - s), innerW, s);
+    ctx.drawImage(bubble, (s + mid), (s + mid), s, s, (width - s), (height - s), s, s);
 
     // Pointe centree (meme calcul que le CSS de l'editeur : 50 % - 8 px).
-    ctx.drawImage(pointerImage, Math.floor((width / 2) - 8), (height - POINTER_OVERLAP), POINTER_WIDTH, POINTER_HEIGHT);
+    ctx.drawImage(pointer, Math.floor((width / 2) - 8), (height - POINTER_OVERLAP), POINTER_WIDTH, POINTER_HEIGHT);
 
     // Texte : Ubuntu 11 / interligne 13, place comme dans la bulle officielle.
     ctx.font = FONT;

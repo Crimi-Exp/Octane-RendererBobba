@@ -1,7 +1,7 @@
 import { AlphaTolerance, IRoomGeometry, RoomObjectVariable } from '@octane/api';
 import { Texture } from 'pixi.js';
 import { FurnitureVisualization } from './FurnitureVisualization';
-import { createWfLabelBubbleTexture, getWfLabelBubbleResourceVersion, getWfLabelText } from './WfLabelBubbleTexture';
+import { createWfLabelBubbleTexture, getWfLabelBubbleResourceVersion, getWfLabelColor, getWfLabelText } from './WfLabelBubbleTexture';
 
 /**
  * wf_label : la bulle de texte est une couche du mobi, triee en profondeur avec la piece.
@@ -53,9 +53,11 @@ export class FurnitureLabelVisualization extends FurnitureVisualization
         if(!geometry || !this.object) return;
 
         const model = this.object.model;
-        const text = getWfLabelText(model.getValue<string>(RoomObjectVariable.FURNITURE_DATA));
+        const data = model.getValue<string>(RoomObjectVariable.FURNITURE_DATA);
+        const text = getWfLabelText(data);
+        const color = getWfLabelColor(data);
         const editing = (model.getValue<number>(FurnitureLabelVisualization.EDITING_KEY) === 1);
-        const key = `${ getWfLabelBubbleResourceVersion() }|${ editing ? 1 : 0 }|${ text }`;
+        const key = `${ getWfLabelBubbleResourceVersion() }|${ editing ? 1 : 0 }|${ color }|${ text }`;
 
         // Redessine si le texte, l'etat d'edition ou les ressources ont change, ou si le mobi a ete redessine.
         if((key === this._bubbleKey) && (this._bubbleSpriteCounter === this.updateSpriteCounter)) return;
@@ -63,7 +65,7 @@ export class FurnitureLabelVisualization extends FurnitureVisualization
         if(key !== this._bubbleKey)
         {
             this.destroyBubbleTexture();
-            this._bubbleTexture = (editing ? null : createWfLabelBubbleTexture(text));
+            this._bubbleTexture = (editing ? null : createWfLabelBubbleTexture(text, color));
             this._bubbleKey = key;
         }
 
