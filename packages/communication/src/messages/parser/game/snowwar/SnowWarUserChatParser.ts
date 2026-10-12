@@ -4,11 +4,13 @@ export class SnowWarUserChatParser implements IMessageParser
 {
     private _objectId: number;
     private _message: string;
+    private _styleId: number;
 
     public flush(): boolean
     {
         this._objectId = -1;
         this._message = '';
+        this._styleId = 0;
 
         return true;
     }
@@ -19,6 +21,8 @@ export class SnowWarUserChatParser implements IMessageParser
 
         this._objectId = wrapper.readInt();
         this._message = wrapper.readString();
+        // BobbaTok : style de bulle choisi dans la barre de tchat (absent chez un serveur officiel)
+        this._styleId = wrapper.bytesAvailable ? wrapper.readInt() : 0;
 
         return true;
     }
@@ -31,5 +35,10 @@ export class SnowWarUserChatParser implements IMessageParser
     public get message(): string
     {
         return this._message;
+    }
+
+    public get styleId(): number
+    {
+        return this._styleId;
     }
 }

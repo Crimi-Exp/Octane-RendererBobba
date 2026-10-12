@@ -11,6 +11,11 @@ export class SnowWarGameObjectData
     public static OBJECT_TYPE_WALL = 6;
     public static OBJECT_TYPE_BONUS = 7;
     public static OBJECT_TYPE_BUFF = 8;
+    // BobbaTok : pouvoirs d'un avatar, pouvoir d'une boule en vol
+    public static OBJECT_TYPE_POWERS = 9;
+    public static OBJECT_TYPE_BALL_POWER = 10;
+    // BobbaTok : ornements du pseudo (icone, prefixe, couleurs, effet, police, ordre)
+    public static OBJECT_TYPE_IDENTITY = 11;
 
     private _objectType: number;
     private _objectId: number = -1;
@@ -49,6 +54,7 @@ export class SnowWarGameObjectData
     private _hits: number = 0;
     private _maxSnowballs: number = 0;
     private _values: number[] = [];
+    private _strings: string[] = [];
 
     constructor(wrapper: IMessageDataWrapper)
     {
@@ -128,7 +134,28 @@ export class SnowWarGameObjectData
                 this._objectId = wrapper.readInt();
                 this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
                 break;
+            case SnowWarGameObjectData.OBJECT_TYPE_POWERS:
+                // avatar, boules gelees, boules chercheuses, sous-tours de gel
+                this._objectId = wrapper.readInt();
+                this._values = [ wrapper.readInt(), wrapper.readInt(), wrapper.readInt() ];
+                break;
+            case SnowWarGameObjectData.OBJECT_TYPE_IDENTITY:
+                // avatar, icone, prefixe, couleur, icone du prefixe, effet, police, ordre d'affichage
+                this._objectId = wrapper.readInt();
+                this._strings = Array.from({ length: 7 }, () => wrapper.readString());
+                break;
+            case SnowWarGameObjectData.OBJECT_TYPE_BALL_POWER:
+                // boule, pouvoirs (1 gelee, 2 chercheuse), avatar vise
+                this._objectId = wrapper.readInt();
+                this._values = [ wrapper.readInt(), wrapper.readInt() ];
+                break;
         }
+    }
+
+    /** BobbaTok : textes de l'objet « ornements du pseudo ». */
+    public get strings(): string[]
+    {
+        return this._strings;
     }
 
     /** Champs des objets BobbaTok (mur, bonus, bonus d'un avatar). */

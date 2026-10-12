@@ -21,6 +21,10 @@ export class SnowWarSubturnEventData
     public static EVENT_TYPE_BONUS_TAKE = 25;
     public static EVENT_TYPE_BUFF = 26;
     public static EVENT_TYPE_SHIELD_BLOCK = 27;
+    // BobbaTok : pouvoirs (joueur gele, pouvoir d'une boule, pouvoirs d'un avatar)
+    public static EVENT_TYPE_FREEZE = 28;
+    public static EVENT_TYPE_BALL_POWER = 29;
+    public static EVENT_TYPE_POWERS = 30;
 
     private _eventType: number;
     private _objectId: number = -1;
@@ -34,7 +38,7 @@ export class SnowWarSubturnEventData
     private _avatarObjectId: number = -1;
     private _height: number = 0;
     private _state: number = 0;
-    /** Champs des evenements BobbaTok (20 a 27), dans l'ordre d'envoi. */
+    /** Champs des evenements BobbaTok (20 a 30), dans l'ordre d'envoi. */
     private _values: number[] = [];
 
     constructor(wrapper: IMessageDataWrapper)
@@ -103,8 +107,11 @@ export class SnowWarSubturnEventData
         }
     }
 
-    /** Champs de chaque evenement BobbaTok : mur pose, mur touche, bonus pose, pris, bonus d'un avatar, bouclier. */
-    private static EXTRA_FIELD_COUNTS: Record<number, number> = { 20: 6, 21: 2, 24: 4, 25: 3, 26: 6, 27: 2 };
+    /**
+     * Champs de chaque evenement BobbaTok : mur pose, mur touche, bonus pose, pris, bonus d'un avatar, bouclier,
+     * joueur gele, pouvoir d'une boule, pouvoirs d'un avatar.
+     */
+    private static EXTRA_FIELD_COUNTS: Record<number, number> = { 20: 6, 21: 2, 24: 4, 25: 3, 26: 6, 27: 2, 28: 3, 29: 3, 30: 4 };
 
     public get values(): number[]
     {
