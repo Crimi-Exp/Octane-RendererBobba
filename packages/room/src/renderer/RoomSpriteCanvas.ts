@@ -782,8 +782,9 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         extendedSprite.alphaTolerance = sprite.alphaTolerance;
         extendedSprite.alpha = (sprite.alpha / 255);
         extendedSprite.tint = sprite.color;
-        extendedSprite.x = sortableSprite.x;
-        extendedSprite.y = sortableSprite.y;
+        // arrondi comme a chaque mise a jour (renderSprite) : sinon un sprite tout juste cree peut tomber entre deux pixels
+        extendedSprite.x = Math.round(sortableSprite.x);
+        extendedSprite.y = Math.round(sortableSprite.y);
         extendedSprite.offsetX = sprite.offsetX;
         extendedSprite.offsetY = sprite.offsetY;
         extendedSprite.label = sprite.name;

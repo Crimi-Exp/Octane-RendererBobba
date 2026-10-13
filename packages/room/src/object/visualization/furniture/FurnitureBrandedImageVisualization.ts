@@ -3,6 +3,32 @@ import { GetAssetManager } from '@octane/assets';
 import { Texture } from 'pixi.js';
 import { FurnitureVisualization } from './FurnitureVisualization';
 
+/**
+ * BobbaTok : echelle d'affichage de l'image sans « trait » selon la position de l'appart.
+ * Quand la taille affichee tombe pile sur un demi-pixel (image impaire au dezoom, taille 150 %...), l'arrondi au
+ * pixel du bord droit/bas hesite selon l'endroit ou on a fait glisser l'appart : un trait d'un pixel apparait ou
+ * disparait entre deux fonds colles. Un ecart minuscule (1/100 de pixel) fait toujours arrondir du meme cote.
+ */
+export const BrandedImageStableScale = (scale: number, width: number, height: number): number =>
+{
+    if(!(scale > 0) || (scale === 1)) return scale;
+
+    const size = Math.max(1, width || 0, height || 0);
+
+    return (scale + (0.01 / size));
+};
+
+/**
+ * Lissage de l'image : net (pixels comme le reste de l'appart) quand elle est affichee a taille entiere
+ * (100 %, 200 %...), lisse seulement quand elle est reduite ou agrandie d'une valeur non entiere.
+ */
+export const BrandedImageScaleMode = (scale: number): 'nearest' | 'linear' =>
+{
+    if((scale >= 1) && (Math.abs(scale - Math.round(scale)) < 0.0001)) return 'nearest';
+
+    return 'linear';
+};
+
 export class FurnitureBrandedImageVisualization extends FurnitureVisualization
 {
     protected static BRANDED_IMAGE: string = 'branded_image';
@@ -292,7 +318,14 @@ export class FurnitureBrandedImageVisualization extends FurnitureVisualization
             const sizeScale = (((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1) * this._displayScale;
             const assetData = this.getAsset(this.getSpriteAssetName(scale, layerId), layerId);
 
-            sprite.scale = Math.max(0.05, ((this._imageScale || 100) / 100) * factor);
+            const imageScale = Math.max(0.05, ((this._imageScale || 100) / 100) * factor);
+
+            sprite.scale = BrandedImageStableScale(imageScale, assetData?.width, assetData?.height);
+
+            const source = assetData?.texture?.source;
+            const scaleMode = BrandedImageScaleMode(imageScale);
+
+            if(source && (source.scaleMode !== scaleMode)) source.scaleMode = scaleMode;
 
             if(assetData)
             {
