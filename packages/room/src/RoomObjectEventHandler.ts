@@ -1461,11 +1461,10 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
      */
     private getBuildHeightDelta(event: RoomObjectTileMouseEvent, category: number): number
     {
-        if((category !== RoomObjectCategory.FLOOR) || (RoomBuildHeightPreview.override === null)) return 0;
-
-        const delta = (RoomBuildHeightPreview.previewZ(0, 0) - event.tileZ);
-
-        return (Number.isFinite(delta) ? delta : 0);
+        // BobbaTok : patch 29 - plus de decalage : comme sur Habbo, on vise une case et le mobi s'y pose a la hauteur demandee.
+        // (l'ancien calcul decalait la case de 'hauteur - sol' en x et y : des 0.5 de hauteur le fantome partait sur la case diagonale suivante)
+        void event; void category;
+        return 0;
     }
 
     private getBuildHeightTileX(event: RoomObjectTileMouseEvent, category: number): number
