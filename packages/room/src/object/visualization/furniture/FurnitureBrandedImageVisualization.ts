@@ -296,8 +296,10 @@ export class FurnitureBrandedImageVisualization extends FurnitureVisualization
 
             if(assetData)
             {
-                sprite.offsetX = (this.getFrameLayerXOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetX + this.getBrandedOffsetX(this._direction)) * factor) + this._scaleShiftX;
-                sprite.offsetY = (this.getFrameLayerYOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetY + this.getBrandedOffsetY(this._direction)) * factor) + this._scaleShiftY;
+                // arrondi au pixel : au dezoom un decalage impair tomberait entre deux pixels (image floue, liseres
+                // entre deux fonds colles l'un a l'autre)
+                sprite.offsetX = Math.round((this.getFrameLayerXOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetX + this.getBrandedOffsetX(this._direction)) * factor) + this._scaleShiftX);
+                sprite.offsetY = Math.round((this.getFrameLayerYOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetY + this.getBrandedOffsetY(this._direction)) * factor) + this._scaleShiftY);
             }
 
             // `alpha` is authored 0-100 (percent); RoomObjectSprite.alpha is 0-255.
