@@ -1,4 +1,5 @@
 export * from './WobbleChatEvent';
+export * from './WobbleLeaderboardEvent';
 export * from './WobbleNoticeEvent';
 export * from './WobbleMatchEndEvent';
 export * from './WobbleMatchStartEvent';

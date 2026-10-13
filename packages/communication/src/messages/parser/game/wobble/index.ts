@@ -1,4 +1,5 @@
 export * from './WobbleChatParser';
+export * from './WobbleLeaderboardParser';
 export * from './WobbleNoticeParser';
 export * from './WobbleMatchEndParser';
 export * from './WobbleMatchStartParser';

@@ -1,6 +1,6 @@
 import { IMessageDataWrapper, IMessageParser } from '@octane/api';
 
-/** Evenement ponctuel : 1 = coup touche, 2 = coup esquive, 3 = plouf (side = joueur concerne). */
+/** Evenement ponctuel : 1 = poussee qui touche, 2 = poussee dans le vide, 3 = plouf, 4 = stabilisation (side = joueur concerne). */
 export class WobbleNoticeParser implements IMessageParser
 {
     private _type: number;

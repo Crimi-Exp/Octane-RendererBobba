@@ -5,12 +5,16 @@ export interface IWobblePlayerState
     /** -1..1 : sortie de la jauge = chute */
     balance: number;
     velocity: number;
-    /** 0 = rien, 1 = arme le coup, 2 = frappe, 3 = esquive */
+    /** 0 = rien, 5/6 = pousse a gauche/droite, 7 = pas sur le poteau, 8 = stabilisation */
     action: number;
     actionMs: number;
     /** -1 tant que le joueur est debout, sinon temps ecoule depuis le debut de la chute */
     fallMs: number;
     fallDir: number;
+    /** position sur le poteau : de -3 (bout du camp 0) a 4 (bout du camp 1) */
+    position: number;
+    /** stabilisation deja utilisee pendant la manche */
+    stabiliseUsed: boolean;
 }
 
 /** Etat du duel envoye plusieurs fois par seconde : temps restant et etat des deux joueurs. */
@@ -41,7 +45,9 @@ export class WobbleStateParser implements IMessageParser
                 action: wrapper.readInt(),
                 actionMs: wrapper.readInt(),
                 fallMs: wrapper.readInt(),
-                fallDir: wrapper.readInt()
+                fallDir: wrapper.readInt(),
+                position: wrapper.readInt(),
+                stabiliseUsed: (wrapper.readInt() === 1)
             });
         }
 

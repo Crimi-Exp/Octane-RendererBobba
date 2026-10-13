@@ -5,11 +5,13 @@ export class WobbleChatParser implements IMessageParser
 {
     private _side: number;
     private _message: string;
+    private _styleId: number;
 
     public flush(): boolean
     {
         this._side = 0;
         this._message = '';
+        this._styleId = 0;
 
         return true;
     }
@@ -20,10 +22,13 @@ export class WobbleChatParser implements IMessageParser
 
         this._side = wrapper.readInt();
         this._message = wrapper.readString();
+        // style de bulle (emulateur recent ; 0 = bulle normale)
+        if(wrapper.bytesAvailable) this._styleId = wrapper.readInt();
 
         return true;
     }
 
     public get side(): number { return this._side; }
     public get message(): string { return this._message; }
+    public get styleId(): number { return this._styleId; }
 }

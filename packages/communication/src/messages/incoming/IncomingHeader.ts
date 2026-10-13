@@ -700,6 +700,7 @@ export class IncomingHeader
     public static WOBBLE_ROUND_END = 9615;
     public static WOBBLE_MATCH_END = 9616;
     public static WOBBLE_CHAT = 9617;
+    public static WOBBLE_LEADERBOARD = 9618;
     // BobbaTok : BobbaKart
     public static KART_QUEUE = 9630;
     public static KART_RACE_START = 9631;
