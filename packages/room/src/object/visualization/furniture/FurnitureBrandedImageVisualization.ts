@@ -216,7 +216,35 @@ export class FurnitureBrandedImageVisualization extends FurnitureVisualization
         return super.getSpriteAssetName(scale, layerId);
     }
 
-    private isBrandedImageLayer(scale: number, layerId: number): boolean
+    /** Decalage du calque venant des donnees du mobi (sans le decalage de l'image). */
+    protected getFrameLayerXOffset(scale: number, direction: number, layerId: number): number
+    {
+        return super.getLayerXOffset(scale, direction, layerId);
+    }
+
+    protected getFrameLayerYOffset(scale: number, direction: number, layerId: number): number
+    {
+        return super.getLayerYOffset(scale, direction, layerId);
+    }
+
+    /** Decalage de l'image elle-meme, en pixels du zoom normal (64). */
+    protected getBrandedOffsetX(direction: number): number
+    {
+        return (this._offsetX || 0);
+    }
+
+    protected getBrandedOffsetY(direction: number): number
+    {
+        return (this._offsetY || 0);
+    }
+
+    /** Rapport entre la taille de l'appart et le zoom normal (64) : 1 au zoom normal, 0,5 au dezoom (32). */
+    protected static zoomFactor(scale: number): number
+    {
+        return ((scale > 0) ? (scale / 64) : 1);
+    }
+
+    protected isBrandedImageLayer(scale: number, layerId: number): boolean
     {
         return this.getLayerTag(scale, this._direction, layerId) === FurnitureBrandedImageVisualization.BRANDED_IMAGE;
     }
@@ -258,7 +286,20 @@ export class FurnitureBrandedImageVisualization extends FurnitureVisualization
 
         if(this.isBrandedImageLayer(scale, layerId))
         {
-            sprite.scale = Math.max(0.1, (this._imageScale || 100) / 100);
+            // BobbaTok : l'image (et ses decalages) est faite pour le zoom normal (64) ; au dezoom (32) elle suit
+            // l'appart et passe a moitie, comme le reste des mobis. Au zoom normal rien ne change.
+            const factor = FurnitureBrandedImageVisualization.zoomFactor(scale) * this._displayScale;
+            const sizeScale = (((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1) * this._displayScale;
+            const assetData = this.getAsset(this.getSpriteAssetName(scale, layerId), layerId);
+
+            sprite.scale = Math.max(0.05, ((this._imageScale || 100) / 100) * factor);
+
+            if(assetData)
+            {
+                sprite.offsetX = (this.getFrameLayerXOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetX + this.getBrandedOffsetX(this._direction)) * factor) + this._scaleShiftX;
+                sprite.offsetY = (this.getFrameLayerYOffset(scale, this._direction, layerId) * sizeScale) + ((assetData.offsetY + this.getBrandedOffsetY(this._direction)) * factor) + this._scaleShiftY;
+            }
+
             // `alpha` is authored 0-100 (percent); RoomObjectSprite.alpha is 0-255.
             // 100 (or unset) = fully opaque.
             const alphaPercent = Math.max(0, Math.min(100, this._imageAlpha ?? 100));

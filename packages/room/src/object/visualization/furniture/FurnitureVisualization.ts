@@ -66,8 +66,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     private _popStartTime: number = -1;
     private _popPending: boolean = false;
     private _scaleUpdateTime: number = 0;
-    private _scaleShiftX: number = 0;
-    private _scaleShiftY: number = 0;
+    protected _scaleShiftX: number = 0;
+    protected _scaleShiftY: number = 0;
     private _stars: { x: number; y: number; vx: number; vy: number; size: number; tint: number; spin: number; delay: number }[] = [];
     private _starsStartTime: number = -1;
     private _starsRegistered: boolean = false;

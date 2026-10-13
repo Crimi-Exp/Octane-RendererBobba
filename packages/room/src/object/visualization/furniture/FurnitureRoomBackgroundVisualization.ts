@@ -54,6 +54,32 @@ export class FurnitureRoomBackgroundVisualization extends FurnitureBrandedImageV
     }
 
 
+    /** BobbaTok : decalage de l'image du fond (selon la direction du mobi + offsetX/Y), en pixels du zoom normal. */
+    protected getBrandedOffsetX(direction: number): number
+    {
+        const offset = this._imageOffset ? this._imageOffset.getXOffset(direction, 0) : undefined;
+
+        return ((offset !== undefined) ? offset : 0) + (this._offsetX || 0);
+    }
+
+    protected getBrandedOffsetY(direction: number): number
+    {
+        const offset = this._imageOffset ? this._imageOffset.getYOffset(direction, 0) : undefined;
+
+        return ((offset !== undefined) ? offset : 0) + (this._offsetY || 0);
+    }
+
+    /** Le decalage du calque image est entierement dans getBrandedOffsetX/Y (sans celui des donnees du mobi). */
+    protected getFrameLayerXOffset(scale: number, direction: number, layerId: number): number
+    {
+        return 0;
+    }
+
+    protected getFrameLayerYOffset(scale: number, direction: number, layerId: number): number
+    {
+        return 0;
+    }
+
     protected getLayerAlpha(scale: number, direction: number, layerId: number): number
     {
         let alpha = super.getLayerAlpha(scale, direction, layerId);
