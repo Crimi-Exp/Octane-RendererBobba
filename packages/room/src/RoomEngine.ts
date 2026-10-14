@@ -63,6 +63,10 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
     private _moveBlocked: boolean = false;
     private _wiredClickSettings: WiredClickSettings = DEFAULT_WIRED_CLICK_SETTINGS;
     private _roomDraggingAlwaysCenters: boolean = false;
+    // BobbaTok (mobile) : apres un glisser au doigt, la piece reste ou le joueur l'a mise (la camera ne la
+    // ramene plus vers l'avatar) jusqu'au prochain appart ou a resumeRoomCameraFollow().
+    private _keepRoomPositionAfterDrag: boolean = false;
+    private _roomCameraParked: boolean = false;
     private _roomAllowsDragging: boolean = true;
     private _roomDatas: Map<number, RoomData> = new Map();
     private _roomInstanceDatas: Map<number, RoomInstanceData> = new Map();
@@ -145,7 +149,69 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         // A wired click setting belongs to the room that sent it.
         if(roomId !== this._activeRoomId) this._wiredClickSettings = DEFAULT_WIRED_CLICK_SETTINGS;
 
+        if(roomId !== this._activeRoomId) this._roomCameraParked = false;
+
         this._activeRoomId = roomId;
+    }
+
+    /** Mobile : la piece glissee au doigt reste en place (pas de retour vers l'avatar). */
+    public set keepRoomPositionAfterDrag(value: boolean)
+    {
+        this._keepRoomPositionAfterDrag = value;
+
+        if(!value) this._roomCameraParked = false;
+    }
+
+    public get keepRoomPositionAfterDrag(): boolean
+    {
+        return this._keepRoomPositionAfterDrag;
+    }
+
+    /** La camera suit de nouveau l'avatar (apres un glisser au doigt). */
+    public resumeRoomCameraFollow(): void
+    {
+        if(!this._roomCameraParked) return;
+
+        this._roomCameraParked = false;
+
+        const instanceData = this.getRoomInstanceData(this._activeRoomId);
+        const canvas = this.getRoomInstanceRenderingCanvas(this._activeRoomId, 1);
+
+        if(instanceData && instanceData.roomCamera && canvas)
+        {
+            instanceData.roomCamera.resetLocation(new Vector3d(-(canvas.screenOffsetX), -(canvas.screenOffsetY)));
+            instanceData.roomCamera.reset();
+        }
+    }
+
+    public get isRoomCameraParked(): boolean
+    {
+        return this._roomCameraParked;
+    }
+
+    /** Mobile : toucher l'appart deplace le mobi en main sans le poser (validation par confirmActiveObjectManipulation). */
+    public set touchManipulation(value: boolean)
+    {
+        if(this._roomObjectEventHandler) this._roomObjectEventHandler.touchManipulation = value;
+    }
+
+    public get touchManipulation(): boolean
+    {
+        return !!(this._roomObjectEventHandler && this._roomObjectEventHandler.touchManipulation);
+    }
+
+    /** Le mobi en main est-il sur un emplacement autorise ? */
+    public get activeManipulationValid(): boolean
+    {
+        return !!(this._roomObjectEventHandler && this._roomObjectEventHandler.manipulationValid);
+    }
+
+    /** Pose le mobi en main (ou termine son deplacement) la ou il est. */
+    public confirmActiveObjectManipulation(): boolean
+    {
+        if(!this._roomObjectEventHandler) return false;
+
+        return this._roomObjectEventHandler.confirmManipulation(this._activeRoomId);
     }
 
     public setWiredClickSettings(userOption: number, furniOption: number): void
@@ -234,6 +300,7 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         if(!instance) return;
 
         this._roomAllowsDragging = true;
+        this._roomCameraParked = false;
 
         GetEventDispatcher().dispatchEvent(new RoomEngineEvent(RoomEngineEvent.INITIALIZED, roomId));
     }
@@ -1130,7 +1197,7 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
             if(!location) continue;
 
-            if((instanceData.roomId !== this._activeRoomId) || !this._activeRoomIsDragged)
+            if((instanceData.roomId !== this._activeRoomId) || (!this._activeRoomIsDragged && !this._roomCameraParked))
             {
                 this.updateRoomCamera(instanceData.roomId, 1, location, time);
             }
@@ -2583,9 +2650,11 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         // BobbaTok : avec un mobi en main (OBJECT_PLACE) on peut quand meme faire glisser la piece ; le clic qui
         // suit un glisser est ignore plus bas (MOUSE_CLICK), donc le mobi n'est pose que sur un vrai clic.
         // Le deplacement d'un mobi deja pose (OBJECT_MOVE) garde la souris pour lui.
+        // Au doigt (mobile), le mobi en main se deplace en glissant : la piece ne bouge pas en meme temps.
         if(selectedData &&
             ((selectedData.operation === RoomObjectOperationType.OBJECT_MOVE) ||
-            (selectedData.operation === RoomObjectOperationType.OBJECT_MOVE_TO)))
+            (selectedData.operation === RoomObjectOperationType.OBJECT_MOVE_TO) ||
+            ((selectedData.operation === RoomObjectOperationType.OBJECT_PLACE) && this.touchManipulation)))
         {
             this._activeRoomIsDragged = false;
             this._activeRoomWasDragged = false;
@@ -2614,8 +2683,9 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
                 {
                     this._activeRoomIsDragged = true;
                     this._activeRoomWasDragged = false;
-                    this._activeRoomDragStartX = this._activeRoomActiveCanvasMouseX;
-                    this._activeRoomDragStartY = this._activeRoomActiveCanvasMouseY;
+                    // point d'appui = la ou on appuie (au doigt, il n'y a pas de survol avant l'appui)
+                    this._activeRoomDragStartX = x;
+                    this._activeRoomDragStartY = y;
                 }
             }
         }
@@ -2650,6 +2720,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
                             }
 
                             if(this._roomDraggingAlwaysCenters) camera.reset();
+
+                            if(this._keepRoomPositionAfterDrag) this._roomCameraParked = true;
                         }
                     }
                 }

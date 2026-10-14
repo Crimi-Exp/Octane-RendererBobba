@@ -23,6 +23,10 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     private _selectedObjectCategory: number = -2;
     private _whereYouClickIsWhereYouGo: boolean = true;
     private _objectPlacementSource: string = null;
+    // BobbaTok (mobile) : au doigt, toucher l'appart deplace le mobi en main sans le poser ; la pose se valide
+    // par le bouton du panneau de placement (confirmManipulation).
+    private _touchManipulation: boolean = false;
+    private _manipulationValid: boolean = false;
     private _pendingAvatarLookTimeout: ReturnType<typeof setTimeout> = null;
 
     constructor(
@@ -110,6 +114,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     public processRoomObjectPlacement(placementSource: string, roomId: number, id: number, category: number, typeId: number, extra: string = null, stuffData: IObjectData = null, state: number = -1, frameNumber: number = -1, posture: string = null): boolean
     {
         this._objectPlacementSource = placementSource;
+        this._manipulationValid = false;
 
         const location = new Vector3d(-100, -100);
         const direction = new Vector3d(0);
@@ -123,6 +128,52 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         }
 
         return true;
+    }
+
+    public set touchManipulation(value: boolean)
+    {
+        this._touchManipulation = value;
+    }
+
+    public get touchManipulation(): boolean
+    {
+        return this._touchManipulation;
+    }
+
+    /** Le mobi en main (pose ou deplacement) est-il sur un emplacement autorise ? */
+    public get manipulationValid(): boolean
+    {
+        return this._manipulationValid;
+    }
+
+    /** Valide le mobi en main la ou il est : pose (inventaire) ou fin de deplacement. */
+    public confirmManipulation(roomId: number): boolean
+    {
+        if(!this._roomEngine) return false;
+
+        const selectedData = this.getSelectedRoomObjectData(roomId);
+
+        if(!selectedData) return false;
+
+        if(selectedData.operation === RoomObjectOperationType.OBJECT_PLACE)
+        {
+            const roomObject = this._roomEngine.getRoomObject(roomId, selectedData.id, selectedData.category);
+
+            if(!roomObject || !this._manipulationValid) return false;
+
+            this.placeObject(roomId, (selectedData.category !== RoomObjectCategory.WALL), (selectedData.category === RoomObjectCategory.WALL));
+
+            return true;
+        }
+
+        if(selectedData.operation === RoomObjectOperationType.OBJECT_MOVE)
+        {
+            if(!this._manipulationValid) return false;
+
+            return this.modifyRoomObject(roomId, selectedData.id, selectedData.category, RoomObjectOperationType.OBJECT_MOVE_TO);
+        }
+
+        return false;
     }
 
     public cancelRoomObjectInsert(roomId: number): boolean
@@ -507,7 +558,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 {
                     if(selectedData)
                     {
-                        this.modifyRoomObject(roomId, selectedData.id, selectedData.category, RoomObjectOperationType.OBJECT_MOVE_TO);
+                        // au doigt : le toucher deplace seulement, la validation passe par le panneau
+                        if(this._touchManipulation) this.handleObjectMove(event, roomId);
+                        else this.modifyRoomObject(roomId, selectedData.id, selectedData.category, RoomObjectOperationType.OBJECT_MOVE_TO);
                     }
                 }
 
@@ -532,7 +585,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 if(category === RoomObjectCategory.ROOM)
                 {
                     this.handleObjectPlace(event, roomId);
-                    this.placeObject(roomId, (event instanceof RoomObjectTileMouseEvent), (event instanceof RoomObjectWallMouseEvent));
+
+                    // au doigt : le toucher place l'apercu, la pose se valide par le panneau
+                    if(!this._touchManipulation) this.placeObject(roomId, (event instanceof RoomObjectTileMouseEvent), (event instanceof RoomObjectWallMouseEvent));
                 }
 
                 else if(category === RoomObjectCategory.UNIT)
@@ -542,7 +597,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                         case RoomObjectUserType.MONSTER_PLANT:
                         case RoomObjectUserType.RENTABLE_BOT:
                             this.handleObjectPlace(event, roomId);
-                            this.placeObject(roomId, (event instanceof RoomObjectTileMouseEvent), (event instanceof RoomObjectWallMouseEvent));
+                            if(!this._touchManipulation) this.placeObject(roomId, (event instanceof RoomObjectTileMouseEvent), (event instanceof RoomObjectWallMouseEvent));
                             break;
                         default:
                             if(event.eventId)
@@ -1315,6 +1370,8 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
             this._roomEngine.updateRoomObjectMask(roomId, selectedData.id, moveValid);
         }
 
+        this._manipulationValid = moveValid;
+
         if(moveValid)
         {
             this.setFurnitureAlphaMultiplier(roomObject, 0.5);
@@ -1452,6 +1509,8 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
             this._roomEngine.setObjectMoverIconSpriteVisible(!placementValid);
         }
+
+        this._manipulationValid = !!(roomObject && this._roomEngine.getRoomObject(roomId, selectedData.id, selectedData.category));
     }
 
     /**
@@ -2061,6 +2120,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                 break;
             case RoomObjectOperationType.OBJECT_MOVE:
                 shouldReset = false;
+                this._manipulationValid = true;
                 this.setFurnitureAlphaMultiplier(roomObject, 0.5);
                 this.setSelectedRoomObjectData(roomId, roomObject.id, category, roomObject.getLocation(), roomObject.getDirection(), operation);
                 this._roomEngine.setObjectMoverIconSprite(roomObject.id, category, true);
@@ -2402,6 +2462,8 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     private resetSelectedObjectData(roomId: number): void
     {
         if(!this._roomEngine) return;
+
+        this._manipulationValid = false;
 
         this._roomEngine.removeObjectMoverIconSprite();
 
