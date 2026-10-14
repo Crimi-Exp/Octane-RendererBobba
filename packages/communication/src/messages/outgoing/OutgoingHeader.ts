@@ -779,6 +779,7 @@ export class OutgoingHeader
     // Use habbicon (client -> server). 9417 to match emulator RoomUserHabbiconEvent;
     // 6010 is reserved by SnowWar EDIT_ROOM.
     public static USE_HABBICON = 9417;
+    public static GAME_PRESENCE = 9961;
     // AIR 13 avatar editor hot looks tab (client -> server). 9360 to match emulator GetHotLooksEvent.
     public static GET_HOT_LOOKS = 9360;
     // AIR Habbicon semantics on the established Polaris custom header range.

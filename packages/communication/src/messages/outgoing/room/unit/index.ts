@@ -9,4 +9,5 @@ export * from './RoomUnitLookComposer';
 export * from './RoomUnitPostureComposer';
 export * from './RoomUnitSignComposer';
 export * from './RoomUnitWalkComposer';
+export * from './SetGamePresenceComposer';
 export * from './UseHabbiconComposer';

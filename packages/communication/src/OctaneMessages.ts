@@ -9,7 +9,7 @@ import { WiredMenuSettingsComposer } from './messages/outgoing/roomevents/WiredM
 import { RequestOfflineMessagesComposer } from './messages/outgoing/friendlist/RequestOfflineMessagesComposer';
 import { HotelViewLandingEvent, HotelViewLandingRequestComposer, HotelViewLandingSaveComposer, HotelViewLandingSaveSceneComposer, HotelViewLandingVoteComposer, HotelViewLandingResetVotesComposer } from './messages';
 import { RoomQueueStatusEvent, YouAreNotSpectatorMessageEvent, ConfigurationItemStatesEvent, SpecialRoomEventEvent, SpecialSystemChatEvent, ObjectRemoveMultipleEvent, ItemRemoveMultipleEvent, ItemsStateUpdateEvent, ObjectRemoveConfirmEvent, FurnitureListRemoveMultipleEvent, OfficialRoomsEvent } from './messages';
-import { RoomUnitHabbiconEvent, UseHabbiconComposer } from './messages';
+import { RoomUnitGamePresenceEvent, RoomUnitHabbiconEvent, SetGamePresenceComposer, UseHabbiconComposer } from './messages';
 import { UserHabbiconsEvent, UserHabbiconStatusChangedEvent, HabbiconInfoEvent, HabbiconActionResultEvent, HabbiconShopDataEvent, GetHabbiconShopDataComposer, GetHabbiconInfoComposer, BuyHabbiconComposer, BuyHabbiconCollectionComposer, ClaimHabbiconComposer, FavoriteHabbiconComposer, UnfavoriteHabbiconComposer } from './messages';
 import { AddCustomFilterWordMessageComposer, CustomFilterResultEvent, GetCustomFilterMessageComposer, ModifyCustomFilterResultEvent, RemoveCustomFilterWordMessageComposer } from './messages';
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
@@ -874,6 +874,7 @@ export class OctaneMessages implements IMessageConfiguration
         // Custom packets
         this._events.set(IncomingHeader.AREA_HIDE, AreaHideMessageEvent);
         this._events.set(IncomingHeader.UNIT_HABBICON, RoomUnitHabbiconEvent);
+        this._events.set(IncomingHeader.UNIT_GAME_PRESENCE, RoomUnitGamePresenceEvent);
         this._events.set(IncomingHeader.USER_HABBICONS, UserHabbiconsEvent);
         this._events.set(IncomingHeader.USER_HABBICON_STATUS_CHANGED, UserHabbiconStatusChangedEvent);
         this._events.set(IncomingHeader.HABBICON_SHOP_DATA, HabbiconShopDataEvent);
@@ -1092,6 +1093,7 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_LEADERBOARD, SnowWarGetWeeklyLeaderboardComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_GET_WEEKLY_FRIENDS_LEADERBOARD, SnowWarGetWeeklyFriendsLeaderboardComposer);
         this._composers.set(OutgoingHeader.USE_HABBICON, UseHabbiconComposer);
+        this._composers.set(OutgoingHeader.GAME_PRESENCE, SetGamePresenceComposer);
         this._composers.set(OutgoingHeader.GET_HABBICON_SHOP_DATA, GetHabbiconShopDataComposer);
         this._composers.set(OutgoingHeader.GET_HABBICON_INFO, GetHabbiconInfoComposer);
         this._composers.set(OutgoingHeader.BUY_HABBICON, BuyHabbiconComposer);
