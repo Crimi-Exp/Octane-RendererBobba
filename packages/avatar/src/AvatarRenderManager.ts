@@ -12,6 +12,7 @@ import { FigureDataContainer } from './FigureDataContainer';
 import { BlockedAvatarImage } from './BlockedAvatarImage';
 import { PlaceHolderAvatarImage } from './PlaceHolderAvatarImage';
 import { AssetAliasCollection } from './alias';
+import { AvatarFrameTextureCache } from './cache/AvatarFrameTextureCache';
 import { BOBBATOK_FIGHT_ACTIONS } from './data/BobbatokFightEffects';
 import { DanceSixSevenAnimation } from './data/DanceSixSevenAnimation';
 import { HabboAvatarAnimations } from './data/HabboAvatarAnimations';
@@ -28,6 +29,8 @@ export class AvatarRenderManager implements IAvatarRenderManager
     private _effectAssetDownloadManager: EffectAssetDownloadManager = new EffectAssetDownloadManager(GetAssetManager(), this._structure);
 
     private _placeHolderFigure: AvatarFigureContainer = new AvatarFigureContainer(AvatarRenderManager.DEFAULT_FIGURE);
+    // Finished avatar frames, shared by every avatar that shows the same composition.
+    private _frameTextures: AvatarFrameTextureCache = new AvatarFrameTextureCache();
     private _aliasResetCallback: () => void = null;
 
     public async init(): Promise<void>
@@ -35,10 +38,19 @@ export class AvatarRenderManager implements IAvatarRenderManager
         this._structure?.initGeometry(HabboAvatarGeometry.geometry);
         this._structure?.initPartSets(HabboAvatarPartSets.partSets);
 
-        await this.loadActions();
+        // Actions and figure data download together. Animations look up action
+        // definitions, so the dance and the effect libraries wait for the actions;
+        // the avatar libraries only need the figure data later, on demand.
+        const actionsLoaded = this.loadActions();
+        const figureDataLoaded = this.loadFigureData();
+
+        // Awaited below; this only keeps an early failure of one from being reported as unhandled.
+        figureDataLoaded.catch(() => null);
 
         this._structure?.initAnimation(HabboAvatarAnimations.animations);
-        await this.loadFigureData();
+
+        // (la danse « 67 » BobbaTok est enregistree dans loadActions)
+        await actionsLoaded;
 
         this._aliasCollection.init();
 
@@ -47,8 +59,11 @@ export class AvatarRenderManager implements IAvatarRenderManager
         GetEventDispatcher().addEventListener(OctaneEventType.AVATAR_ASSET_LOADED, this._aliasResetCallback);
         GetEventDispatcher().addEventListener(OctaneEventType.AVATAR_EFFECT_LOADED, this._aliasResetCallback);
 
-        await this._avatarAssetDownloadManager.init();
-        await this._effectAssetDownloadManager.init();
+        await Promise.all([
+            figureDataLoaded,
+            this._avatarAssetDownloadManager.init(),
+            this._effectAssetDownloadManager.init()
+        ]);
     }
 
     public dispose(): void
@@ -64,6 +79,7 @@ export class AvatarRenderManager implements IAvatarRenderManager
         // Dispose download managers
         this._avatarAssetDownloadManager?.dispose();
         this._effectAssetDownloadManager?.dispose();
+        this._frameTextures.dispose();
     }
 
     // Corrections pour coller au HabboAvatarActions.xml officiel quand le JSON du serveur s'en ecarte.
@@ -175,7 +191,7 @@ export class AvatarRenderManager implements IAvatarRenderManager
 
         if(this._avatarAssetDownloadManager.isAvatarFigureContainerReady(figureContainer))
         {
-            return new AvatarImage(this._structure, this._aliasCollection, figureContainer, size, this._effectAssetDownloadManager, effectListener);
+            return new AvatarImage(this._structure, this._aliasCollection, figureContainer, size, this._effectAssetDownloadManager, effectListener, this._frameTextures);
         }
 
         this._avatarAssetDownloadManager.downloadAvatarFigure(figureContainer, listener);
