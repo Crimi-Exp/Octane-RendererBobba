@@ -566,7 +566,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
                 else if(category === RoomObjectCategory.UNIT)
                 {
-                    if(selectedData && (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                    if(selectedData && ((event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT))) // BobbaTok patch 44 : bot deplacable
                     {
                         this.modifyRoomObject(roomId, selectedData.id, selectedData.category, RoomObjectOperationType.OBJECT_MOVE_TO);
                     }
@@ -824,7 +824,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         switch(operation)
         {
             case RoomObjectOperationType.OBJECT_UNDEFINED:
-                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT))
                 {
                     if((event.altKey && !event.ctrlKey && !event.shiftKey) || this.decorateModeMove(event))
                     {
@@ -850,7 +850,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         switch(operation)
         {
             case RoomObjectOperationType.OBJECT_UNDEFINED:
-                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT))
                 {
                     if((!event.ctrlKey && !event.shiftKey) || this.decorateModeMove(event))
                     {
@@ -1640,7 +1640,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
         if(stackingHeightMap && targetLocation)
         {
-            const stackable = (roomObject.model.getValue<number>(RoomObjectVariable.FURNITURE_ALWAYS_STACKABLE) === 1);
+            const stackable = (roomObject.model.getValue<number>(RoomObjectVariable.FURNITURE_ALWAYS_STACKABLE) === 1) || (roomObject.type === RoomObjectUserType.RENTABLE_BOT); // BobbaTok patch 44 : un bot se pose sur n'importe quel mobi
 
             // BobbaTok : hauteur de construction active -> fantôme à sol + hauteur demandée
             if(RoomBuildHeightPreview.override !== null)
@@ -1786,6 +1786,19 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     private sendWalkUpdate(x: number, y: number): void
     {
         if(!this._roomEngine || !GetCommunication().connection) return;
+
+        // BobbaTok patch 44 : un bot champion attend d'etre pose -> ce clic le pose ici au lieu de nous faire marcher
+        const pendingBot = (window as any).__bobbaBotMove;
+        if(pendingBot && pendingBot.botId > 0)
+        {
+            (window as any).__bobbaBotMove = null;
+            if((Date.now() - pendingBot.at) < 30000)
+            {
+                console.log('[botlead] pose par clic', pendingBot.botId, x, y);
+                GetCommunication().connection.send(new BotPlaceComposer(pendingBot.botId, Math.trunc(x), Math.trunc(y)));
+                return;
+            }
+        }
 
         if(this._walkDebounceTimer)
         {
@@ -2169,7 +2182,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                         {
                             const userData = roomSession.userDataManager.getUserDataByIndex(objectId);
 
-                            if(userData) GetCommunication().connection.send(new PetMoveComposer(userData.webID, location.x, location.y, direction));
+                            // BobbaTok patch 44 : bot deplace -> meme paquet que la pose depuis l'inventaire (l'emu deplace le bot deja dans l'appart)
+                            if(userData && (roomObject.type === RoomObjectUserType.RENTABLE_BOT)) GetCommunication().connection.send(new BotPlaceComposer(Math.abs(userData.webID), Math.trunc(location.x), Math.trunc(location.y)));
+                            else if(userData) GetCommunication().connection.send(new PetMoveComposer(userData.webID, location.x, location.y, direction));
                         }
                     }
                 }

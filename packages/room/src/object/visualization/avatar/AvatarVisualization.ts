@@ -4,9 +4,10 @@ import { AdvancedMap, GetRenderer, Vector3d } from '@octane/utils';
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { RoomWindowReflectionState } from '../RoomWindowReflectionState';
+import { LeadEffects } from '../LeadEffects';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
 import { AvatarVisualizationData } from './AvatarVisualizationData';
-import { ExpressionAdditionFactory, FloatingIdleZAddition, GameClickTargetAddition, GuideStatusBubbleAddition, HabbiconBubbleAddition, IAvatarAddition, MutedBubbleAddition, NumberBubbleAddition, TypingBubbleAddition } from './additions';
+import { ExpressionAdditionFactory, FloatingIdleZAddition, GameClickTargetAddition, GuideStatusBubbleAddition, HabbiconBubbleAddition, IAvatarAddition, LeadRankBubbleAddition, LeadSparkleAddition, MutedBubbleAddition, NumberBubbleAddition, TypingBubbleAddition } from './additions';
 
 export class AvatarVisualization extends RoomObjectSpriteVisualization implements IAvatarImageListener, IAvatarEffectListener
 {
@@ -355,6 +356,9 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                 sprite.alpha = this.wiredSpriteAlpha(this._avatarBaseAlpha);
 
                 this.applyWiredHighlight(sprite);
+
+                // BobbaTok patch 44 : teinte or / argent / bronze des bots champions
+                LeadEffects.apply(sprite, this._effect);
 
                 if(avatarImage)
                 {
@@ -817,6 +821,29 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
             }
         }
 
+        // BobbaTok patch 44 : etincelles des bots champions
+        const leadAddition = this.getAddition(LeadEffects.ADDITION_ID) as LeadSparkleAddition;
+
+        if(LeadEffects.isLead(this._effect))
+        {
+            if(!leadAddition || (leadAddition.effect !== this._effect))
+            {
+                if(leadAddition) this.removeAddition(LeadEffects.ADDITION_ID);
+
+                this.addAddition(new LeadSparkleAddition(LeadEffects.ADDITION_ID, this, this._effect));
+                // BobbaTok b11 : plus de bulle permanente au-dessus du bot champion, sa fiche s'ouvre au clic
+
+                needsUpdate = true;
+            }
+        }
+        else if(leadAddition)
+        {
+            this.removeAddition(LeadEffects.ADDITION_ID);
+            this.removeAddition(LeadEffects.BUBBLE_ADDITION_ID);
+
+            needsUpdate = true;
+        }
+
         let idleAddition = this.getAddition(AvatarVisualization.FLOATING_IDLE_Z_ID);
 
         if(this._sleep)
@@ -1174,7 +1201,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
             }
         }
 
-        if(this._effect > 0) this._avatarImage.appendAction(AvatarAction.EFFECT, this._effect);
+        // BobbaTok patch 44 : les effets 9001-9004 (bots champions) ne sont pas des enables : pas de sprite a charger
+        if((this._effect > 0) && !LeadEffects.isLead(this._effect)) this._avatarImage.appendAction(AvatarAction.EFFECT, this._effect);
 
         avatar.endActionAppends();
 
