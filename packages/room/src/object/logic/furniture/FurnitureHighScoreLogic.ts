@@ -32,7 +32,12 @@ export class FurnitureHighScoreLogic extends FurnitureLogic
 
         if(message instanceof ObjectDataUpdateMessage)
         {
-            if(message.state === FurnitureHighScoreLogic.SHOW_WIDGET_IN_STATE)
+            // BobbaTok : etat 2 = classement affiche et mobi cache, etat 3 = classement eteint et mobi cache
+            const state = message.state;
+
+            this.object.model.setValue(RoomObjectVariable.FURNITURE_ALPHA_MULTIPLIER, ((state === 2) || (state === 3)) ? 0 : 1);
+
+            if((state === FurnitureHighScoreLogic.SHOW_WIDGET_IN_STATE) || (state === 2))
             {
                 this.eventDispatcher.dispatchEvent(new RoomObjectWidgetRequestEvent(RoomObjectWidgetRequestEvent.HIGH_SCORE_DISPLAY, this.object));
             }
