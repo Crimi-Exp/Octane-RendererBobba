@@ -197,6 +197,18 @@ function createHalfSizeTexture(texture: Texture, padX: number, padY: number): Te
 
         source.octaneFixedScaleMode = true;
 
+        // BobbaTok : le clic sur un mobi lit les pixels de sa texture (hitMap). Une texture de canvas ne se relit
+        // pas cote GPU, on lui donne donc ses pixels tout de suite (comme GraphicAssetPalette) : sinon le mobi
+        // dezoome ne se clique plus.
+        if((halved.width > 0) && (halved.height > 0))
+        {
+            const hitSource = source as PixelArtSource & { hitMap?: Uint8ClampedArray; hitMapDirty?: boolean; hitMapTime?: number };
+
+            hitSource.hitMap = halved.data;
+            hitSource.hitMapDirty = false;
+            hitSource.hitMapTime = Date.now();
+        }
+
         return new Texture({ source });
     }
     catch
