@@ -66,6 +66,18 @@ describe('AssetManager downloads', () =>
         expect(fetch).toHaveBeenLastCalledWith('https://cdn.example/chair.hab?v=3');
     });
 
+    it('loads the .nitro of the same name when the .hab is missing', async () =>
+    {
+        const fetch = vi.fn()
+            .mockResolvedValueOnce({ ok: false, status: 404 })
+            .mockResolvedValueOnce(ok());
+        const { manager } = createManager(fetch);
+
+        await expect(manager.downloadAsset('https://cdn.example/custom_bobba.hab')).resolves.toBe(true);
+
+        expect(fetch).toHaveBeenLastCalledWith('https://cdn.example/custom_bobba.nitro');
+    });
+
     it('does not look for a .hab after a server error', async () =>
     {
         const fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });

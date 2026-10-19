@@ -13,14 +13,19 @@ const FETCH_RETRY_DELAYS_MS = [ 500, 1500 ];
 
 const isRetryableStatus = (status: number): boolean => (status === 408) || (status === 429) || (status >= 500);
 
-/** BobbaTok : a .nitro missing on the server (404) is looked for as a .hab of the same name. */
+/**
+ * BobbaTok : a bundle missing on the server (404) is looked for under the other extension: .nitro -> .hab
+ * (official Habbo furni) and .hab -> .nitro (custom furni), so both kinds can sit in the same folder.
+ */
 export const habFallbackUrl = (url: string): string | null =>
 {
-    const match = /\.nitro(?=$|[?#])/i.exec(url);
+    const match = /\.(nitro|hab)(?=$|[?#])/i.exec(url);
 
     if(!match) return null;
 
-    return url.slice(0, match.index) + '.hab' + url.slice(match.index + match[0].length);
+    const other = (match[1].toLowerCase() === 'nitro') ? '.hab' : '.nitro';
+
+    return url.slice(0, match.index) + other + url.slice(match.index + match[0].length);
 };
 
 class AssetFetchError extends Error
@@ -297,7 +302,7 @@ export class AssetManager implements IAssetManager
         }
     }
 
-    /** A bundle: the .nitro first, then the .hab of the same name when the server has no .nitro. */
+    /** A bundle: the extension of the config first, then the other one (.nitro / .hab) when the server has no file. */
     private async fetchBundle(url: string): Promise<Response>
     {
         try
