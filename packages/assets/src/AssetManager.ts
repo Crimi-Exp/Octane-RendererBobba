@@ -13,6 +13,24 @@ const FETCH_RETRY_DELAYS_MS = [ 500, 1500 ];
 
 const isRetryableStatus = (status: number): boolean => (status === 408) || (status === 429) || (status >= 500);
 
+/** BobbaTok : a .nitro missing on the server (404) is looked for as a .hab of the same name. */
+export const habFallbackUrl = (url: string): string | null =>
+{
+    const match = /\.nitro(?=$|[?#])/i.exec(url);
+
+    if(!match) return null;
+
+    return url.slice(0, match.index) + '.hab' + url.slice(match.index + match[0].length);
+};
+
+class AssetFetchError extends Error
+{
+    constructor(message: string, public readonly status: number)
+    {
+        super(message);
+    }
+}
+
 export interface AssetManagerDependencies
 {
     fetch(url: string): Promise<Response>;
@@ -144,7 +162,7 @@ export class AssetManager implements IAssetManager
             // A .hab with the same json and sheet as a .nitro is read by the same bundle reader.
             if(isBundleExtension(normalizedSourceExtension(url)))
             {
-                const response = await this.fetchAsset(url);
+                const response = await this.fetchBundle(url);
                 const decodedResources: LoadedImageResource[] = [];
 
                 try
@@ -273,9 +291,33 @@ export class AssetManager implements IAssetManager
 
             if(response?.ok) return response;
 
-            if(!canRetry || (response && !isRetryableStatus(response.status))) throw new Error(`Failed to load "${ url }" - server returned HTTP ${ response?.status ?? 'no response' }`);
+            if(!canRetry || (response && !isRetryableStatus(response.status))) throw new AssetFetchError(`Failed to load "${ url }" - server returned HTTP ${ response?.status ?? 'no response' }`, (response?.status ?? 0));
 
             await this.wait(FETCH_RETRY_DELAYS_MS[attempt]);
+        }
+    }
+
+    /** A bundle: the .nitro first, then the .hab of the same name when the server has no .nitro. */
+    private async fetchBundle(url: string): Promise<Response>
+    {
+        try
+        {
+            return await this.fetchAsset(url);
+        }
+        catch (error)
+        {
+            const habUrl = habFallbackUrl(url);
+
+            if(!habUrl || !(error instanceof AssetFetchError) || (error.status !== 404)) throw error;
+
+            try
+            {
+                return await this.fetchAsset(habUrl);
+            }
+            catch
+            {
+                throw error;
+            }
         }
     }
 

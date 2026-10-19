@@ -71,10 +71,6 @@ export class OctaneBundle
 
         if(data && !data.name) data.name = (data.documentClass || name || undefined);
 
-        const atlas = entries.find(entry => entry.name.endsWith('.atlas'));
-
-        if(atlas) this._atlasFile = OctaneBundle.TEXT_DECODER.decode(atlas.bytes);
-
         if(images.length) this._texture = await textureDecoder(exactBuffer(images[0].bytes), images[0].name);
     }
 

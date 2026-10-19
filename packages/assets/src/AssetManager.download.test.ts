@@ -47,9 +47,33 @@ describe('AssetManager downloads', () =>
         const fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
         const { manager } = createManager(fetch);
 
-        await expect(manager.downloadAsset(BUNDLE_URL)).rejects.toThrow(/HTTP 404/);
+        await expect(manager.downloadAsset(BUNDLE_URL)).rejects.toThrow(/chair\.nitro.*HTTP 404/);
 
-        expect(fetch).toHaveBeenCalledOnce();
+        // one try for the .nitro, one for the .hab of the same name, no retries
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith('https://cdn.example/chair.hab');
+    });
+
+    it('loads the .hab of the same name when the .nitro is missing', async () =>
+    {
+        const fetch = vi.fn()
+            .mockResolvedValueOnce({ ok: false, status: 404 })
+            .mockResolvedValueOnce(ok());
+        const { manager } = createManager(fetch);
+
+        await expect(manager.downloadAsset('https://cdn.example/chair.nitro?v=3')).resolves.toBe(true);
+
+        expect(fetch).toHaveBeenLastCalledWith('https://cdn.example/chair.hab?v=3');
+    });
+
+    it('does not look for a .hab after a server error', async () =>
+    {
+        const fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+        const { manager } = createManager(fetch);
+
+        await expect(manager.downloadAsset(BUNDLE_URL)).rejects.toThrow(/HTTP 500/);
+
+        expect(fetch).not.toHaveBeenCalledWith('https://cdn.example/chair.hab');
     });
 
     it('gives up after the last retry', async () =>

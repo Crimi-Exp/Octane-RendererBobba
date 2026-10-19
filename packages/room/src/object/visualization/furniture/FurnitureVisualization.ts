@@ -926,12 +926,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
                 const currentFilters = sprite.filters;
 
-                if(sprite.blendMode === 'add')
-                {
-                    // A filter draws the layer offscreen and composites it normally, which loses the additive glow.
-                    if(currentFilters && currentFilters.length) sprite.filters = [];
-                }
-                else if((currentFilters && currentFilters.length) || this._filters.length)
+                // BobbaTok : les couches additives gardent la selection (sans la surbrillance wired), cf. plus bas.
+                if((currentFilters && currentFilters.length) || this._filters.length)
                 {
                     // La surbrillance du menu clic droit (PickerHighlightFilter) est posee par le RoomEngine : on la garde aussi.
                     const chooserFilters = (currentFilters || []).filter(f => (f instanceof ChooserSelectionFilter) || (f instanceof PickerHighlightFilter));
