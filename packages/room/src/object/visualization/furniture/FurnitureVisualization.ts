@@ -1,7 +1,7 @@
 import { getHalfSizeTexture, halfSizeOffset, halfSizePadding, isPixelArtTexture } from '@octane/assets';
 import { AlphaTolerance, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObjectSprite, IVector3D, RoomObjectVariable, RoomObjectVisualizationType } from '@octane/api';
-import { ChooserSelectionFilter, OctaneLogger, PickerHighlightFilter, Vector3d } from '@octane/utils';
-import { BLEND_MODES, Filter, Texture } from 'pixi.js';
+import { ChooserSelectionFilter, OctaneLogger, PickerHighlightFilter, TextureUtils, Vector3d } from '@octane/utils';
+import { BLEND_MODES, Container, Filter, Sprite, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
 import { IWindowReflectionUnitLayer, RoomWindowReflectionState } from '../RoomWindowReflectionState';
@@ -54,6 +54,9 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
     private _wiredClickThrough: boolean;
     private _hideInvisibleLayers: boolean;
     private _wiredHighlightColor: number = -1;
+    // Contour, lueur douce, aura neon : calque sous le mobi avec la silhouette de toutes ses couches.
+    private _wiredUnderlayFilter: Filter = null;
+    private _wiredUnderlayTexture: Texture = null;
 
     // BobbaTok : mobi agrandissable (x1/x2/x3) avec effet "pop" + nuee d'etoiles au changement.
     protected static POP_DURATION_MS: number = 420;
@@ -128,6 +131,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
     public dispose(): void
     {
+        this.releaseWiredUnderlayTexture();
+
         if(this._windowReflectionPushed && this.object)
         {
             RoomWindowReflectionState.removeUnit(this.object.instanceId, this.object.model?.getValue<string>(RoomObjectVariable.OBJECT_ROOM_ID));
@@ -757,6 +762,7 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         if(wiredHighlightColor !== this._wiredHighlightColor)
         {
             this._wiredHighlightColor = wiredHighlightColor;
+            this._wiredUnderlayFilter = WiredHighlightFilters.furnitureUnderlay(wiredHighlightColor);
             this._filters = WiredHighlightFilters.withHighlight(this._filters, WiredHighlightFilters.furniture(wiredHighlightColor));
             this._alphaChanged = true;
         }
@@ -801,11 +807,13 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
     protected updateSprites(scale: number, update: boolean, animation: number): void
     {
-        if(this._layerCount !== this.totalSprites) this.createSprites(this._layerCount);
+        const spriteCount = (this._layerCount + (this._wiredUnderlayFilter ? 1 : 0));
+
+        if(spriteCount !== this.totalSprites) this.createSprites(spriteCount);
 
         if(update)
         {
-            let layerId = (this.totalSprites - 1);
+            let layerId = (this._layerCount - 1);
 
             while(layerId >= 0)
             {
@@ -828,6 +836,90 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         }
 
         this._alphaChanged = false;
+
+        this.updateWiredUnderlay();
+    }
+
+    /**
+     * wf_act_set_highlight (contour, lueur douce, aura neon) : comme Habbo, l'effet entoure la silhouette du mobi
+     * entier. On dessine toutes les couches dans un calque place juste sous le mobi et seul l'effet en est visible.
+     */
+    private updateWiredUnderlay(): void
+    {
+        const sprite = this.getSprite(this._layerCount);
+
+        if(!this._wiredUnderlayFilter || !sprite)
+        {
+            this.releaseWiredUnderlayTexture();
+
+            return;
+        }
+
+        const container = new Container();
+
+        for(let layerId = 0; layerId < this._layerCount; layerId++)
+        {
+            if((layerId === this._shadowLayerIndex) || this.isStarLayer(layerId)) continue;
+
+            const layer = this.getSprite(layerId);
+
+            if(!layer || !layer.visible || !layer.texture || (layer.alpha <= 0) || (layer.blendMode === 'add')) continue;
+
+            const part = new Sprite(layer.texture);
+            const magnitude = ((layer.scale && (layer.scale > 0)) ? layer.scale : 1);
+
+            part.x = layer.offsetX;
+            part.y = layer.offsetY;
+            part.scale.x = (layer.flipH ? -magnitude : magnitude);
+            part.scale.y = (layer.flipV ? -magnitude : magnitude);
+
+            container.addChild(part);
+        }
+
+        if(!container.children.length)
+        {
+            container.destroy({ children: true });
+            this.releaseWiredUnderlayTexture();
+            sprite.visible = false;
+
+            return;
+        }
+
+        const bounds = container.getLocalBounds();
+        const texture = TextureUtils.generateTexture({ target: container, resolution: 1 });
+
+        container.destroy({ children: true });
+        this.releaseWiredUnderlayTexture();
+        this._wiredUnderlayTexture = texture;
+
+        sprite.visible = true;
+        sprite.type = this._type;
+        sprite.texture = texture;
+        sprite.flipH = false;
+        sprite.flipV = false;
+        sprite.direction = this._direction;
+        sprite.scale = 1;
+        sprite.offsetX = Math.round(bounds.x);
+        sprite.offsetY = Math.round(bounds.y);
+        sprite.alpha = Math.round(255 * Math.max(0, Math.min(1, this._alphaMultiplier)));
+        sprite.color = 0xFFFFFF;
+        sprite.blendMode = 'normal';
+        sprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
+        sprite.tag = 'wired_highlight';
+        sprite.relativeDepth = (0.5 * FurnitureVisualization.DEPTH_MULTIPLIER);
+        sprite.name = 'wired_highlight';
+        sprite.libraryAssetName = '';
+        sprite.posture = '';
+        sprite.clickHandling = false;
+        sprite.filters = [ this._wiredUnderlayFilter ];
+    }
+
+    private releaseWiredUnderlayTexture(): void
+    {
+        if(!this._wiredUnderlayTexture) return;
+
+        this._wiredUnderlayTexture.destroy(true);
+        this._wiredUnderlayTexture = null;
     }
 
     /** Offsets in full-size pixels; with halfSize the sprite gets a half-size texture placed on whole pixels. */

@@ -2183,7 +2183,7 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         if(!instanceData) return;
 
-        instanceData.setWiredHighlight(category, objectId, ((typeof color === 'number') && isFinite(color) && (color >= 0)) ? (Math.floor(color) & 0xFFFFFF) : -1);
+        instanceData.setWiredHighlight(category, objectId, ((typeof color === 'number') && isFinite(color) && (color >= 0)) ? Math.floor(color) : -1);
 
         this.applyRoomObjectWiredHighlight(roomId, objectId, category);
     }

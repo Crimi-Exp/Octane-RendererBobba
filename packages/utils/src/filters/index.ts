@@ -5,3 +5,4 @@ export * from './PlaneMaskFilter';
 export * from './WiredFilter';
 export * from './WiredOutlineFilter';
 export * from './PickerHighlightFilter';
+export * from './WiredHighlightEffectFilter';
