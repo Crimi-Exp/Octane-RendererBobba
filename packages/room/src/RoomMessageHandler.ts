@@ -48,6 +48,8 @@ export class RoomMessageHandler
     private _activeConfInvisHiddenItemIds = new Set<number>();
     private _confInvisReapplyTimeouts: ReturnType<typeof setTimeout>[] = [];
     private _activeAreaHideControllers = new Map<number, AreaHideControllerState>();
+    // BobbaTok patch 71 : type de mobi -> est-ce un cacheur de zone (evite de chercher dans tout le furnidata a chaque roulement)
+    private _areaHideTypeCache = new Map<string, boolean>();
     private _areaHideReapplyTimeouts: ReturnType<typeof setTimeout>[] = [];
     private _isConfInvisControlActive = false;
     // wf_act_set_visibility : opacite (0-100) par avatar, gardee pour les avatars pas encore crees
@@ -561,7 +563,9 @@ export class RoomMessageHandler
                 this._roomEngine.rollRoomObjectFloor(this._currentRoomId, rollData.id, rollData.location, rollData.targetLocation);
             }
 
-            this.scheduleAreaHideReapply(this._currentRoomId);
+            // BobbaTok patch 71 : repasser sur tous les mobis seulement s'il y a un cacheur de zone actif dans l'appart
+            // (avant : 6 repassages complets a chaque mobi qui roule -> processeur a fond avec beaucoup de rollers)
+            if(this._activeAreaHideControllers.size || this._isConfInvisControlActive) this.scheduleAreaHideReapply(this._currentRoomId);
         }
 
         const unitRollData = parser.unitRolling;
@@ -1526,10 +1530,21 @@ export class RoomMessageHandler
     {
         if(!roomObject?.model) return false;
 
-        const furniData = GetSessionDataManager().getFloorItemDataByName(roomObject.type);
-        const customParams = (furniData?.customParams || '').toLowerCase();
+        // BobbaTok patch 71 : la recherche dans le furnidata se fait une seule fois par type de mobi
+        let isAreaHideType = this._areaHideTypeCache.get(roomObject.type);
 
-        if(customParams.includes('area_hide_control') || customParams.includes('wf_conf_area_hide') || customParams.includes('conf_area_hide'))
+        if(isAreaHideType === undefined)
+        {
+            const furniData = GetSessionDataManager().getFloorItemDataByName(roomObject.type);
+            const customParams = (furniData?.customParams || '').toLowerCase();
+
+            isAreaHideType = customParams.includes('area_hide_control') || customParams.includes('wf_conf_area_hide') || customParams.includes('conf_area_hide');
+
+            // furnidata pas encore charge : on ne retient rien, on reessaiera
+            if(furniData) this._areaHideTypeCache.set(roomObject.type, isAreaHideType);
+        }
+
+        if(isAreaHideType)
         {
             return true;
         }
