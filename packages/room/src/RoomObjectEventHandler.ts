@@ -9,7 +9,8 @@ import { isWiredChestFloorItem } from './utils/isWiredChestFloorItem';
 import { RoomEnterEffect, RoomObjectUpdateMessage } from '../../room';
 import { ObjectAvatarSelectedMessage, ObjectDataUpdateMessage, ObjectSelectedMessage, ObjectTileCursorUpdateMessage, ObjectVisibilityUpdateMessage } from './messages';
 import { SelectedRoomObjectData } from './utils';
-import { resolveWiredClickBehaviour, tileBehind } from './utils/WiredClickSettings';
+import { resolveWiredClickBehaviour, tileBehind, WIRED_CLICK_USER_PASS_THROUGH } from './utils/WiredClickSettings';
+import { isClicPassThrough } from './utils/ClicMode';
 
 export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomObjectEventManager
 {
@@ -470,7 +471,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         if((event instanceof RoomObjectTileMouseEvent) || (event instanceof RoomObjectWallMouseEvent)) return false;
 
         const category = this._roomEngine.getRoomObjectCategoryForType(event.objectType);
-        const behaviour = resolveWiredClickBehaviour(category, { userOption: this._roomEngine.wiredClickUserOption, furniOption: this._roomEngine.wiredClickFurniOption });
+        // BobbaTok :clic : le joueur a desactive le clic sur les avatars (bots et animaux compris)
+        const clicMode = (category === RoomObjectCategory.UNIT) && isClicPassThrough();
+        const behaviour = resolveWiredClickBehaviour(category, { userOption: clicMode ? WIRED_CLICK_USER_PASS_THROUGH : this._roomEngine.wiredClickUserOption, furniOption: this._roomEngine.wiredClickFurniOption });
 
         if(behaviour === 'default') return false;
 
@@ -479,6 +482,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         const session = GetRoomSessionManager().getSession(roomId);
 
         if(!session || session.isSpectator) return false;
+
+        // BobbaTok :clic : son propre avatar reste cliquable
+        if(clicMode && (this._roomEngine.wiredClickUserOption !== WIRED_CLICK_USER_PASS_THROUGH) && (event.objectId === session.ownRoomIndex)) return false;
 
         const roomObject = this._roomEngine.getRoomObject(roomId, event.objectId, category);
 

@@ -872,7 +872,10 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
 
         sprite.offsetX = -(offset.x);
         sprite.offsetY = -(offset.y);
-        sprite.relativeDepth = relativeDepth;
+        // BobbaTok patch 82 : la zone du selecteur (plan de surbrillance) passe devant tout, en transparence : un fond
+        // d'appart ou un grand mobi pose sur le sol ne la cache plus.
+        sprite.relativeDepth = plane.isHighlighter ? -RoomVisualization.ROOM_DEPTH_OFFSET : relativeDepth;
+        sprite.alpha = plane.isHighlighter ? 150 : 255;
         sprite.color = plane.color;
         sprite.texture = plane.planeTexture ?? Texture.EMPTY;
         sprite.name = ((name + '_') + this._assetUpdateCounter);
