@@ -18,7 +18,7 @@ export class LeadEffects
     /** identifiants des additions (les additions de l'avatar vont de 1 a 8) */
     public static readonly ADDITION_ID = 9;
     public static readonly BUBBLE_ADDITION_ID = 10;
-    public static readonly GAMES = [ 'G\u00e9n\u00e9ral', 'Kart', 'SnowStorm', 'UNO', 'BattleBall', 'Wobble', 'Sorciers', 'Royale', 'FastFood' ];
+    public static readonly GAMES = [ 'G\u00e9n\u00e9ral', 'Kart', 'SnowStorm', 'UNO', 'BattleBall', 'Wobble', 'Sorciers', 'Royale', 'FastFood', 'RUN' ];
 
     public static rank(effect: number): number
     {
