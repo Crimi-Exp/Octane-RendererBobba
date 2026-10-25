@@ -51,6 +51,9 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
     private _drops: WallTagDrop[] = [];
     private _needsSpriteUpdate: boolean = true;
     private _lastScale: number = -1;
+    /** Profondeur du tag : celle de son bout le plus loin le long du mur (sinon les avatars pres du coin passent dessous). */
+    private _depthOffset: number = 0;
+    private _depthKey: string = '';
 
     public initialize(data: IObjectVisualizationData): boolean
     {
@@ -159,6 +162,8 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
             this._needsSpriteUpdate = true;
         }
 
+        if(this.depthKey(geometry) !== this._depthKey) this._needsSpriteUpdate = true;
+
         if(geometry.scale !== this._lastScale)
         {
             this._lastScale = geometry.scale;
@@ -167,6 +172,7 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
 
         if(this._needsSpriteUpdate)
         {
+            this.updateDepth(geometry);
             this.updateSprites(geometry.scale, time);
             this._needsSpriteUpdate = false;
             this.updateSpriteCounter++;
@@ -447,6 +453,47 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
         if(t >= 1) this._revealStart = -1;
     }
 
+    private depthKey(geometry: IRoomGeometry): string
+    {
+        const location = this.object.getLocation();
+
+        return `${ geometry.updateId }:${ location.x }:${ location.y }:${ location.z }:${ this._direction }:${ this._width }`;
+    }
+
+    /**
+     * Un tag couvre tout un pan de mur avec un seul sprite : trie a la profondeur de son centre, il passait devant
+     * les avatars places vers le fond du mur. On le trie a la profondeur de son bout le plus eloigne (le mur reste
+     * derriere : un pan de mur est trie a son coin le plus loin), un poil derriere ce qui est accroche au mur.
+     */
+    private updateDepth(geometry: IRoomGeometry): void
+    {
+        const key = this.depthKey(geometry);
+
+        if(key === this._depthKey) return;
+
+        this._depthKey = key;
+        this._depthOffset = 0;
+
+        const location = this.object.getLocation();
+        const center = geometry.getScreenPosition(location);
+
+        if(!center) return;
+
+        // demi-largeur en dalles (32 px de toile par dalle) ; mur de gauche (90) le long de y, de droite (180) le long de x
+        const half = (Math.max(0, this._width) / 64);
+        const alongX = (this._direction === 180);
+        let farthest = center.z;
+
+        for(const sign of [ -1, 1 ])
+        {
+            const end = geometry.getScreenPosition(new Vector3d(location.x + (alongX ? (sign * half) : 0), location.y + (alongX ? 0 : (sign * half)), location.z));
+
+            if(end && (end.z > farthest)) farthest = end.z;
+        }
+
+        this._depthOffset = ((farthest - center.z) + 0.01);
+    }
+
     private updateSprites(scale: number, time: number): void
     {
         const zoom = ((scale > 0) ? (scale / 64) : 1);
@@ -471,7 +518,7 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
                 // Un tag a la bombe est fait de gouttelettes peu opaques : on accepte le clic des 8 % d'opacite.
                 // L'apercu en direct, lui, laisse passer la souris jusqu'au mur (c'est lui qu'on peint).
                 sprite.alphaTolerance = ((this._dataKey === 'preview') ? AlphaTolerance.MATCH_NOTHING : 20);
-                sprite.relativeDepth = 0;
+                sprite.relativeDepth = this._depthOffset;
                 sprite.clickHandling = false;
             }
             else
@@ -520,7 +567,7 @@ export class WallTagVisualization extends RoomObjectSpriteVisualization
             dropSprite.alpha = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
             dropSprite.color = drop.tint;
             dropSprite.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
-            dropSprite.relativeDepth = -0.01;
+            dropSprite.relativeDepth = (this._depthOffset - 0.01);
             dropSprite.clickHandling = false;
         }
     }
