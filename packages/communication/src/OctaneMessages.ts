@@ -27,6 +27,7 @@ import { DuelActionComposer, DuelEndEvent, DuelJoinComposer, DuelLeaveComposer, 
 import { RoyaleAttackComposer, RoyaleGameEndEvent, RoyaleGameStartEvent, RoyaleJoinComposer, RoyaleLeaveComposer, RoyaleMoveComposer, RoyaleQueueEvent, RoyaleStateEvent } from './messages';
 import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinComposer, BattleBallLeaveComposer, BattleBallMoveComposer, BattleBallPowerComposer, BattleBallQueueEvent, BattleBallStateEvent } from './messages';
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
+import { RocketEndEvent, RocketEventEvent, RocketInputComposer, RocketJoinComposer, RocketLeaveComposer, RocketMatchStartEvent, RocketQueueEvent, RocketStateEvent } from './messages';
 import { WobbleChallengeComposer, WobbleChatComposer, WobbleChatEvent, WobbleLeaderboardEvent, WobbleActionComposer, WobbleInputComposer, WobbleJoinComposer, WobbleLeaveComposer, WobbleMatchEndEvent, WobbleMatchStartEvent, WobbleNoticeEvent, WobbleQueueEvent, WobbleRoundEndEvent, WobbleRoundStartEvent, WobbleStateEvent } from './messages';
 import { GetRecyclerPrizesMessageComposer, RecyclerPrizesMessageEvent } from './messages';
 import { BuildersClubRecolorFurniMessageComposer } from './messages';
@@ -761,6 +762,11 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.KART_STATE, KartStateEvent);
         this._events.set(IncomingHeader.KART_EVENT, KartEventEvent);
         this._events.set(IncomingHeader.KART_RACE_END, KartRaceEndEvent);
+        this._events.set(IncomingHeader.ROCKET_QUEUE, RocketQueueEvent);
+        this._events.set(IncomingHeader.ROCKET_MATCH_START, RocketMatchStartEvent);
+        this._events.set(IncomingHeader.ROCKET_STATE, RocketStateEvent);
+        this._events.set(IncomingHeader.ROCKET_EVENT, RocketEventEvent);
+        this._events.set(IncomingHeader.ROCKET_END, RocketEndEvent);
         this._events.set(IncomingHeader.BATTLEBALL_QUEUE, BattleBallQueueEvent);
         this._events.set(IncomingHeader.BATTLEBALL_GAME_START, BattleBallGameStartEvent);
         this._events.set(IncomingHeader.BATTLEBALL_STATE, BattleBallStateEvent);
@@ -1629,6 +1635,9 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.KART_LEAVE, KartLeaveComposer);
         this._composers.set(OutgoingHeader.KART_INPUT, KartInputComposer);
         this._composers.set(OutgoingHeader.KART_ITEM, KartItemComposer);
+        this._composers.set(OutgoingHeader.ROCKET_JOIN, RocketJoinComposer);
+        this._composers.set(OutgoingHeader.ROCKET_LEAVE, RocketLeaveComposer);
+        this._composers.set(OutgoingHeader.ROCKET_INPUT, RocketInputComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_JOIN, BattleBallJoinComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_LEAVE, BattleBallLeaveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_MOVE, BattleBallMoveComposer);

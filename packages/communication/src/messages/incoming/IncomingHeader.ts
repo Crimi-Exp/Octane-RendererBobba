@@ -708,6 +708,12 @@ export class IncomingHeader
     public static KART_STATE = 9632;
     public static KART_EVENT = 9633;
     public static KART_RACE_END = 9634;
+    // BobbaTok : Rocket Bobba
+    public static ROCKET_QUEUE = 9860;
+    public static ROCKET_MATCH_START = 9861;
+    public static ROCKET_STATE = 9862;
+    public static ROCKET_EVENT = 9863;
+    public static ROCKET_END = 9864;
     public static BATTLEBALL_QUEUE = 9650;
     public static BATTLEBALL_GAME_START = 9651;
     public static BATTLEBALL_STATE = 9652;

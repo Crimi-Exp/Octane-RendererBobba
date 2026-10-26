@@ -4,6 +4,7 @@ export * from './score';
 export * from './snowwar';
 export * from './battleball';
 export * from './kart';
+export * from './rocket';
 export * from './wobble';
 export * from './duel';
 export * from './royale';

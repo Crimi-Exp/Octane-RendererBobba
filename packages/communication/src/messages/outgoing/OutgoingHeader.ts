@@ -469,6 +469,10 @@ export class OutgoingHeader
     public static KART_LEAVE = 9621;
     public static KART_INPUT = 9622;
     public static KART_ITEM = 9623;
+    // BobbaTok : Rocket Bobba
+    public static ROCKET_JOIN = 9850;
+    public static ROCKET_LEAVE = 9851;
+    public static ROCKET_INPUT = 9852;
     public static BATTLEBALL_JOIN = 9640;
     public static BATTLEBALL_LEAVE = 9641;
     public static BATTLEBALL_MOVE = 9642;
