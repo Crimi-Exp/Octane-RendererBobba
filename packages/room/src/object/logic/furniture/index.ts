@@ -20,6 +20,7 @@ export * from './FurnitureFloorHoleLogic';
 export * from './FurnitureFriendFurniLogic';
 export * from './FurnitureGroupForumTerminalLogic';
 export * from './FurnitureGuildCustomizedLogic';
+export * from './FurnitureRecolorableLogic';
 export * from './FurnitureHabboWheelLogic';
 export * from './FurnitureHighScoreLogic';
 export * from './FurnitureHockeyScoreLogic';

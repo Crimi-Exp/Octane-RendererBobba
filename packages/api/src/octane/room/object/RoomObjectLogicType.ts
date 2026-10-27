@@ -3,6 +3,7 @@ export class RoomObjectLogicType
     public static FURNITURE_BASIC = 'furniture_basic';
     public static FURNITURE_MULTISTATE = 'furniture_multistate';
     public static FURNITURE_MULTIHEIGHT = 'furniture_multiheight';
+    public static FURNITURE_RECOLORABLE = 'furniture_recolorable';
     public static FURNITURE_RANDOMSTATE = 'furniture_randomstate';
     public static FURNITURE_PLACEHOLDER = 'furniture_placeholder';
     public static FURNITURE_CREDIT = 'furniture_credit';

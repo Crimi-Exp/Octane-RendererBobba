@@ -14,6 +14,7 @@ export * from './FurnitureFireworksVisualization';
 export * from './FurnitureGiftWrappedFireworksVisualization';
 export * from './FurnitureGiftWrappedVisualization';
 export * from './FurnitureGuildCustomizedVisualization';
+export * from './FurnitureRecolorableVisualization';
 export * from './FurnitureGuildIsometricBadgeVisualization';
 export * from './FurnitureLabelVisualization';
 export * from './FurnitureHabboWheelVisualization';

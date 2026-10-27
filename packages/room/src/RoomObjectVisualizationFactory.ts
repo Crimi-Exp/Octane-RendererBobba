@@ -1,6 +1,6 @@
 import { IAssetData, IObjectVisualizationData, IRoomObjectGraphicVisualization, IRoomObjectVisualizationFactory, RoomObjectVisualizationType } from '@octane/api';
 import { OctaneLogger } from '@octane/utils';
-import { AvatarVisualization, AvatarVisualizationData, FurnitureAnimatedVisualization, FurnitureAnimatedVisualizationData, FurnitureBBVisualization, FurnitureBadgeDisplayVisualization, FurnitureBottleVisualization, FurnitureBrandedImageVisualization, FurnitureChestVisualization, FurnitureBuilderPlaceholderVisualization, FurnitureCounterClockVisualization, FurnitureCuboidVisualization, FurnitureExternalImageVisualization, FurnitureFireworksVisualization, FurnitureGiftWrappedFireworksVisualization, FurnitureGiftWrappedVisualization, FurnitureGuildCustomizedVisualization, FurnitureGuildIsometricBadgeVisualization, FurnitureLabelVisualization, FurnitureHabboWheelVisualization, FurnitureIsometricBBVisualization, FurnitureMannequinVisualization, FurnitureMannequinVisualizationData, FurniturePartyBeamerVisualization, FurniturePlanetSystemVisualization, FurniturePosterVisualization, FurnitureQueueTileVisualization, FurnitureResettingAnimatedVisualization, FurnitureRoomBackgroundVisualization, FurnitureScoreBoardVisualization, FurnitureSoundBlockVisualization, FurnitureStickieVisualization, FurnitureValRandomizerVisualization, FurnitureVisualization, FurnitureVisualizationData, FurnitureVoteCounterVisualization, FurnitureVoteMajorityVisualization, FurnitureWaterAreaVisualization, FurnitureYoutubeVisualization, PetVisualization, PetVisualizationData, RoomObjectSpriteVisualization, RoomVisualization, RoomVisualizationData, TileCursorVisualization, WallTagVisualization, WallTagVisualizationData } from './object';
+import { AvatarVisualization, AvatarVisualizationData, FurnitureAnimatedVisualization, FurnitureAnimatedVisualizationData, FurnitureBBVisualization, FurnitureBadgeDisplayVisualization, FurnitureBottleVisualization, FurnitureBrandedImageVisualization, FurnitureChestVisualization, FurnitureBuilderPlaceholderVisualization, FurnitureCounterClockVisualization, FurnitureCuboidVisualization, FurnitureExternalImageVisualization, FurnitureFireworksVisualization, FurnitureGiftWrappedFireworksVisualization, FurnitureGiftWrappedVisualization, FurnitureGuildCustomizedVisualization, FurnitureGuildIsometricBadgeVisualization, FurnitureLabelVisualization, FurnitureHabboWheelVisualization, FurnitureIsometricBBVisualization, FurnitureMannequinVisualization, FurnitureMannequinVisualizationData, FurniturePartyBeamerVisualization, FurniturePlanetSystemVisualization, FurniturePosterVisualization, FurnitureQueueTileVisualization, FurnitureRecolorableVisualization, FurnitureResettingAnimatedVisualization, FurnitureRoomBackgroundVisualization, FurnitureScoreBoardVisualization, FurnitureSoundBlockVisualization, FurnitureStickieVisualization, FurnitureValRandomizerVisualization, FurnitureVisualization, FurnitureVisualizationData, FurnitureVoteCounterVisualization, FurnitureVoteMajorityVisualization, FurnitureWaterAreaVisualization, FurnitureYoutubeVisualization, PetVisualization, PetVisualizationData, RoomObjectSpriteVisualization, RoomVisualization, RoomVisualizationData, TileCursorVisualization, WallTagVisualization, WallTagVisualizationData } from './object';
 
 export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationFactory
 {
@@ -109,6 +109,9 @@ export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationF
             case RoomObjectVisualizationType.FURNITURE_GUILD_CUSTOMIZED:
                 visualization = FurnitureGuildCustomizedVisualization;
                 break;
+            case RoomObjectVisualizationType.FURNITURE_RECOLORABLE:
+                visualization = FurnitureRecolorableVisualization;
+                break;
             case RoomObjectVisualizationType.FURNITURE_GUILD_ISOMETRIC_BADGE:
                 visualization = FurnitureGuildIsometricBadgeVisualization;
                 break;
@@ -204,6 +207,7 @@ export class RoomObjectVisualizationFactory implements IRoomObjectVisualizationF
             case RoomObjectVisualizationType.FURNITURE_FIREWORKS:
             case RoomObjectVisualizationType.FURNITURE_GIFT_WRAPPED_FIREWORKS:
             case RoomObjectVisualizationType.FURNITURE_GUILD_CUSTOMIZED:
+            case RoomObjectVisualizationType.FURNITURE_RECOLORABLE:
             case RoomObjectVisualizationType.FURNITURE_GUILD_ISOMETRIC_BADGE:
             case RoomObjectVisualizationType.FURNITURE_VOTE_COUNTER:
             case RoomObjectVisualizationType.FURNITURE_VOTE_MAJORITY:
