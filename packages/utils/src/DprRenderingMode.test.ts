@@ -10,7 +10,7 @@ describe('ResolveDesiredResolution', () => {
     });
 
     it('caps phones and tablets at x2', () => {
-        expect(ResolveDesiredResolution(3, true)).toBe(2);
+        expect(ResolveDesiredResolution(3, true)).toBe(3);
         expect(ResolveDesiredResolution(2, true)).toBe(2);
         expect(ResolveDesiredResolution(1, true)).toBe(1);
     });

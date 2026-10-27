@@ -4,8 +4,9 @@ export type DprScaleMode = 'nearest' | 'linear';
 
 export const GetDesiredScaleMode = (): DprScaleMode => 'nearest';
 
-/** BobbaTok : au doigt (telephone, tablette), on dessine au plus en x2 : un ecran x3 coute 2,25 fois plus de pixels pour un rendu pixel art identique. */
-export const MOBILE_MAX_RESOLUTION = 2;
+/** BobbaTok : au doigt, on dessine a la vraie finesse de l'ecran (jusqu'a x3) : l'appart y est au zoom de l'appli Habbo
+ * (1 pixel du jeu = 2 pixels de l'ecran sur un iPhone), ce qui demande les pixels nets de l'appli Habbo. */
+export const MOBILE_MAX_RESOLUTION = 3;
 
 const isTouchDevice = (): boolean =>
     (typeof window !== 'undefined') && (typeof window.matchMedia === 'function') && window.matchMedia('(pointer: coarse), (hover: none)').matches;
