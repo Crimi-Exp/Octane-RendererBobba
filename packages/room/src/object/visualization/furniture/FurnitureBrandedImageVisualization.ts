@@ -318,6 +318,13 @@ export class FurnitureBrandedImageVisualization extends FurnitureVisualization
             const sizeScale = (((this._cacheSize >= 32) && (scale > 0)) ? (scale / this._cacheSize) : 1) * this._displayScale;
             const assetData = this.getAsset(this.getSpriteAssetName(scale, layerId), layerId);
 
+            // BobbaTok : au dezoom, FurnitureVisualization remplace les images « pixel art » par une copie deux fois plus
+            // petite (mobis .hab sans taille 32). L'image du fond est deja reduite ici par sprite.scale : on remet l'image
+            // entiere, sinon elle passait au quart de sa taille (et a cote de l'appart) au dezoom.
+            const fullTexture = this.getTexture(scale, layerId, assetData);
+
+            if(fullTexture && (sprite.texture !== fullTexture)) sprite.texture = fullTexture;
+
             const imageScale = Math.max(0.05, ((this._imageScale || 100) / 100) * factor);
 
             sprite.scale = BrandedImageStableScale(imageScale, assetData?.width, assetData?.height);
