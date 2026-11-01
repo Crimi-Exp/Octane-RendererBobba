@@ -39,16 +39,65 @@ export class CommunicationManager implements ICommunicationManager
         }
     }
 
+    /**
+     * BobbaTok : empreinte materielle stable (anti-contournement des bans). Seulement ce qui ne change pas en
+     * navigation privee ni d'un navigateur a l'autre sur la meme machine : carte graphique, ecran, coeurs, memoire,
+     * fuseau horaire, langue, systeme. Hachee (SHA-256), rien de lisible n'est envoye. '' si indisponible.
+     */
+    private async generateHardwareID(): Promise<string>
+    {
+        try
+        {
+            const parts: string[] = [];
+            const screen = window.screen;
+
+            parts.push(`${ screen?.width ?? 0 }x${ screen?.height ?? 0 }x${ screen?.colorDepth ?? 0 }`);
+            parts.push(String(navigator.hardwareConcurrency || 0), String((navigator as any).deviceMemory || 0));
+            parts.push(Intl.DateTimeFormat().resolvedOptions().timeZone || '', navigator.language || '');
+            parts.push((navigator as any).platform || '', String(navigator.maxTouchPoints || 0));
+
+            try
+            {
+                const canvas = document.createElement('canvas');
+                const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext;
+
+                if(gl)
+                {
+                    const info = gl.getExtension('WEBGL_debug_renderer_info');
+
+                    parts.push(info ? String(gl.getParameter(info.UNMASKED_VENDOR_WEBGL)) : String(gl.getParameter(gl.VENDOR)));
+                    parts.push(info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER)));
+                    gl.getExtension('WEBGL_lose_context')?.loseContext();
+                }
+            }
+            catch {}
+
+            const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(parts.join('|')));
+
+            return 'HW-' + Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 40);
+        }
+        catch
+        {
+            return '';
+        }
+    }
+
+    private _hardwareIdPromise: Promise<string> | null = null;
+
     private async sendHandshake(): Promise<void>
     {
         if(this._machineIdPromise === null) this._machineIdPromise = this.generateMachineID();
 
         const machineId = await this._machineIdPromise;
 
+        if(this._hardwareIdPromise === null) this._hardwareIdPromise = this.generateHardwareID();
+
+        const hardwareId = await this._hardwareIdPromise;
+
         this._connection.send(new ClientHelloMessageComposer(null, null, null, null));
         // Send the machine fingerprint (UniqueID) BEFORE the SSO ticket so the server
         // has the machineId available when it processes the login in Habbo.connect().
-        this._connection.send(new UniqueIDMessageComposer(machineId, '', ''));
+        this._connection.send(new UniqueIDMessageComposer(machineId, hardwareId, ''));
         this._connection.send(new SSOTicketMessageComposer(
             GetConfiguration().getValue('sso.ticket', null),
             GetTickerTime(),
