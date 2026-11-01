@@ -6,6 +6,7 @@ import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { FurniId, GetTexturePool, GetTickerTime, OctaneLogger, NumberBank, PickerHighlightFilter, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Matrix, Point, PointData, Rectangle, RenderTexture, Sprite, Texture, Ticker } from 'pixi.js';
 import { DEFAULT_WIRED_CLICK_SETTINGS, normalizeWiredClickSettings, WiredClickSettings } from './utils/WiredClickSettings';
+import { resolveRoomCameraAxis } from './utils/RoomCameraAxis'; // BobbaTok patch 142
 import { GetRoomContentLoader } from './GetRoomContentLoader';
 import { GetRoomManager } from './GetRoomManager';
 import { GetRoomMessageHandler } from './GetRoomMessageHandler';
@@ -1317,44 +1318,27 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
             let centeredY = false;
             const boundsWidth = Math.round(((boundRight - boundLeft) * scaleX));
 
-            if(boundsWidth < canvasRectangle.width)
+            // BobbaTok patch 142 : petit appart = centre ; sinon l'avatar, borne (voir utils/RoomCameraAxis)
+            const cameraAxisX = resolveRoomCameraAxis(offsetPoint.x, boundLeft, boundRight, halfCanvasWidthInTiles, boundsWidth, canvasRectangle.width);
+            offsetPoint.x = cameraAxisX.value;
+            if(cameraAxisX.centered)
             {
                 targetZ = 2;
-                offsetPoint.x = ((boundRight + boundLeft) / 2);
                 centeredX = true;
             }
-            else
-            {
-                if(offsetPoint.x > (boundRight - halfCanvasWidthInTiles))
-                {
-                    offsetPoint.x = (boundRight - halfCanvasWidthInTiles);
-                    limitedX = true;
-                }
-                if(offsetPoint.x < (boundLeft + halfCanvasWidthInTiles))
-                {
-                    offsetPoint.x = (boundLeft + halfCanvasWidthInTiles);
-                    limitedX = true;
-                }
-            }
+            if(cameraAxisX.limited) limitedX = true;
             const boundsHeight = Math.round(((boundBottom - boundTop) * scaleY));
-            if(boundsHeight < canvasRectangle.height)
+            // BobbaTok patch 142 : meme regle en hauteur
+            const cameraAxisY = resolveRoomCameraAxis(offsetPoint.y, boundTop, boundBottom, halfCanvasHeightInTiles, boundsHeight, canvasRectangle.height);
+            offsetPoint.y = cameraAxisY.value;
+            if(cameraAxisY.centered)
             {
                 targetZ = 2;
-                offsetPoint.y = ((boundBottom + boundTop) / 2);
                 centeredY = true;
             }
             else
             {
-                if(offsetPoint.y > (boundBottom - halfCanvasHeightInTiles))
-                {
-                    offsetPoint.y = (boundBottom - halfCanvasHeightInTiles);
-                    limitedY = true;
-                }
-                if(offsetPoint.y < (boundTop + halfCanvasHeightInTiles))
-                {
-                    offsetPoint.y = (boundTop + halfCanvasHeightInTiles);
-                    limitedY = true;
-                }
+                if(cameraAxisY.limited) limitedY = true;
                 if(limitedY)
                 {
                     offsetPoint.y = (offsetPoint.y / (scaleY / scaleX));
