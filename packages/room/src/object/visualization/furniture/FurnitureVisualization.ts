@@ -734,9 +734,12 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
 
         let alphaMultiplier = model.getValue<number>(RoomObjectVariable.FURNITURE_ALPHA_MULTIPLIER);
         const wiredOpacity = model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_OPACITY);
-        const wiredClickThrough = (model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_CLICK_THROUGH) === 1);
         const hiddenByConfInvisControl = (model.getValue<number>(RoomObjectVariable.FURNITURE_CONF_INVIS_HIDDEN) === 1);
         const hiddenByAreaHideControl = (model.getValue<number>(RoomObjectVariable.FURNITURE_AREA_HIDE_HIDDEN) === 1);
+        // BobbaTok : un mobi masque par conf_area_hide / conf_invis_control est aussi « traversable » a la souris :
+        // on clique a travers (sur le wired ou le mobi de la rangee suivante). Il reste en place et fonctionne normalement.
+        const wiredClickThrough = (model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_CLICK_THROUGH) === 1)
+            || hiddenByConfInvisControl || hiddenByAreaHideControl;
         const hideInvisibleLayers = (model.getValue<number>(RoomObjectVariable.FURNITURE_INVISIBLE_LAYER) > 0);
 
         if(isNaN(alphaMultiplier)) alphaMultiplier = 1;
