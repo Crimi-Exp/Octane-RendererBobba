@@ -36,8 +36,9 @@ export class RoomSessionChatEvent extends RoomSessionEvent
     private _nickIcon: string;
     private _displayOrder: string;
     private _bubbleWidthOverride: number;
+    private _reactionId: number;
 
-    constructor(type: string, session: IRoomSession, objectId: number, message: string, chatType: number, style: number = 0, chatColours: string = '', links: string[] = null, extraParam: number = -1, prefixText: string = '', prefixColor: string = '', prefixIcon: string = '', prefixEffect: string = '', prefixFont: string = '', nickIcon: string = '', displayOrder: string = 'icon-prefix-name', bubbleWidthOverride: number = -1)
+    constructor(type: string, session: IRoomSession, objectId: number, message: string, chatType: number, style: number = 0, chatColours: string = '', links: string[] = null, extraParam: number = -1, prefixText: string = '', prefixColor: string = '', prefixIcon: string = '', prefixEffect: string = '', prefixFont: string = '', nickIcon: string = '', displayOrder: string = 'icon-prefix-name', bubbleWidthOverride: number = -1, reactionId: number = 0)
     {
         super(type, session);
 
@@ -56,6 +57,7 @@ export class RoomSessionChatEvent extends RoomSessionEvent
         this._nickIcon = nickIcon;
         this._displayOrder = displayOrder;
         this._bubbleWidthOverride = bubbleWidthOverride;
+        this._reactionId = reactionId;
     }
 
     public get objectId(): number
@@ -129,6 +131,11 @@ export class RoomSessionChatEvent extends RoomSessionEvent
     }
 
     /** -1 when the message follows the room setting; otherwise 0 wide, 1 normal, 2 thin. */
+    public get reactionId(): number
+    {
+        return this._reactionId;
+    }
+
     public get bubbleWidthOverride(): number
     {
         return this._bubbleWidthOverride;

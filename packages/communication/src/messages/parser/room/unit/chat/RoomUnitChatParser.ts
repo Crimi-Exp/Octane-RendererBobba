@@ -17,6 +17,7 @@ export class RoomUnitChatParser implements IMessageParser
     private _nickIcon: string;
     private _displayOrder: string;
     private _bubbleWidthOverride: number;
+    private _reactionId: number;
 
     public flush(): boolean
     {
@@ -35,6 +36,7 @@ export class RoomUnitChatParser implements IMessageParser
         this._nickIcon = '';
         this._displayOrder = 'icon-prefix-name';
         this._bubbleWidthOverride = -1;
+        this._reactionId = 0;
 
         return true;
     }
@@ -61,6 +63,8 @@ export class RoomUnitChatParser implements IMessageParser
         this._displayOrder = (wrapper.bytesAvailable ? wrapper.readString() : 'icon-prefix-name');
         // A wired message may carry a bubble width of its own; -1 leaves the room setting in charge.
         this._bubbleWidthOverride = (wrapper.bytesAvailable ? wrapper.readInt() : -1);
+        // BobbaTok : identifiant du message pour les reactions (0 = non reactionnable)
+        this._reactionId = (wrapper.bytesAvailable ? wrapper.readInt() : 0);
 
         return true;
     }
@@ -156,5 +160,10 @@ export class RoomUnitChatParser implements IMessageParser
     public get bubbleWidthOverride(): number
     {
         return this._bubbleWidthOverride;
+    }
+
+    public get reactionId(): number
+    {
+        return this._reactionId;
     }
 }

@@ -692,6 +692,10 @@ export class IncomingHeader
     public static BOBBABOT_ALERT = 9583;
     public static WALL_TAG_ADDED = 9496;
     public static WALL_TAG_REMOVED = 9497;
+    // BobbaTok : Piscine du Lido v18
+    public static LIDO_ROOM = 9710;
+    public static LIDO_BOOTH = 9711;
+    public static LIDO_EVENT = 9712;
     // BobbaTok : Wobble Squabble (duel sur la bouee du Lido)
     public static WOBBLE_QUEUE = 9610;
     public static WOBBLE_MATCH_START = 9611;
@@ -714,6 +718,7 @@ export class IncomingHeader
     public static ROCKET_STATE = 9862;
     public static ROCKET_EVENT = 9863;
     public static ROCKET_END = 9864;
+    public static ROOM_CHAT_REACTIONS = 9890; // BobbaTok : reactions au tchat
     public static BATTLEBALL_QUEUE = 9650;
     public static BATTLEBALL_GAME_START = 9651;
     public static BATTLEBALL_STATE = 9652;

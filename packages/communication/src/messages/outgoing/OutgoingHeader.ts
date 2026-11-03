@@ -457,6 +457,9 @@ export class OutgoingHeader
     public static YOUTUBE_HUB_VOTE = 9822;
     public static GET_YOUTUBE_HUB_ROOMS = 9823;
     public static WALL_TAG_REMOVE = 9494;
+    // BobbaTok : Piscine du Lido v18
+    public static LIDO_SWIMSUIT = 9700;
+    public static LIDO_ACTION = 9701;
     // BobbaTok : Wobble Squabble
     public static WOBBLE_JOIN = 9600;
     public static WOBBLE_LEAVE = 9601;
@@ -473,6 +476,7 @@ export class OutgoingHeader
     public static ROCKET_JOIN = 9850;
     public static ROCKET_LEAVE = 9851;
     public static ROCKET_INPUT = 9852;
+    public static ROOM_CHAT_REACT = 9891; // BobbaTok : reactions au tchat
     public static BATTLEBALL_JOIN = 9640;
     public static BATTLEBALL_LEAVE = 9641;
     public static BATTLEBALL_MOVE = 9642;
