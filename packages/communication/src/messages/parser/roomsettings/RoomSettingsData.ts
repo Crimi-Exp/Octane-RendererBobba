@@ -45,6 +45,7 @@ export class RoomSettingsData
     private _idleAutokickEnabled: boolean = false;
     private _idleAutokickTimeoutSeconds: number = 0;
     private _minimumRank: number = 0;
+    private _playersTeleport: boolean = false;
 
     public static from(settings: RoomSettingsData)
     {
@@ -81,6 +82,7 @@ export class RoomSettingsData
         instance._idleAutokickEnabled = settings._idleAutokickEnabled;
         instance._idleAutokickTimeoutSeconds = settings._idleAutokickTimeoutSeconds;
         instance._minimumRank = settings._minimumRank;
+        instance._playersTeleport = settings._playersTeleport;
 
         return instance;
     }
@@ -425,5 +427,16 @@ export class RoomSettingsData
     public set minimumRank(value: number)
     {
         this._minimumRank = value;
+    }
+
+    /** BobbaTok #48 : les joueurs non proprietaires peuvent-ils utiliser :tp dans cet appart ? */
+    public get playersTeleport(): boolean
+    {
+        return this._playersTeleport;
+    }
+
+    public set playersTeleport(flag: boolean)
+    {
+        this._playersTeleport = flag;
     }
 }

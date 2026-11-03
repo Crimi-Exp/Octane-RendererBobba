@@ -66,6 +66,9 @@ export class RoomSettingsDataParser implements IMessageParser
         // Extension : rang minimum pour entrer dans l'appart (0 = ouvert a tous les rangs).
         if(wrapper.bytesAvailable) this._roomSettingsData.minimumRank = wrapper.readInt();
 
+        // BobbaTok #48 : option « autoriser :tp aux joueurs dans la room » (0/1), en dernier.
+        if(wrapper.bytesAvailable) this._roomSettingsData.playersTeleport = (wrapper.readInt() === 1);
+
         return true;
     }
 

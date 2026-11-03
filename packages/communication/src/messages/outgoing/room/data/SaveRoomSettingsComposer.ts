@@ -40,7 +40,8 @@ implements
         idleSleepTimeoutSeconds?: number,
         idleAutokickEnabled?: boolean,
         idleAutokickTimeoutSeconds?: number,
-        minimumRank?: number
+        minimumRank?: number,
+        playersTeleport?: boolean
     )
     {
         //@ts-ignore
@@ -89,6 +90,9 @@ implements
 
         // Extension : rang minimum pour entrer (0 = aucun), envoye apres le bloc ci-dessus.
         if(muteAllPets !== undefined && minimumRank !== undefined) this._data.push(minimumRank);
+
+        // BobbaTok #48 : option « autoriser :tp aux joueurs » (booleen 1 octet), en dernier.
+        if(muteAllPets !== undefined && minimumRank !== undefined && playersTeleport !== undefined) this._data.push(playersTeleport);
     }
 
     public getMessageArray()
