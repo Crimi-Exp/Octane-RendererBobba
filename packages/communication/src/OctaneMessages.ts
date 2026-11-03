@@ -29,7 +29,6 @@ import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinCompose
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
 import { RocketEndEvent, RocketEventEvent, RocketInputComposer, RocketJoinComposer, RocketLeaveComposer, RocketMatchStartEvent, RocketQueueEvent, RocketStateEvent } from './messages';
 import { RoomChatReactComposer, RoomChatReactionsEvent } from './messages'; // BobbaTok : reactions au tchat
-import { LidoBoothEvent, LidoEventEvent, LidoRoomEvent, LidoActionComposer, LidoSwimsuitComposer } from './messages';
 import { WobbleChallengeComposer, WobbleChatComposer, WobbleChatEvent, WobbleLeaderboardEvent, WobbleActionComposer, WobbleInputComposer, WobbleJoinComposer, WobbleLeaveComposer, WobbleMatchEndEvent, WobbleMatchStartEvent, WobbleNoticeEvent, WobbleQueueEvent, WobbleRoundEndEvent, WobbleRoundStartEvent, WobbleStateEvent } from './messages';
 import { GetRecyclerPrizesMessageComposer, RecyclerPrizesMessageEvent } from './messages';
 import { BuildersClubRecolorFurniMessageComposer } from './messages';
@@ -750,9 +749,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.WALL_TAGS, WallTagsMessageEvent);
         this._events.set(IncomingHeader.WALL_TAG_ADDED, WallTagAddedMessageEvent);
         this._events.set(IncomingHeader.WALL_TAG_REMOVED, WallTagRemovedMessageEvent);
-        this._events.set(IncomingHeader.LIDO_ROOM, LidoRoomEvent);
-        this._events.set(IncomingHeader.LIDO_BOOTH, LidoBoothEvent);
-        this._events.set(IncomingHeader.LIDO_EVENT, LidoEventEvent);
         this._events.set(IncomingHeader.WOBBLE_QUEUE, WobbleQueueEvent);
         this._events.set(IncomingHeader.WOBBLE_MATCH_START, WobbleMatchStartEvent);
         this._events.set(IncomingHeader.WOBBLE_ROUND_START, WobbleRoundStartEvent);
@@ -1633,8 +1629,6 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.WALL_TAG_REMOVE, WallTagRemoveComposer);
         this._composers.set(OutgoingHeader.WOBBLE_JOIN, WobbleJoinComposer);
         this._composers.set(OutgoingHeader.WOBBLE_LEAVE, WobbleLeaveComposer);
-        this._composers.set(OutgoingHeader.LIDO_SWIMSUIT, LidoSwimsuitComposer);
-        this._composers.set(OutgoingHeader.LIDO_ACTION, LidoActionComposer);
         this._composers.set(OutgoingHeader.WOBBLE_INPUT, WobbleInputComposer);
         this._composers.set(OutgoingHeader.WOBBLE_ACTION, WobbleActionComposer);
         this._composers.set(OutgoingHeader.WOBBLE_CHAT, WobbleChatComposer);
