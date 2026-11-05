@@ -477,6 +477,10 @@ export class OutgoingHeader
     public static ROCKET_LEAVE = 9851;
     public static ROCKET_INPUT = 9852;
     public static ROOM_CHAT_REACT = 9891; // BobbaTok : reactions au tchat
+    public static WHISPER_GROUP_INVITE = 9892; // BobbaTok : murmure en groupe (inviter)
+    public static WHISPER_GROUP_INVITE_REPLY = 9893; // BobbaTok : murmure en groupe (reponse)
+    public static WHISPER_GROUP_REMOVE = 9894; // BobbaTok : murmure en groupe (retirer)
+    public static WHISPER_GROUP_LEAVE = 9895; // BobbaTok : murmure en groupe (quitter)
     public static BATTLEBALL_JOIN = 9640;
     public static BATTLEBALL_LEAVE = 9641;
     public static BATTLEBALL_MOVE = 9642;

@@ -5,3 +5,7 @@ export * from './RoomUnitChatStyleComposer';
 export * from './RoomUnitChatWhisperComposer';
 export * from './RoomUnitTypingStartComposer';
 export * from './RoomUnitTypingStopComposer';
+export * from './WhisperGroupInviteComposer';
+export * from './WhisperGroupInviteReplyComposer';
+export * from './WhisperGroupRemoveComposer';
+export * from './WhisperGroupLeaveComposer';

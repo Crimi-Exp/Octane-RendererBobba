@@ -719,6 +719,8 @@ export class IncomingHeader
     public static ROCKET_EVENT = 9863;
     public static ROCKET_END = 9864;
     public static ROOM_CHAT_REACTIONS = 9890; // BobbaTok : reactions au tchat
+    public static WHISPER_GROUP_UPDATE = 9896; // BobbaTok : murmure en groupe (etat)
+    public static WHISPER_GROUP_INVITED = 9897; // BobbaTok : murmure en groupe (invitation recue)
     public static BATTLEBALL_QUEUE = 9650;
     public static BATTLEBALL_GAME_START = 9651;
     public static BATTLEBALL_STATE = 9652;

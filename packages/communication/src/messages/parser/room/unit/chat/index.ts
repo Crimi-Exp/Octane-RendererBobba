@@ -4,3 +4,5 @@ export * from './RoomChatReactionsParser';
 export * from './RoomUnitChatParser';
 export * from './RoomUnitTypingParser';
 export * from './SpecialSystemChatParser';
+export * from './WhisperGroupUpdateParser';
+export * from './WhisperGroupInvitedParser';

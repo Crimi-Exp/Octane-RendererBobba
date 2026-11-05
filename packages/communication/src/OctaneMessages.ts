@@ -29,6 +29,7 @@ import { BattleBallGameEndEvent, BattleBallGameStartEvent, BattleBallJoinCompose
 import { KartEventEvent, KartInputComposer, KartItemComposer, KartJoinComposer, KartLeaveComposer, KartQueueEvent, KartRaceEndEvent, KartRaceStartEvent, KartStateEvent } from './messages';
 import { RocketEndEvent, RocketEventEvent, RocketInputComposer, RocketJoinComposer, RocketLeaveComposer, RocketMatchStartEvent, RocketQueueEvent, RocketStateEvent } from './messages';
 import { RoomChatReactComposer, RoomChatReactionsEvent } from './messages'; // BobbaTok : reactions au tchat
+import { WhisperGroupInviteComposer, WhisperGroupInviteReplyComposer, WhisperGroupRemoveComposer, WhisperGroupLeaveComposer, WhisperGroupUpdateEvent, WhisperGroupInvitedEvent } from './messages'; // BobbaTok : murmure en groupe
 import { WobbleChallengeComposer, WobbleChatComposer, WobbleChatEvent, WobbleLeaderboardEvent, WobbleActionComposer, WobbleInputComposer, WobbleJoinComposer, WobbleLeaveComposer, WobbleMatchEndEvent, WobbleMatchStartEvent, WobbleNoticeEvent, WobbleQueueEvent, WobbleRoundEndEvent, WobbleRoundStartEvent, WobbleStateEvent } from './messages';
 import { GetRecyclerPrizesMessageComposer, RecyclerPrizesMessageEvent } from './messages';
 import { BuildersClubRecolorFurniMessageComposer } from './messages';
@@ -769,6 +770,8 @@ export class OctaneMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.ROCKET_EVENT, RocketEventEvent);
         this._events.set(IncomingHeader.ROCKET_END, RocketEndEvent);
         this._events.set(IncomingHeader.ROOM_CHAT_REACTIONS, RoomChatReactionsEvent); // BobbaTok
+        this._events.set(IncomingHeader.WHISPER_GROUP_UPDATE, WhisperGroupUpdateEvent); // BobbaTok : murmure en groupe
+        this._events.set(IncomingHeader.WHISPER_GROUP_INVITED, WhisperGroupInvitedEvent); // BobbaTok : murmure en groupe
         this._events.set(IncomingHeader.BATTLEBALL_QUEUE, BattleBallQueueEvent);
         this._events.set(IncomingHeader.BATTLEBALL_GAME_START, BattleBallGameStartEvent);
         this._events.set(IncomingHeader.BATTLEBALL_STATE, BattleBallStateEvent);
@@ -1641,6 +1644,10 @@ export class OctaneMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.ROCKET_LEAVE, RocketLeaveComposer);
         this._composers.set(OutgoingHeader.ROCKET_INPUT, RocketInputComposer);
         this._composers.set(OutgoingHeader.ROOM_CHAT_REACT, RoomChatReactComposer); // BobbaTok
+        this._composers.set(OutgoingHeader.WHISPER_GROUP_INVITE, WhisperGroupInviteComposer); // BobbaTok : murmure en groupe
+        this._composers.set(OutgoingHeader.WHISPER_GROUP_INVITE_REPLY, WhisperGroupInviteReplyComposer); // BobbaTok : murmure en groupe
+        this._composers.set(OutgoingHeader.WHISPER_GROUP_REMOVE, WhisperGroupRemoveComposer); // BobbaTok : murmure en groupe
+        this._composers.set(OutgoingHeader.WHISPER_GROUP_LEAVE, WhisperGroupLeaveComposer); // BobbaTok : murmure en groupe
         this._composers.set(OutgoingHeader.BATTLEBALL_JOIN, BattleBallJoinComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_LEAVE, BattleBallLeaveComposer);
         this._composers.set(OutgoingHeader.BATTLEBALL_MOVE, BattleBallMoveComposer);
