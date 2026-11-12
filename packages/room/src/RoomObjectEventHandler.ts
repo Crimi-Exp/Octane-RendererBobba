@@ -394,6 +394,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
     {
         if(!event || !event.type) return;
 
+        // BobbaTok : mode selection multiple : la souris selectionne / deplace des groupes de mobis
+        if(this._roomEngine.handleFurniMultiSelectMouseEvent && this._roomEngine.handleFurniMultiSelectMouseEvent(event, roomId)) return;
+
         if(event instanceof RoomObjectTileMouseEvent)
         {
             this._roomEngine.areaSelectionManager.handleTileMouseEvent(event);

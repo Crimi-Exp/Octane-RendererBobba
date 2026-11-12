@@ -26,6 +26,7 @@ export interface IRoomEngine
     getRoomInstanceRenderingCanvasIsFlipped(roomId?: number, canvasId?: number): boolean;
     initializeRoomInstanceRenderingCanvas(roomId: number, canvasId: number, width: number, height: number): void;
     updateRoomInstancePlaneVisibility(roomId: number, wallVisible: boolean, floorVisible?: boolean): boolean;
+    setRoomInstancePlanesGhost(roomId: number, ghost: boolean): boolean;
     updateRoomInstancePlaneThickness(roomId: number, wallThickness: number, floorThickness: number): boolean;
     updateRoomInstancePlaneType(roomId: number, floorType?: string, wallType?: string, landscapeType?: string, forceUpdate?: boolean): boolean;
     updateAreaHide(roomId: number, furniId: number, on: boolean, rootX: number, rootY: number, width: number, length: number, invert: boolean): boolean;
@@ -114,6 +115,13 @@ export interface IRoomEngine
     getWallTagInfo(roomId: number, tagId: number): { id: number; ownerId: number; ownerName: string; width: number; height: number } | null;
     setWallTagMode(enabled: boolean): void;
     isWallTagMode(): boolean;
+    /** BobbaTok : selection multiple de mobis au sol (mode dedie). */
+    setFurniMultiSelectMode(enabled: boolean): void;
+    isFurniMultiSelectMode(): boolean;
+    setFurniMultiSelectListener(listener: (state: { active: boolean; count: number; dragging: boolean }) => void): void;
+    clearFurniMultiSelection(): void;
+    getFurniMultiSelection(): number[];
+    cancelFurniMultiSelectDrag(): boolean;
     /** Position murale (":w=.. l=.. l") pour un tag de width x height px au dernier point de mur clique, recadree dans le mur. */
     getWallTagPlacement(width: number, height: number): string;
     /** Taille max (px) d'un tag sur le mur clique en dernier, pour qu'il ne deborde pas. */

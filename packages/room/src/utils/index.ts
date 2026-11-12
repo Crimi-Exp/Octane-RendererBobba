@@ -13,3 +13,4 @@ export * from './RoomShakingEffect';
 export * from './SelectedRoomObjectData';
 export * from './TileObjectMap';
 export * from './RoomBuildHeightPreview';
+export * from './RoomFurniMultiSelect';

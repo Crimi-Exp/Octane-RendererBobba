@@ -20,7 +20,7 @@ import { ObjectAvatarBlockedUpdateMessage, ObjectAvatarCarryObjectUpdateMessage,
 import { FurnitureLabelLogic, RoomLogic, RoomMapData } from './object';
 import { RoomWindowReflectionState } from './object/visualization/RoomWindowReflectionState';
 import { RoomRenderer } from './renderer';
-import { RoomAreaSelectionManager, RoomCamera, RoomData, RoomEnterEffect, RoomFurnitureData, RoomGeometry, RoomInstanceData, RoomObjectBadgeImageAssetListener } from './utils';
+import { FurniMultiSelectListener, RoomAreaSelectionManager, RoomCamera, RoomData, RoomEnterEffect, RoomFurniMultiSelect, RoomFurnitureData, RoomGeometry, RoomInstanceData, RoomObjectBadgeImageAssetListener } from './utils';
 
 export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineServices, IRoomManagerListener, IRoomContentListener, IUpdateReceiver
 {
@@ -154,6 +154,9 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         if(roomId !== this._activeRoomId) this._roomCameraParked = false;
 
+        // BobbaTok : la selection multiple appartient a la piece ou elle a ete faite
+        if(roomId !== this._activeRoomId) this._furniMultiSelect?.onRoomChanged();
+
         this._activeRoomId = roomId;
     }
 
@@ -244,6 +247,8 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
     public removeRoomInstance(roomId: number): void
     {
+        if(roomId === this._activeRoomId) this._furniMultiSelect?.onRoomChanged();
+
         const instance = this.getRoomInstance(roomId);
 
         if(instance)
@@ -663,6 +668,21 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
         object.processUpdateMessage(new ObjectRoomPlaneVisibilityUpdateMessage(ObjectRoomPlaneVisibilityUpdateMessage.WALL_VISIBILITY, wallVisible));
         object.processUpdateMessage(new ObjectRoomPlaneVisibilityUpdateMessage(ObjectRoomPlaneVisibilityUpdateMessage.FLOOR_VISIBILITY, floorVisible));
+
+        return true;
+    }
+
+    /**
+     * BobbaTok : sol et murs transparents mais toujours cliquables (pour marcher), pour les apparts qui ont leur propre
+     * decor dessine par-dessus (apparts publics v18 comme le Lido).
+     */
+    public setRoomInstancePlanesGhost(roomId: number, ghost: boolean): boolean
+    {
+        const object = this.getRoomOwnObject(roomId);
+
+        if(!object || !object.model) return false;
+
+        object.model.setValue(RoomObjectVariable.ROOM_PLANES_GHOST, (ghost ? 1 : 0));
 
         return true;
     }
@@ -2594,7 +2614,7 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
         if(type === MouseEventType.MOUSE_DOWN) this._mouseButtonHeld = true;
         else if((type === MouseEventType.MOUSE_UP) || (type === MouseEventType.MOUSE_CLICK) || (type === MouseEventType.DOUBLE_CLICK)) this._mouseButtonHeld = false;
 
-        if(this._wallPaint) buttonDown = (buttonDown || this._mouseButtonHeld);
+        if(this._wallPaint || this._furniMultiSelect.active) buttonDown = (buttonDown || this._mouseButtonHeld);
 
         const overlay = this.getRenderingCanvasOverlay(canvas);
         const sprite = this.getOverlayIconSprite(overlay, RoomEngine.OBJECT_ICON_SPRITE);
@@ -2648,6 +2668,15 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
 
     private handleRoomDragging(canvas: IRoomRenderingCanvas, x: number, y: number, type: string, altKey: boolean, ctrlKey: boolean, shiftKey: boolean): boolean
     {
+        if(this._furniMultiSelect.active)
+        {
+            // BobbaTok : selection multiple : la souris sert a selectionner et a deplacer les mobis, pas la piece.
+            this._activeRoomIsDragged = false;
+            this._activeRoomWasDragged = false;
+
+            return false;
+        }
+
         if(this._wallPaint)
         {
             // Peinture en direct : la souris sert a peindre, pas a deplacer la piece.
@@ -3976,6 +4005,47 @@ export class RoomEngine implements IRoomEngine, IRoomCreator, IRoomEngineService
     public isAreaSelectionMode(): boolean
     {
         return this._areaSelectionManager.areaSelectionState !== RoomAreaSelectionManager.NOT_ACTIVE;
+    }
+
+    // ==================== BobbaTok : selection multiple de mobis ====================
+
+    private _furniMultiSelect: RoomFurniMultiSelect = new RoomFurniMultiSelect(this);
+
+    public setFurniMultiSelectMode(enabled: boolean): void
+    {
+        this._furniMultiSelect.setActive(enabled);
+    }
+
+    public isFurniMultiSelectMode(): boolean
+    {
+        return this._furniMultiSelect.active;
+    }
+
+    public setFurniMultiSelectListener(listener: FurniMultiSelectListener): void
+    {
+        this._furniMultiSelect.listener = listener;
+    }
+
+    public clearFurniMultiSelection(): void
+    {
+        this._furniMultiSelect.clear();
+    }
+
+    public getFurniMultiSelection(): number[]
+    {
+        return this._furniMultiSelect.selectedIds;
+    }
+
+    /** Echap : annule le glisser en cours. false = rien a annuler. */
+    public cancelFurniMultiSelectDrag(): boolean
+    {
+        return this._furniMultiSelect.cancelDrag();
+    }
+
+    /** Appele par RoomObjectEventHandler : true = l'evenement est pris par la selection multiple. */
+    public handleFurniMultiSelectMouseEvent(event: RoomObjectMouseEvent, roomId: number): boolean
+    {
+        return this._furniMultiSelect.handleMouseEvent(event, roomId);
     }
 
     // ==================== BobbaTok : tags muraux (graffitis) ====================

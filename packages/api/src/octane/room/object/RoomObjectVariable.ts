@@ -111,6 +111,8 @@ export class RoomObjectVariable
     // wf_act_set_highlight : couleur 0xRRGGBB de la surbrillance wired, -1 = eteinte
     public static FURNITURE_WIRED_HIGHLIGHT: string = 'furniture_wired_highlight';
     public static FURNITURE_WIRED_CLICK_THROUGH: string = 'furniture_wired_click_through';
+    /** BobbaTok : mobi pris dans la selection multiple (1 = surligne). */
+    public static FURNITURE_MULTI_SELECTED: string = 'furniture_multi_selected';
     public static FURNITURE_CONF_INVIS_HIDDEN: string = 'furniture_conf_invis_hidden';
     public static FURNITURE_AREA_HIDE_HIDDEN: string = 'furniture_area_hide_hidden';
     public static FURNITURE_USAGE_POLICY: string = 'furniture_usage_policy';
@@ -175,6 +177,8 @@ export class RoomObjectVariable
     public static ROOM_FLOOR_VISIBILITY: string = 'room_floor_visibility';
     public static ROOM_WALL_VISIBILITY: string = 'room_wall_visibility';
     public static ROOM_LANDSCAPE_VISIBILITY: string = 'room_landscape_visibility';
+    /** BobbaTok : sol et murs dessines transparents mais toujours cliquables (decor d'apparts publics v18). */
+    public static ROOM_PLANES_GHOST: string = 'room_planes_ghost';
     public static ROOM_DOOR_X: string = 'room_door_x';
     public static ROOM_DOOR_Y: string = 'room_door_y';
     public static ROOM_DOOR_Z: string = 'room_door_z';

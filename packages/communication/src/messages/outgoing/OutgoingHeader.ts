@@ -678,6 +678,7 @@ export class OutgoingHeader
     public static CATALOG_STUDIO_DOCUMENT_APPLY = 10080;
     public static CATALOG_PRODUCT_METADATA = 10081;
     public static CATALOG_RUNTIME_CONFIGURATION = 10082;
+    public static FURNITURE_FLOOR_GROUP_MOVE = 10083; // BobbaTok : selection multiple de mobis
 
     public static DELETE_ITEM = 10018;
     public static DELETE_PET = 10030;

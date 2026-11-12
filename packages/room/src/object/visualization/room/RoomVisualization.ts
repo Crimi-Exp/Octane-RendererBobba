@@ -50,6 +50,7 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
     private _floorType: string = null;
     private _landscapeType: string = null;
     private _typeVisibility: boolean[] = [];
+    private _planesGhost: boolean = false;
     private _assetUpdateCounter: number = 0;
     private _maskData: RoomMapMaskData = null;
     private _isPlaneSet: boolean = false;
@@ -270,6 +271,18 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
         result = this.updatePlaneTypes(floorType, wallType, landscapeType);
 
         result = this.updatePlaneVisibility(floorVisibility, wallVisibility, landscapeVisibility) ? true : result;
+
+        // BobbaTok : plans fantomes (invisibles mais cliquables) quand l'appart a son propre decor dessine
+        const planesGhost = (model.getValue<number>(RoomObjectVariable.ROOM_PLANES_GHOST) === 1);
+
+        if(planesGhost !== this._planesGhost)
+        {
+            this._planesGhost = planesGhost;
+            this._visiblePlanes = [];
+            this._visiblePlaneSpriteNumbers = [];
+
+            result = true;
+        }
 
         return result;
     }
@@ -732,6 +745,14 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
                     if(sprite.visible != ((plane.visible) && (this._typeVisibility[plane.type])))
                     {
                         sprite.visible = (!(sprite.visible));
+                        updated = true;
+                    }
+
+                    const planeAlpha = (this._planesGhost ? 0 : 255);
+
+                    if(sprite.visible && (sprite.alpha !== planeAlpha))
+                    {
+                        sprite.alpha = planeAlpha;
                         updated = true;
                     }
 

@@ -760,7 +760,9 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         }
 
         // wf_act_set_highlight : contour noir recolore + teinte, sur toutes les couches du mobi.
-        const wiredHighlightColor = WiredHighlightFilters.normalizeColor(model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_HIGHLIGHT));
+        // BobbaTok : un mobi de la selection multiple prend le meme contour, en bleu clair (prioritaire sur le wired).
+        const multiSelected = (model.getValue<number>(RoomObjectVariable.FURNITURE_MULTI_SELECTED) === 1);
+        const wiredHighlightColor = multiSelected ? 0x4fbce3 : WiredHighlightFilters.normalizeColor(model.getValue<number>(RoomObjectVariable.FURNITURE_WIRED_HIGHLIGHT));
 
         if(wiredHighlightColor !== this._wiredHighlightColor)
         {

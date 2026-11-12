@@ -46,6 +46,8 @@ export interface IRoomEngineServices
     areaSelectionManager: IRoomAreaSelectionManager;
     /** BobbaTok : tags muraux. */
     isWallTagMode(): boolean;
+    /** BobbaTok : selection multiple de mobis (true = evenement consomme). */
+    handleFurniMultiSelectMouseEvent?(event: unknown, roomId: number): boolean;
     isWallPaintMode(): boolean;
     onWallPaintMouse(roomId: number, wallLocation: IVector3D, wallWidth: IVector3D, wallHeight: IVector3D, x: number, y: number, direction: number, buttonDown: boolean, click: boolean): void;
     onWallTagWallClicked(roomId: number, wallLocation: IVector3D, wallWidth: IVector3D, wallHeight: IVector3D, x: number, y: number, direction: number): void;
