@@ -1,3 +1,4 @@
+import { RoomObjectVariable } from '@octane/api';
 import { Texture } from 'pixi.js';
 import { DirectionalOffsetData } from '../data';
 import { FurnitureBrandedImageVisualization } from './FurnitureBrandedImageVisualization';
@@ -116,6 +117,12 @@ export class FurnitureRoomBackgroundVisualization extends FurnitureBrandedImageV
 
     protected getLayerIgnoreMouse(scale: number, direction: number, layerId: number): boolean
     {
+        // BobbaTok patch 279 : un fond laisse passer les clics (comme sur Habbo), sauf s'il a un clickUrl :
+        // son image (panneau) se clique alors sur ses pixels visibles et ouvre le lien. Le reste du fond reste traversable.
+        const clickUrl = this.object?.model?.getValue<string>(RoomObjectVariable.FURNITURE_BRANDING_URL);
+
+        if(clickUrl && clickUrl.length && (this.getLayerTag(scale, direction, layerId) === FurnitureBrandedImageVisualization.BRANDED_IMAGE)) return false;
+
         return true;
     }
 }
