@@ -1,6 +1,6 @@
 import { AvatarAction, AvatarDirectionAngle, AvatarScaleType, AvatarSetType, IActiveActionData, IAnimationLayerData, IAvatarDataContainer, IAvatarEffectListener, IAvatarFigureContainer, IAvatarImage, IGraphicAsset, IPartColor, ISpriteDataContainer } from '@octane/api';
 import { GetRenderer, GetTexturePool, GetTickerTime, OctaneLogger, PaletteMapFilter, TextureUtils } from '@octane/utils';
-import { ColorMatrixFilter, Container, Filter, ICanvas, RenderTexture, Sprite, Texture } from 'pixi.js';
+import { ColorMatrixFilter, Container, Filter, Graphics, ICanvas, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { AvatarFigureContainer } from './AvatarFigureContainer';
 import { AvatarImageBodyPartContainer } from './AvatarImageBodyPartContainer';
 import { AvatarStructure } from './AvatarStructure';
@@ -11,7 +11,7 @@ import { AvatarImageCache } from './cache';
 import { AvatarFrameTexture, AvatarFrameTextureCache } from './cache/AvatarFrameTextureCache';
 import { AvatarCanvas } from './structure';
 
-type PreparedAvatarPart = { image: Container; x: number; y: number };
+type PreparedAvatarPart = { image: Container; x: number; y: number; clipY?: number };
 
 export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 {
@@ -229,8 +229,79 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         return this._cachedBodyParts;
     }
 
+    // BobbaTok : vehicules plus larges que l'avatar (auto tamponneuses 700-705) : cadre elargi des deux cotes,
+    // sinon la voiture est rognee. L'avatar reste centre (regPoint = (largeur - 64) / 2).
+    private static WIDE_EFFECTS: Set<number> = new Set([ 700, 701, 703, 704, 705, 710, 711, 713, 714, 715 ]);
+    private static WIDE_CANVASES: Map<string, AvatarCanvas> = new Map();
+
+    private resolveCanvas(): AvatarCanvas
+    {
+        const canvas = this._structure.getCanvas(this._scale, this._mainAction.definition.geometryType);
+
+        if(!canvas || !AvatarImage.WIDE_EFFECTS.has(this._effectIdInUse)) return canvas;
+
+        const key = `${ canvas.id }_${ this._scale }`;
+        let wide = AvatarImage.WIDE_CANVASES.get(key);
+
+        if(!wide)
+        {
+            const extra = (this._scale === AvatarScaleType.LARGE) ? 64 : 32;
+
+            wide = new AvatarCanvas({ id: canvas.id, width: (canvas.width + extra), height: canvas.height, dx: canvas.offset.x, dy: canvas.offset.y }, this._scale);
+            AvatarImage.WIDE_CANVASES.set(key, wide);
+        }
+
+        return wide;
+    }
+
+    // BobbaTok : place du pilote dans l'auto tamponneuse, par direction affichee (px grande echelle, x vers la droite, y vers le bas).
+    // Seul le pilote bouge : la voiture (parties fx) reste sur la case. Reglage en direct dans la console :
+    //   bumper(direction, dx, dy)  -> ajoute au reglage puis tourne ton perso pour voir ; bumper() -> affiche les valeurs
+    public static BUMPER_DRIVER: number[][] = [ [ -8, -3 ], [ 0, 10 ], [ 0, 0 ], [ 0, 6 ], [ 0, 0 ], [ 0, 10 ], [ 8, -3 ], [ 0, 8 ] ];
+    // bras en plus du pilote : [ bras gauche dx, dy, bras droit dx, dy ] (de dos ils se rangent derriere le torse, de face la main va au volant)
+    public static BUMPER_ARMS: number[][] = [ [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ], [ 0, 0, 0, 0 ] ];
+
+    private static installBumperTool(): void
+    {
+        const w = (globalThis as any);
+
+        if(!w || w.bumper) return;
+
+        w.bumperBras = (direction: number, gdx: number = 0, gdy: number = 0, ddx: number = 0, ddy: number = 0) =>
+        {
+            const a = AvatarImage.BUMPER_ARMS[((direction % 8) + 8) % 8];
+
+            a[0] += gdx; a[1] += gdy; a[2] += ddx; a[3] += ddy;
+
+            const text = JSON.stringify(AvatarImage.BUMPER_ARMS);
+
+            console.log('[bumper] bras par direction 0..7 = ' + text + '  (tourne ton perso pour rafraichir)');
+
+            return text;
+        };
+
+        w.bumper = (direction?: number, dx: number = 0, dy: number = 0) =>
+        {
+            if(direction !== undefined)
+            {
+                const d = (((direction % 8) + 8) % 8);
+
+                AvatarImage.BUMPER_DRIVER[d][0] += dx;
+                AvatarImage.BUMPER_DRIVER[d][1] += dy;
+            }
+
+            const text = JSON.stringify(AvatarImage.BUMPER_DRIVER);
+
+            console.log('[bumper] pilote par direction 0..7 = ' + text + '  (tourne ton perso pour rafraichir)');
+
+            return text;
+        };
+    }
+
     private prepareBodyParts(avatarCanvas: AvatarCanvas, setType: string): PreparedAvatarPart[]
     {
+        AvatarImage.installBumperTool();
+
         let bodyParts = this.getBodyParts(setType, this._mainAction.definition.geometryType, this._mainDirection);
         const parts: PreparedAvatarPart[] = [];
 
@@ -270,10 +341,40 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
                 }
             }
 
+            // la voiture est ajoutee dans les parties 'top' (avant) et 'bottom' (arriere) : elles ne bougent pas
+            if(AvatarImage.WIDE_EFFECTS.has(this._effectIdInUse) && (bodyParts[index] !== 'top') && (bodyParts[index] !== 'bottom') && !bodyParts[index].startsWith('fx'))
+            {
+                const driver = AvatarImage.BUMPER_DRIVER[((this._mainDirection % 8) + 8) % 8];
+                const k = (this._scale === AvatarScaleType.LARGE) ? 1 : 0.5;
+
+                offsetX += (driver[0] * k);
+                offsetY += (driver[1] * k);
+
+
+                const arms = AvatarImage.BUMPER_ARMS[((this._mainDirection % 8) + 8) % 8];
+
+                if(bodyParts[index] === 'leftarm') { offsetX += (arms[0] * k); offsetY += (arms[1] * k); }
+                else if(bodyParts[index] === 'rightarm') { offsetX += (arms[2] * k); offsetY += (arms[3] * k); }
+            }
+
+            // directions droites (pas d'images assises dans Habbo) : le pilote est descendu dans la voiture,
+            // et tout ce qui est sous ses hanches (jambes, pieds) est coupe pour ne pas ressortir sous la caisse
+            let clipY: number = undefined;
+
+            if(AvatarImage.WIDE_EFFECTS.has(this._effectIdInUse) && (bodyParts[index] !== 'top') && (bodyParts[index] !== 'bottom') && ((((this._mainDirection % 8) + 8) % 8) % 2 === 1))
+            {
+                const k = (this._scale === AvatarScaleType.LARGE) ? 1 : 0.5;
+                const anchorY = ((this._scale === AvatarScaleType.LARGE) ? (avatarCanvas.height - 16) : (avatarCanvas.height - 8)) + avatarCanvas.offset.y;
+                const driver = AvatarImage.BUMPER_DRIVER[((this._mainDirection % 8) + 8) % 8];
+
+                clipY = Math.floor(anchorY + ((-24 + driver[1]) * k));
+            }
+
             parts.push({
                 image: part.image,
                 x: Math.floor(point.x + avatarCanvas.offset.x + avatarCanvas.regPoint.x + offsetX),
-                y: Math.floor(point.y + avatarCanvas.offset.y + avatarCanvas.regPoint.y + offsetY)
+                y: Math.floor(point.y + avatarCanvas.offset.y + avatarCanvas.regPoint.y + offsetY),
+                clipY
             });
         }
 
@@ -291,6 +392,14 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             partContainer.addChild(part.image);
             partContainer.position.set(part.x, part.y);
             container.addChild(partContainer);
+
+            if(part.clipY !== undefined)
+            {
+                const mask = new Graphics().rect(-500, -500, 2000, (part.clipY + 500)).fill(0xFFFFFF);
+
+                container.addChild(mask);
+                partContainer.mask = mask;
+            }
         }
 
         if(this._avatarSpriteData)
@@ -335,7 +444,7 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
         if(!this._actionsSorted) this.endActionAppends();
 
-        const avatarCanvas = this._structure.getCanvas(this._scale, this._mainAction.definition.geometryType);
+        const avatarCanvas = this.resolveCanvas();
 
         if(!avatarCanvas)
         {
@@ -459,7 +568,7 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
         if(!this._actionsSorted) this.endActionAppends();
 
-        const avatarCanvas = this._structure.getCanvas(this._scale, this._mainAction.definition.geometryType);
+        const avatarCanvas = this.resolveCanvas();
 
         if(!avatarCanvas) return null;
 
@@ -551,7 +660,7 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
         if(!this._actionsSorted) this.endActionAppends();
 
-        const avatarCanvas = this._structure.getCanvas(this._scale, this._mainAction.definition.geometryType);
+        const avatarCanvas = this.resolveCanvas();
 
         if(!avatarCanvas) return null;
 

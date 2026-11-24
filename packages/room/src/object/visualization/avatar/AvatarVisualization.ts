@@ -2,6 +2,7 @@ import { AlphaTolerance, AvatarAction, AvatarGuideStatus, AvatarSetType, IAdvanc
 import { GetAssetManager, getHalfSizeTexture, halfSizeOffset, halfSizePadding, isPixelArtTexture } from '@octane/assets';
 import { AdvancedMap, GetRenderer, Vector3d } from '@octane/utils';
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
+import { BumperTrails } from './BumperTrails';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { RoomWindowReflectionState } from '../RoomWindowReflectionState';
 import { LeadEffects } from '../LeadEffects';
@@ -25,6 +26,13 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private static AVATAR_LAYER_ID: number = 0;
     private static SHADOW_LAYER_ID: number = 1;
     private static SNOWBOARDING_EFFECT: number = 97;
+    // BobbaTok : effets vehicules qui dessinent leur propre ombre (auto tamponneuses 700-705) : pas d'ombre ronde sous l'avatar
+    private static NO_SHADOW_EFFECTS: Set<number> = new Set([ 700, 701, 703, 704, 705, 710, 711, 713, 714, 715 ]);
+    // BobbaTok : auto tamponneuses : le pilote est assis bas dans la voiture, donc la voiture est dessinee plus haut que ses pieds.
+    // On descend tout l'avatar (voiture comprise) pour que la voiture repose sur la case, de la meme hauteur dans les 8 directions.
+    private static BUMPER_DROP: number[] = [ 28, 11, 15, 2, 15, 11, 28, 6 ];
+    // ... et on la recentre sur la case : le pilote est dans le siege, pas au milieu de la voiture (px, + = vers la droite)
+    private static BUMPER_SHIFT_X: number[] = [ 6, -20, -10, 0, 10, 20, -6, 0 ];
     private static INITIAL_RESERVED_SPRITES: number = 2;
     private static ANIMATION_FRAME_UPDATE_INTERVAL: number = 2;
     private static DEFAULT_CANVAS_OFFSETS: number[] = [0, 0, 0];
@@ -48,6 +56,21 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private _gender: string;
     private _direction: number;
     private _headDirection: number;
+    private _lastForcedDir: number = undefined;
+    private _lastBumperDirection: number = -1;
+    private _bumperPrevEffect: number = -1;
+    private _bumperShakeStart: number = -1;
+    private _bumperShakeDX: number = 0;
+    private _bumperShakeDY: number = 0;
+    // glisse et traces de pneus (auto tamponneuse)
+    private _glideLast: { x: number, y: number, t: number } = null;
+    private _glideStart: number = -1;
+    private _glideStopAt: number = -1;
+    private _glideFast: boolean = false;
+    private _glideSign: number = 1;
+    private _bumperSpin: number = 0;
+    private _trailLastDrop: number = 0;
+    private _glideFrames: number = 0;
     private _posture: string;
     private _postureParameter: string;
     private _canStandUp: boolean;
@@ -235,7 +258,17 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         let otherUpdate = false;
         let objectUpdate = false;
 
-        const updateModel = this.updateModel(model, scale);
+        let updateModel = this.updateModel(model, scale);
+
+        // auto tamponneuse : la posture (assis ou non) et le calage dependent de la direction, on refait tout quand elle change
+        if(AvatarVisualization.NO_SHADOW_EFFECTS.has(this._effect))
+        {
+            this.updateBumperGlide();
+
+            const bumperDirection = this.bumperDirection();
+
+            if(bumperDirection !== this._lastBumperDirection) { this._lastBumperDirection = bumperDirection; updateModel = true; }
+        }
 
         if((updateModel || (scale !== this._scale)) || !this._avatarImage)
         {
@@ -380,6 +413,20 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                 {
                     sprite.offsetX = ((((-1 * scale) / 2) + canvasOffsets[0]) - ((sprite.texture.width - scale) / 2));
                     sprite.offsetY = (((-(sprite.texture.height) + (scale / 4)) + canvasOffsets[1]) + this._postureOffset);
+                    // les offsets viennent d'etre recalcules : la secousse en cours n'y est plus
+                    this._bumperShakeDX = 0;
+                    this._bumperShakeDY = 0;
+
+                    if(AvatarVisualization.NO_SHADOW_EFFECTS.has(this._effect) && !this._isLaying)
+                    {
+                        const drop = AvatarVisualization.BUMPER_DROP[this.bumperDirection()] || 0;
+
+                        sprite.offsetY += (scale >= 64) ? drop : Math.round(drop / 2);
+
+                        const shift = AvatarVisualization.BUMPER_SHIFT_X[this.bumperDirection()] || 0;
+
+                        sprite.offsetX += (scale >= 64) ? shift : Math.round(shift / 2);
+                    }
 
                     if(this._isLaying)
                     {
@@ -563,6 +610,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
             this.updateWindowReflectionSource();
         }
+
+        this.applyBumperShake();
     }
 
     private createAvatarImage(scale: number, effectId: number): IAvatarImage
@@ -623,10 +672,15 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
     protected updateObject(object: IRoomObject, geometry: IRoomGeometry, update: boolean, force: boolean = false): boolean
     {
+        // BobbaTok (dev, calage) : globalThis.__forceDir = 0..7 fait tourner l'avatar sur place
+        const forcedDir = (globalThis as any).__forceDir;
+
+        if((forcedDir !== undefined) && (forcedDir !== this._lastForcedDir)) { this._lastForcedDir = forcedDir; force = true; }
+
         if((!force && (this.updateObjectCounter === object.updateCounter)) && (this._geometryUpdateCounter === geometry.updateId)) return false;
 
-        let direction = (object.getDirection().x - geometry.direction.x);
-        let headDirection = (this._headDirection - geometry.direction.x);
+        let direction = (((forcedDir !== undefined) ? (forcedDir * 45) : object.getDirection().x) - geometry.direction.x);
+        let headDirection = (((forcedDir !== undefined) ? (forcedDir * 45) : this._headDirection) - geometry.direction.x);
 
         this._angleCameraDirection = geometry.direction.x;
 
@@ -639,6 +693,12 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         {
             direction -= ((direction % 90) - 45);
             headDirection -= ((headDirection % 90) - 45);
+        }
+
+        if(this._bumperSpin !== 0)
+        {
+            direction = this.normalizeDirectionAngle(direction + this._bumperSpin);
+            headDirection = this.normalizeDirectionAngle(headDirection + this._bumperSpin);
         }
 
         if(this._habbiconSpinOffset !== 0)
@@ -1120,6 +1180,156 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         return Math.round(baseAlpha * this._wiredAlpha);
     }
 
+    // direction (0-7) dessinee par l'image de l'avatar : this._direction n'est jamais renseigne ici
+    /**
+     * Auto tamponneuse : secousse au moment du choc. Le serveur passe la voiture en version « etoiles »
+     * (effet 700-705 -> 710-715) a l'impact : on fait vibrer l'avatar quelques centaines de ms.
+     */
+    private applyBumperShake(): void
+    {
+        const effect = this._effect;
+        const now = Date.now();
+
+        if(effect !== this._bumperPrevEffect)
+        {
+            if((effect >= 710) && (effect <= 715) && (this._bumperPrevEffect === (effect - 10)))
+            {
+                this._bumperShakeStart = now;
+                this.dropTrailMark(now);
+
+                // le client joue le « bonk » (au volume systeme du joueur)
+                try { globalThis.dispatchEvent?.(new CustomEvent('octane:bumper-hit')); } catch {}
+            }
+
+            this._bumperPrevEffect = effect;
+        }
+
+        const sprite = this.getSprite(AvatarVisualization.AVATAR_LAYER_ID);
+
+        if(!sprite) return;
+
+        let dx = 0;
+        let dy = 0;
+
+        if(this._bumperShakeStart >= 0)
+        {
+            const t = (now - this._bumperShakeStart);
+
+            if(t < 450)
+            {
+                const k = (1 - (t / 450));
+
+                dx = Math.round(Math.sin(t * 0.07) * 4 * k);
+                dy = Math.round(Math.cos(t * 0.11) * 1.5 * k);
+            }
+            else this._bumperShakeStart = -1;
+        }
+
+        if((dx === this._bumperShakeDX) && (dy === this._bumperShakeDY)) return;
+
+        sprite.offsetX += (dx - this._bumperShakeDX);
+        sprite.offsetY += (dy - this._bumperShakeDY);
+
+        this._bumperShakeDX = dx;
+        this._bumperShakeDY = dy;
+        this.updateSpriteCounter++;
+    }
+
+    /**
+     * Auto tamponneuse : une glissade (recul, projection, drift : la voiture bouge sans marcher) fait pivoter la
+     * voiture a l'ecran — elle se deporte puis revient, ou fait un tour complet si elle part vite — et laisse des
+     * traces de pneus. Tout est visuel : la direction du serveur ne change pas.
+     */
+    private updateBumperGlide(): void
+    {
+        if(!this.object) return;
+
+        const now = Date.now();
+        const loc = this.object.getLocation();
+        const last = this._glideLast;
+
+        this._glideLast = { x: loc.x, y: loc.y, t: now };
+
+        if(!last) return;
+
+        const moved = Math.hypot(loc.x - last.x, loc.y - last.y);
+        const dt = Math.max(1, now - last.t);
+
+        // seulement apres un vrai choc (la voiture porte les etoiles, effets 710-715) : la voiture projetee ou qui
+        // recule glisse en pivotant et laisse des traces. En conduite normale : rien, la voiture suit sa direction.
+        const hit = ((this._effect >= 710) && (this._effect <= 715));
+
+        this._glideFrames = (hit && (moved > 0.001) && (this._posture !== 'mv')) ? (this._glideFrames + 1) : 0;
+
+        const sliding = (this._glideFrames >= 2);
+
+        if(sliding)
+        {
+            if(this._glideStart < 0)
+            {
+                this._glideStart = now;
+                this._glideFast = false;
+                this._glideSign = (Math.random() < 0.5) ? -1 : 1;
+            }
+
+            // projetee vite (plus de 3 cases/s) : tete-a-queue complet
+            if(((moved / dt) * 1000) > 3.2) this._glideFast = true;
+
+            this._glideStopAt = -1;
+        }
+        else if(this._glideStart >= 0)
+        {
+            if(this._glideStopAt < 0) this._glideStopAt = now;
+
+            if(((now - this._glideStopAt) > 100) || !hit)
+            {
+                this._glideStart = -1;
+                this._glideStopAt = -1;
+            }
+        }
+
+        let spin = 0;
+
+        if(this._glideStart >= 0)
+        {
+            const t = (now - this._glideStart);
+
+            if(this._glideFast) spin = (Math.min(8, Math.floor(t / 70)) % 8) * 45 * this._glideSign;
+            else
+            {
+                // se deporte d'un cran, puis revient
+                const steps = [ 1, 1, 1, 0 ];
+                spin = steps[Math.min(steps.length - 1, Math.floor(t / 90))] * 45 * this._glideSign;
+            }
+        }
+
+        this._bumperSpin = spin;
+
+        if((sliding || (this._glideStart >= 0)) && ((now - this._trailLastDrop) > 30)) this.dropTrailMark(now);
+    }
+
+    /** Depose un point de trace sous l'essieu arriere (en tete-a-queue, ca dessine des arcs). */
+    private dropTrailMark(now: number): void
+    {
+        if(!this.object) return;
+
+        const loc = this.object.getLocation();
+        const grid = [ [ 0, -1 ], [ 1, -1 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ] ][this.bumperDirection()];
+        const n = Math.hypot(grid[0], grid[1]);
+
+        BumperTrails.add(this.object.id, loc.x - ((grid[0] / n) * 0.22), loc.y - ((grid[1] / n) * 0.22), loc.z);
+        this._trailLastDrop = now;
+    }
+
+    private bumperDirection(): number
+    {
+        const forced = (globalThis as any).__forceDir;
+        const angle = ((forced !== undefined) ? (forced * 45) : (this.object ? this.object.getDirection().x : 0)) + this._bumperSpin;
+        const direction = Math.round(angle / 45);
+
+        return (((direction % 8) + 8) % 8);
+    }
+
     protected setDirection(direction: number): void
     {
         if(this._direction === direction) return;
@@ -1174,7 +1384,13 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         avatar.initActionAppends();
 
-        avatar.appendAction(AvatarAction.POSTURE, this._posture, this._postureParameter);
+        // BobbaTok : dans l'auto tamponneuse le pilote est assis (jambes sous le capot) dans les diagonales,
+        // les seules directions ou Habbo a des images assises ; ailleurs il reste debout comme dans le kart
+        let posture = this._posture;
+
+        if(AvatarVisualization.NO_SHADOW_EFFECTS.has(this._effect) && ((posture === 'std') || (posture === 'mv')) && ((this.bumperDirection() % 2) === 0)) posture = 'sit';
+
+        avatar.appendAction(AvatarAction.POSTURE, posture, this._postureParameter);
 
         if(this._gesture > 0) this._avatarImage.appendAction(AvatarAction.GESTURE, AvatarAction.getGesture(this._gesture));
 
@@ -1489,6 +1705,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         let hasShadow = (((this._posture === 'mv') || (this._posture === 'std')) || ((this._posture === 'sit') && this._canStandUp));
 
         if(this._effect === AvatarVisualization.SNOWBOARDING_EFFECT) hasShadow = false;
+        if(AvatarVisualization.NO_SHADOW_EFFECTS.has(this._effect) && !(globalThis as any).__bumperShadow) hasShadow = false;
 
         if(hasShadow)
         {

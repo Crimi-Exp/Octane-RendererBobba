@@ -10,6 +10,7 @@ import { RoomPlaneParser } from '../../RoomPlaneParser';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { RoomPlane } from './RoomPlane';
 import { RoomVisualizationData } from './RoomVisualizationData';
+import { BumperTrails } from '../avatar/BumperTrails';
 
 export class RoomVisualization extends RoomObjectSpriteVisualization implements IPlaneVisualization
 {
@@ -88,6 +89,11 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
     public dispose(): void
     {
         super.dispose();
+
+        // BobbaTok : traces d'auto tamponneuses de cet appart
+        BumperTrails.clear();
+        for(const texture of this._trailTextures) texture.destroy(true);
+        this._trailTextures = [];
 
         this.clearPlanes();
 
@@ -189,7 +195,73 @@ export class RoomVisualization extends RoomObjectSpriteVisualization implements 
 
         if(needsUpdate) this.updateSpriteCounter++;
 
+        this.updateBumperTrails(geometry);
+
         this.updateModelCounter = objectModel.updateCounter;
+    }
+
+    // BobbaTok : traces de pneus des auto tamponneuses, dessinees par la room (immobile) pour rester fixes au sol
+    private _trailTextures: Texture[] = [];
+    private _trailDrawnAt: number = 0;
+    private _trailVisible: boolean = false;
+
+    private updateBumperTrails(geometry: IRoomGeometry): void
+    {
+        if(BumperTrails.isEmpty && !this._trailVisible) return;
+
+        const now = Date.now();
+
+        if((now - this._trailDrawnAt) < 50) return;
+
+        this._trailDrawnAt = now;
+
+        const index = this._planes.length;
+
+        if(this.totalSprites < (index + 1)) this.createSprites(index + 1);
+
+        const sprite = this.getSprite(index);
+
+        if(!sprite) return;
+
+        const drawn = BumperTrails.draw(geometry);
+        const origin = drawn ? geometry.getScreenPoint(this.object.getLocation()) : null;
+
+        if(!drawn || !origin)
+        {
+            sprite.visible = false;
+            sprite.texture = Texture.EMPTY;
+            this._trailVisible = false;
+        }
+        else
+        {
+            sprite.texture = drawn.texture;
+            sprite.offsetX = (drawn.x - origin.x);
+            sprite.offsetY = (drawn.y - origin.y);
+            // juste devant le sol (le plan de sol le plus proche), derriere tous les mobis et avatars
+            let floorDepth = RoomVisualization.ROOM_DEPTH_OFFSET;
+
+            for(const plane of this._visiblePlanes)
+            {
+                if(plane && (plane.type === RoomPlane.TYPE_FLOOR)) floorDepth = Math.min(floorDepth, (plane.relativeDepth + this.floorRelativeDepth));
+            }
+
+            sprite.relativeDepth = (floorDepth - 1);
+            sprite.alpha = 255;
+            sprite.color = 0xFFFFFF;
+            sprite.clickHandling = false;
+            sprite.skipMouseHandling = true;
+            sprite.visible = true;
+            sprite.name = ('bumper_trails_' + now);
+
+            this._trailVisible = true;
+            this._trailTextures.push(drawn.texture);
+        }
+
+
+        // l'image affichee a l'image precedente peut encore etre a l'ecran : on garde les deux dernieres
+        while(this._trailTextures.length > 2) this._trailTextures.shift().destroy(true);
+
+        this.updateSpriteCounter++;
     }
 
     private updateGeometry(geometry: IRoomGeometry): boolean
