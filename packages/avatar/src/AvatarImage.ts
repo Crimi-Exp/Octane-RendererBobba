@@ -1061,7 +1061,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
 
     private setActionToParts(action: IActiveActionData, currentTime: number): void
     {
-        if(!action || !action.definition || action.definition.assetPartDefinition === '') return;
+        if(!action || !action.definition) return;
+        if((action.definition.assetPartDefinition === '') && !this.isBumperEffectAction(action)) return;
 
         if(action.definition.isMain)
         {
@@ -1074,9 +1075,18 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         this._changes = true;
     }
 
+    // BobbaTok : l'action d'effet (assetPartDefinition vide dans HabboAvatarActions) ne touche pas aux parties du corps,
+    // sinon les jambes ne marchent plus avec un effet. Seule exception : les auto tamponneuses, dont la voiture est
+    // faite de parties ajoutees (fx700_1, fx700_2) qui n'existent que si l'action d'effet est posee sur le corps.
+    private isBumperEffectAction(action: IActiveActionData): boolean
+    {
+        return !!action && (action.actionType === AvatarAction.EFFECT) && AvatarImage.WIDE_EFFECTS.has(parseInt(action.actionParameter));
+    }
+
     private resetBodyPartCache(action: IActiveActionData): void
     {
-        if(!action || action.definition.assetPartDefinition === '') return;
+        if(!action || !action.definition) return;
+        if((action.definition.assetPartDefinition === '') && !this.isBumperEffectAction(action)) return;
 
         if(action.definition.isMain)
         {

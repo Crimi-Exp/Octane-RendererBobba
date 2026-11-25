@@ -394,6 +394,12 @@ export class AvatarImageCache
                         {
                             flipH = true;
                         }
+                        else if(this.hasOwnFlippedEffectAsset(assetPartDefinition, partType, partId, direction))
+                        {
+                            // BobbaTok : partie d'effet dessinee expres pour cette direction (ex. BTOK des auto tamponneuses) :
+                            // elle n'est pas retournee en miroir, sinon le texte se lirait a l'envers
+                            flipH = true;
+                        }
                         else
                         {
                             if(direction === 4) assetDirection = 2;
@@ -544,6 +550,16 @@ export class AvatarImageCache
         }
 
         return new AvatarImageBodyPartContainer(imageData.container, offset, isCacheable);
+    }
+
+    // BobbaTok : une partie d'effet (fx...) a-t-elle sa propre image pour une direction retournee (4, 5, 6) ?
+    // Seulement en grande echelle : la petite echelle reprend l'image miroir comme avant.
+    private hasOwnFlippedEffectAsset(assetPartDefinition: string, partType: string, partId: string, direction: number): boolean
+    {
+        if((this._scale !== AvatarScaleType.LARGE) || !partType || !partType.startsWith('fx')) return false;
+
+        return !!(this._assets.getAsset(this._scale + '_' + assetPartDefinition + '_' + partType + '_' + partId + '_' + direction + '_0')
+            || this._assets.getAsset(this._scale + '_' + this._defaultAction + '_' + partType + '_' + partId + '_' + direction + '_0'));
     }
 
     private getSmallScaleFallbackAsset(assetPartDefinition: string, partType: string, partId: string, assetDirection: number, frameNumber: number): IGraphicAsset
