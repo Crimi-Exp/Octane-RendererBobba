@@ -1,9 +1,10 @@
 import { AlphaTolerance, AvatarAction, AvatarGuideStatus, AvatarSetType, IAdvancedMap, IAvatarEffectListener, IAvatarImage, IAvatarImageListener, IGraphicAsset, IObjectVisualizationData, IRoomGeometry, IRoomObject, IRoomObjectModel, IRoomObjectSprite, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
 import { GetAssetManager, getHalfSizeTexture, halfSizeOffset, halfSizePadding, isPixelArtTexture } from '@octane/assets';
 import { AdvancedMap, GetRenderer, Vector3d } from '@octane/utils';
-import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
+import { BlurFilter, Container, Graphics, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { BumperTrails } from './BumperTrails';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
+import { IceReflectionState } from '../IceReflectionState';
 import { RoomWindowReflectionState } from '../RoomWindowReflectionState';
 import { LeadEffects } from '../LeadEffects';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
@@ -33,7 +34,16 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private static BUMPER_DROP: number[] = [ 28, 11, 15, 2, 15, 11, 28, 6 ];
     // ... et on la recentre sur la case : le pilote est dans le siege, pas au milieu de la voiture (px, + = vers la droite)
     private static BUMPER_SHIFT_X: number[] = [ 6, -20, -10, 0, 10, 20, -6, 0 ];
-    private static INITIAL_RESERVED_SPRITES: number = 2;
+    private static INITIAL_RESERVED_SPRITES: number = 3;
+    // BobbaTok : reflet inverse sur la glace de patinoire (es_skating_ice)
+    private static ICE_REFLECTION_LAYER_ID: number = 2;
+    private static ICE_REFLECTION_ALPHA: number = 120;
+    // la glace n'est pas un miroir : reflet flou, qui s'efface en s'eloignant des pieds
+    private static ICE_REFLECTION_BLUR: number = 1.2;
+    private static ICE_REFLECTION_FADE: number = 0.92;
+    private static ICE_REFLECTION_BLURS: BlurFilter[] = [];
+    private static ICE_REFLECTION_TINT: number = 0xBFE0FF;
+    private static ICE_REFLECTION_DEPTH: number = 4;
     private static ANIMATION_FRAME_UPDATE_INTERVAL: number = 2;
     private static DEFAULT_CANVAS_OFFSETS: number[] = [0, 0, 0];
     private static MAX_EFFECT_CACHE: number = 2;
@@ -49,6 +59,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private _cachedAvatars: IAdvancedMap<string, IAvatarImage>;
     private _cachedAvatarEffects: IAdvancedMap<string, IAvatarImage>;
     private _shadow: IGraphicAsset;
+    private _iceReflectionTexture: RenderTexture = null;
     private _lastUpdate: number;
     private _disposed: boolean;
 
@@ -225,6 +236,10 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         }
 
         this.destroyMirrorTextures();
+
+        if(this._iceReflectionTexture && !this._iceReflectionTexture.destroyed) this._iceReflectionTexture.destroy(true);
+
+        this._iceReflectionTexture = null;
 
         if(this.object) RoomWindowReflectionState.removeAvatar(this.object.id, this.object.model?.getValue<string>(RoomObjectVariable.OBJECT_ROOM_ID));
 
@@ -455,6 +470,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     sprite.spriteType = RoomObjectSpriteType.AVATAR;
                 }
             }
+
+            this.updateIceReflection(sprite, scale);
 
             const typingBubble = this.getAddition(AvatarVisualization.TYPING_BUBBLE_ID) as TypingBubbleAddition;
 
@@ -1692,6 +1709,115 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         this._additions.delete(addition.id);
 
         addition.dispose();
+    }
+
+    // BobbaTok : sur la glace, l'avatar se reflete a l'envers sous ses pieds (meme image, retournee, transparente, bleutee)
+    private updateIceReflection(avatarSprite: IRoomObjectSprite, scale: number): void
+    {
+        const reflection = this.getSprite(AvatarVisualization.ICE_REFLECTION_LAYER_ID);
+
+        if(!reflection) return;
+
+        const location = this.object?.getLocation();
+        const roomId = this.object?.model?.getValue<string>(RoomObjectVariable.OBJECT_ROOM_ID);
+        const standing = ((this._posture === 'std') || (this._posture === 'mv'));
+
+        if(!avatarSprite || !avatarSprite.texture || !location || this._isLaying || !standing || !IceReflectionState.hasAreas || !IceReflectionState.isOnIce(roomId, location.x, location.y))
+        {
+            reflection.visible = false;
+
+            return;
+        }
+
+        const texture = avatarSprite.texture;
+        const width = Math.max(1, Math.ceil(texture.width));
+        const height = Math.max(1, Math.ceil(texture.height));
+
+        // ligne des pieds : bas de l'image moins la marge sous les pieds
+        const pad = (((globalThis as any).__iceFeetPad ?? 10) * ((scale >= 48) ? 1 : 0.5));
+        const feetY = ((avatarSprite.offsetY + avatarSprite.texture.height) - pad);
+
+        // ligne r de l'image : (offsetY + r) en temps normal ; retournee autour des pieds : (2 * pieds - offsetY - r).
+        // L'image du reflet est deja retournee (sa ligne 0 = les pieds) : elle commence en (2 * pieds - offsetY - hauteur + 1).
+        const offsetX = avatarSprite.offsetX;
+        const offsetY = (((2 * feetY) - avatarSprite.offsetY) - height + 1);
+
+        // Le reflet ne sort pas de la glace : on ne garde que ce qui tombe sur les cases glacees (coins des cases, a l'ecran,
+        // par rapport au point de l'avatar, puis dans l'image du reflet)
+        const half = (scale / 2);
+        const quarter = (scale / 4);
+        const mask = new Graphics();
+
+        for(const area of IceReflectionState.getAreas(roomId))
+        {
+            const corners = [ [ area.x - 0.5, area.y - 0.5 ], [ area.x + area.sizeX - 0.5, area.y - 0.5 ], [ area.x + area.sizeX - 0.5, area.y + area.sizeY - 0.5 ], [ area.x - 0.5, area.y + area.sizeY - 0.5 ] ];
+            const points: number[] = [];
+
+            for(const [ cx, cy ] of corners)
+            {
+                const u = (cx - location.x);
+                const v = (cy - location.y);
+
+                points.push((((u - v) * half) - offsetX), (((u + v) * quarter) - offsetY));
+            }
+
+            mask.poly(points).fill(0xFFFFFF);
+        }
+
+        let target = this._iceReflectionTexture;
+
+        if(!target || target.destroyed || (target.width !== width) || (target.height !== height))
+        {
+            if(target && !target.destroyed) target.destroy(true);
+
+            target = RenderTexture.create({ width, height });
+
+            this._iceReflectionTexture = target;
+        }
+
+        const flipped = new Sprite(texture);
+
+        flipped.scale.y = -1;
+        flipped.y = height;
+        flipped.mask = mask;
+        const blurKey = ((scale >= 48) ? 1 : 0);
+
+        if(!AvatarVisualization.ICE_REFLECTION_BLURS[blurKey]) AvatarVisualization.ICE_REFLECTION_BLURS[blurKey] = new BlurFilter({ strength: (AvatarVisualization.ICE_REFLECTION_BLUR * (blurKey ? 1 : 0.5)), quality: 2 });
+
+        flipped.filters = [ AvatarVisualization.ICE_REFLECTION_BLURS[blurKey] ];
+
+        // de plus en plus trouble vers le bas : on efface progressivement (net aux pieds, presque invisible a la tete)
+        const fade = new Graphics();
+        const fadeHeight = Math.max(1, (height - Math.max(0, (feetY - offsetY - pad))));
+
+        for(let y = 0; y < height; y += 2)
+        {
+            const t = Math.min(1, (y / fadeHeight));
+
+            fade.rect(0, y, width, 2).fill({ color: 0xFFFFFF, alpha: (AvatarVisualization.ICE_REFLECTION_FADE * t * t * (3 - (2 * t))) });
+        }
+
+        fade.blendMode = 'erase';
+
+        const container = new Container();
+
+        container.addChild(flipped, mask, fade);
+
+        GetRenderer().render({ target, container, clear: true });
+
+        container.destroy({ children: true });
+
+        reflection.visible = true;
+        reflection.texture = target;
+        reflection.flipH = false;
+        reflection.flipV = false;
+        reflection.offsetX = offsetX;
+        reflection.offsetY = offsetY;
+        reflection.alpha = this.wiredSpriteAlpha(AvatarVisualization.ICE_REFLECTION_ALPHA);
+        reflection.color = AvatarVisualization.ICE_REFLECTION_TINT;
+        reflection.blendMode = 'normal';
+        reflection.alphaTolerance = AlphaTolerance.MATCH_NOTHING;
+        reflection.relativeDepth = AvatarVisualization.ICE_REFLECTION_DEPTH;
     }
 
     private updateShadow(scale: number): void

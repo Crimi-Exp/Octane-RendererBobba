@@ -4,6 +4,7 @@ import { ChooserSelectionFilter, OctaneLogger, PickerHighlightFilter, TextureUti
 import { BLEND_MODES, Container, Filter, Sprite, Texture } from 'pixi.js';
 import { RoomObjectSpriteVisualization } from '../RoomObjectSpriteVisualization';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
+import { IceReflectionState } from '../IceReflectionState';
 import { IWindowReflectionUnitLayer, RoomWindowReflectionState } from '../RoomWindowReflectionState';
 import { ColorData, LayerData } from '../data';
 import { FurnitureVisualizationData } from './FurnitureVisualizationData';
@@ -12,6 +13,8 @@ import { composeFurnitureAlphaMultiplier, furnitureAlphaTolerance } from './Wire
 export class FurnitureVisualization extends RoomObjectSpriteVisualization
 {
     protected static DEPTH_MULTIPLIER: number = Math.sqrt(0.5);
+    // BobbaTok : glace de patinoire repoussee sous les reflets des patineurs (voir IceReflectionState)
+    private static ICE_DEPTH: number = 8;
 
     public static TYPE: string = RoomObjectVisualizationType.FURNITURE_STATIC;
 
@@ -129,9 +132,28 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         return true;
     }
 
+    // BobbaTok : un mobi glace declare la zone qu'il couvre (les patineurs dessus ont un reflet)
+    private updateIceArea(): void
+    {
+        if(!this.object || !IceReflectionState.isIceType(this.object.type)) return;
+
+        const location = this.object.getLocation();
+
+        if(!location) return;
+
+        let sizeX = (this.object.model?.getValue<number>(RoomObjectVariable.FURNITURE_SIZE_X) || 1);
+        let sizeY = (this.object.model?.getValue<number>(RoomObjectVariable.FURNITURE_SIZE_Y) || 1);
+
+        if((Math.round((((this.object.getDirection().x % 360) + 360) % 360) / 90) % 2) === 1) [sizeX, sizeY] = [sizeY, sizeX];
+
+        IceReflectionState.setArea(this, this.object.model?.getValue<string>(RoomObjectVariable.OBJECT_ROOM_ID), Math.round(location.x), Math.round(location.y), sizeX, sizeY);
+    }
+
     public dispose(): void
     {
         this.releaseWiredUnderlayTexture();
+
+        IceReflectionState.removeArea(this);
 
         if(this._windowReflectionPushed && this.object)
         {
@@ -210,6 +232,8 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
         if(!geometry) return;
 
         this._lastUpdateTime = time;
+
+        this.updateIceArea();
 
         const scale = geometry.scale;
         let updateSprites = false;
@@ -1016,6 +1040,10 @@ export class FurnitureVisualization extends RoomObjectSpriteVisualization
                 if(this._lookThrough) sprite.alpha *= 0.2;
 
                 sprite.relativeDepth = (relativeDepth * FurnitureVisualization.DEPTH_MULTIPLIER);
+
+                // BobbaTok : la glace est dessinee tout au fond, sous le reflet des patineurs
+                if(IceReflectionState.isIceType(this.object?.type)) sprite.relativeDepth += FurnitureVisualization.ICE_DEPTH;
+
                 sprite.name = assetName;
                 sprite.libraryAssetName = this.getLibraryAssetNameForSprite(assetData, sprite);
                 sprite.posture = this.getPostureForAsset(scale, assetData.source);
