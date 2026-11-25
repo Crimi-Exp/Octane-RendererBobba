@@ -251,8 +251,25 @@ export class AvatarStructure
                         setType: ''
                     };
 
+                    // BobbaTok : auto tamponneuses (700-705, 710-715) SEULEMENT : la voiture (parties ajoutees) va aussi dans la
+                    // geometrie de la posture en cours, sinon elle disparait quand le pilote est assis. Les autres effets : inchanges.
+                    const bumperId = parseInt(action.actionParameter);
+                    const isBumper = (((bumperId >= 700) && (bumperId <= 705)) || ((bumperId >= 710) && (bumperId <= 715))) && (bumperId !== 702) && (bumperId !== 712);
+                    const postureGeometryType = (isBumper && mainAction && (mainAction !== action)) ? mainAction.definition?.geometryType : null;
+
                     for(const addData of animation.addData)
                     {
+                        if(postureGeometryType && (postureGeometryType !== geometryType))
+                        {
+                            const postureBodyPart = this._geometry.getBodyPart(postureGeometryType, addData.align);
+
+                            if(postureBodyPart)
+                            {
+                                dynamicPart.id = addData.id;
+                                postureBodyPart.addPart(dynamicPart, avatar);
+                            }
+                        }
+
                         const bodyPart = this._geometry.getBodyPart(geometryType, addData.align);
 
                         if(bodyPart)

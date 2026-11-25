@@ -394,10 +394,9 @@ export class AvatarImageCache
                         {
                             flipH = true;
                         }
-                        else if(this.hasOwnFlippedEffectAsset(assetPartDefinition, partType, partId, direction))
+                        else if(this.hasOwnFlippedBumperAsset(assetPartDefinition, partType, partId, direction))
                         {
-                            // BobbaTok : partie d'effet dessinee expres pour cette direction (ex. BTOK des auto tamponneuses) :
-                            // elle n'est pas retournee en miroir, sinon le texte se lirait a l'envers
+                            // BobbaTok : auto tamponneuse dessinee expres pour cette direction (BTOK) : pas de miroir
                             flipH = true;
                         }
                         else
@@ -552,11 +551,10 @@ export class AvatarImageCache
         return new AvatarImageBodyPartContainer(imageData.container, offset, isCacheable);
     }
 
-    // BobbaTok : une partie d'effet (fx...) a-t-elle sa propre image pour une direction retournee (4, 5, 6) ?
-    // Seulement en grande echelle : la petite echelle reprend l'image miroir comme avant.
-    private hasOwnFlippedEffectAsset(assetPartDefinition: string, partType: string, partId: string, direction: number): boolean
+    // BobbaTok : auto tamponneuses SEULEMENT (parties fx700_ a fx715_) : image propre a la direction 4, 5 ou 6 ?
+    private hasOwnFlippedBumperAsset(assetPartDefinition: string, partType: string, partId: string, direction: number): boolean
     {
-        if((this._scale !== AvatarScaleType.LARGE) || !partType || !partType.startsWith('fx')) return false;
+        if((this._scale !== AvatarScaleType.LARGE) || !partType || !/^fx7(0[0-5]|1[0-5])_/.test(partType)) return false;
 
         return !!(this._assets.getAsset(this._scale + '_' + assetPartDefinition + '_' + partType + '_' + partId + '_' + direction + '_0')
             || this._assets.getAsset(this._scale + '_' + this._defaultAction + '_' + partType + '_' + partId + '_' + direction + '_0'));

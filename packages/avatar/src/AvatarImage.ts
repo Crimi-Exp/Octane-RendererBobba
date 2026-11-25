@@ -1058,11 +1058,17 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             }
         }
 
-        // BobbaTok : auto tamponneuse = la voiture (parties ajoutees fx7xx_1 / fx7xx_2) passe en dernier, apres la
-        // posture assise forcee (Sit a la plus petite precedence et retirerait la voiture des parties du bas)
+        // BobbaTok : auto tamponneuse SEULEMENT : la voiture passe apres la posture assise forcee (Sit a la plus petite
+        // precedence et lui retirerait ses parties). Les autres effets gardent l'ordre de Habbo.
         const bumperAction = this._sortedActions.find(action => this.isBumperEffectAction(action));
 
         if(bumperAction) this.setActionToParts(bumperAction, currentTime);
+    }
+
+    // BobbaTok : action d'effet d'une auto tamponneuse (700-705, 710-715)
+    private isBumperEffectAction(action: IActiveActionData): boolean
+    {
+        return !!action && (action.actionType === AvatarAction.EFFECT) && AvatarImage.WIDE_EFFECTS.has(parseInt(action.actionParameter));
     }
 
     private setActionToParts(action: IActiveActionData, currentTime: number): void
@@ -1078,12 +1084,6 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         this._cache.setAction(action, currentTime);
 
         this._changes = true;
-    }
-
-    // BobbaTok : action d'effet d'une auto tamponneuse (700-705, 710-715)
-    private isBumperEffectAction(action: IActiveActionData): boolean
-    {
-        return !!action && (action.actionType === AvatarAction.EFFECT) && AvatarImage.WIDE_EFFECTS.has(parseInt(action.actionParameter));
     }
 
     private resetBodyPartCache(action: IActiveActionData): void
