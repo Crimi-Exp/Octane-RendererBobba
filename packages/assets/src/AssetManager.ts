@@ -1,9 +1,17 @@
 import { IAssetData, IAssetManager, IGraphicAsset, IGraphicAssetCollection } from '@octane/api';
-import { OctaneBundle, OctaneBundleTextureDecoder, parseConfigJsonFromResponse } from '@octane/utils';
+import { OctaneBundle, OctaneBundleTextureDecoder, parseConfigJsonFromResponse, takePrefetchedBuffer, takePrefetchedResponse } from '@octane/utils';
 import { Spritesheet, SpritesheetData, Texture } from 'pixi.js';
 import { assetImageFallbackUrl, isAssetJsonUrl } from './AssetJsonUrl';
 import { GraphicAssetCollection } from './GraphicAssetCollection';
 import { detectImageFormat, ImageLoadRequest, LoadedImageResource, loadImageResource, normalizedSourceExtension } from './image';
+// duckietm 4017a15 : les petites bibliotheques livrees avec le renderer sont dans le paquet (plus d'import dynamique au demarrage)
+import avatarAdditionsAssetData from './assets/avatar_additions/avatar_additions.asset.json';
+import placeHolderAssetData from './assets/place_holder/place_holder.asset.json';
+import placeHolderPetAssetData from './assets/place_holder_pet/place_holder_pet.asset.json';
+import placeHolderWallAssetData from './assets/place_holder_wall/place_holder_wall.asset.json';
+import roomAssetData from './assets/room/room.asset.json';
+import selectionArrowAssetData from './assets/selection_arrow/selection_arrow.asset.json';
+import tileCursorAssetData from './assets/tile_cursor/tile_cursor.asset.json';
 
 /** Bundles of an asset json and its sheet: Octane's .nitro and Habbo's .hab. */
 const isBundleExtension = (extension: string): boolean => extension === 'nitro' || extension === 'hab';
@@ -208,13 +216,13 @@ export class AssetManager implements IAssetManager
             // A .hab with the same json and sheet as a .nitro is read by the same bundle reader.
             if(isBundleExtension(normalizedSourceExtension(url)))
             {
-                const response = await this.fetchBundle(url);
+                const buffer = await this.fetchBundleBuffer(url);
                 const decodedResources: LoadedImageResource[] = [];
 
                 try
                 {
                     const octaneBundle = await this._dependencies.loadOctaneBundle(
-                        await response.arrayBuffer(),
+                        buffer,
                         async (bytes, entryName) =>
                         {
                             const detected = detectImageFormat(new Uint8Array(bytes), undefined, entryName);
@@ -319,8 +327,32 @@ export class AssetManager implements IAssetManager
         }
     }
 
+    /** Only the browser's own fetch is replaced by what the page prefetched: an injected one sees every request. */
+    private get usesDefaultFetch(): boolean
+    {
+        return (this._dependencies.fetch === DEFAULT_DEPENDENCIES.fetch);
+    }
+
+    /** A bundle's bytes: the ones the page already downloaded when it did, otherwise fetched (.hab fallback included). */
+    private async fetchBundleBuffer(url: string): Promise<ArrayBuffer>
+    {
+        if(this.usesDefaultFetch)
+        {
+            const prefetched = await takePrefetchedBuffer(url);
+
+            if(prefetched) return prefetched;
+        }
+
+        const response = await this.fetchBundle(url);
+
+        return response.arrayBuffer();
+    }
+
     private async fetchAsset(url: string): Promise<Response>
     {
+        // The first try may be the page's own early request for this address; a retry always fetches anew.
+        let prefetched = this.usesDefaultFetch ? takePrefetchedResponse(url) : null;
+
         for(let attempt = 0; ; attempt++)
         {
             const canRetry = (attempt < FETCH_RETRY_DELAYS_MS.length);
@@ -328,7 +360,10 @@ export class AssetManager implements IAssetManager
 
             try
             {
-                response = await this._dependencies.fetch(url);
+                const request = prefetched ?? this._dependencies.fetch(url);
+
+                prefetched = null;
+                response = await request;
             }
             catch (error)
             {
@@ -386,8 +421,7 @@ export class AssetManager implements IAssetManager
 
     private async loadLocalRoom(): Promise<void>
     {
-        const roomDataModule = await import('./assets/room/room.asset.json');
-        const roomData = (roomDataModule.default ?? roomDataModule) as IAssetData;
+        const roomData = roomAssetData as unknown as IAssetData;
         const collection = this.createCollection(roomData, null) as GraphicAssetCollection;
         if(!collection) return;
 
@@ -431,22 +465,22 @@ export class AssetManager implements IAssetManager
         switch(name)
         {
             case 'place_holder':
-                dataModule = await import('./assets/place_holder/place_holder.asset.json');
+                dataModule = placeHolderAssetData;
                 break;
             case 'place_holder_wall':
-                dataModule = await import('./assets/place_holder_wall/place_holder_wall.asset.json');
+                dataModule = placeHolderWallAssetData;
                 break;
             case 'place_holder_pet':
-                dataModule = await import('./assets/place_holder_pet/place_holder_pet.asset.json');
+                dataModule = placeHolderPetAssetData;
                 break;
             case 'tile_cursor':
-                dataModule = await import('./assets/tile_cursor/tile_cursor.asset.json');
+                dataModule = tileCursorAssetData;
                 break;
             case 'selection_arrow':
-                dataModule = await import('./assets/selection_arrow/selection_arrow.asset.json');
+                dataModule = selectionArrowAssetData;
                 break;
             case 'avatar_additions':
-                dataModule = await import('./assets/avatar_additions/avatar_additions.asset.json');
+                dataModule = avatarAdditionsAssetData;
                 break;
             case 'floor_editor':
                 dataModule = await import('./assets/floor_editor/floor_editor.asset.json');
@@ -496,7 +530,8 @@ export class AssetManager implements IAssetManager
         {
             spritesheet = new Spritesheet(texture, data.spritesheet);
 
-            await spritesheet.parse();
+            // All frames at once: parse() splits a sheet of over 1000 frames into timer-separated batches. (duckietm 4017a15)
+            spritesheet.parseSync();
 
             spritesheet.textureSource.label = data.name ?? null;
         }

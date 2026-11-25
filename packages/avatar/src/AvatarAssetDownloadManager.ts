@@ -15,7 +15,7 @@ export class AvatarAssetDownloadManager
     private _figureListeners: Map<string, IAvatarImageListener[]> = new Map();
     private _incompleteFigures: Map<string, AvatarAssetDownloadLibrary[]> = new Map();
     private _currentDownloads: AvatarAssetDownloadLibrary[] = [];
-    private _libraryNames: string[] = [];
+    private _libraryNames: Set<string> = new Set();
     private _libraryLoadedCallback: (event: AvatarRenderLibraryEvent) => void = null;
 
     constructor(assets: IAssetManager, structure: AvatarStructure)
@@ -24,6 +24,11 @@ export class AvatarAssetDownloadManager
         this._structure = structure;
     }
 
+    /** The libraries the mandatory parts resolved to on the last boot, so the next one can start them early. */
+    public static MANDATORY_LIBS_STORAGE_KEY: string = 'octane.boot.mandatoryAvatarLibs';
+    /** Guessed on a first boot, when nothing is remembered yet. */
+    private static SPECULATIVE_DEFAULT_LIBS: string[] = ['hh_human_body', 'hh_human_item'];
+    private static LIBRARY_NAME_PATTERN: RegExp = /^[A-Za-z0-9_-]{1,64}$/;
     // hh_human_body : contient les sprites du geste « Magie » (h_mag_lh_*), utiles meme pour les peaux d'une autre librairie
     private static DEFAULT_MANDATORY_LIBS: string[] = ['hh_human_face', 'hh_human_body'];
 
@@ -41,6 +46,10 @@ export class AvatarAssetDownloadManager
         const url = GetConfiguration().getValue<string>('avatar.figuremap.url');
 
         if(!url || !url.length) throw new Error('Missing "avatar.figuremap.url" in config — add the figure map URL to your renderer-config.json');
+
+        // The mandatory libraries start downloading while the figure map does; processMissingLibraries then
+        // waits for the ones the map really names, and those share the download already under way.
+        this.startSpeculativeMandatoryDownloads();
 
         let responseData: any;
 
@@ -64,6 +73,49 @@ export class AvatarAssetDownloadManager
         GetEventDispatcher().addEventListener(OctaneEventType.AVATAR_ASSET_DOWNLOADED, this._libraryLoadedCallback);
 
         await this.processMissingLibraries();
+    }
+
+    /** The library names worth starting before the figure map is in: the last boot's, or a guess on the first one. */
+    public static readSpeculativeLibraries(storage: Pick<Storage, 'getItem'> | undefined): string[]
+    {
+        const libraries = new Set<string>();
+
+        try
+        {
+            const remembered = JSON.parse(storage?.getItem(AvatarAssetDownloadManager.MANDATORY_LIBS_STORAGE_KEY) || 'null');
+
+            if(Array.isArray(remembered))
+            {
+                for(const name of remembered)
+                {
+                    if((typeof name === 'string') && AvatarAssetDownloadManager.LIBRARY_NAME_PATTERN.test(name)) libraries.add(name);
+                }
+            }
+        }
+        catch
+        {
+            // A broken entry counts as none.
+        }
+
+        if(!libraries.size) for(const name of AvatarAssetDownloadManager.SPECULATIVE_DEFAULT_LIBS) libraries.add(name);
+
+        return [ ...libraries ];
+    }
+
+    private startSpeculativeMandatoryDownloads(): void
+    {
+        if(!this._assets || !this._missingMandatoryLibs.length) return;
+
+        const downloadTemplate = GetConfiguration().getValue<string>('avatar.asset.url', '');
+
+        // Without the figure map the revision is unknown, and the address would not be the one the library asks for.
+        if(!downloadTemplate || /%revision%/i.test(downloadTemplate)) return;
+
+        for(const library of AvatarAssetDownloadManager.readSpeculativeLibraries(safeLocalStorage()))
+        {
+            // Settled here: a wrong guess is only a wasted download.
+            this._assets.downloadAsset(downloadTemplate.replace(/%libname%/gi, library)).catch(() => false);
+        }
     }
 
     public dispose(): void
@@ -93,9 +145,9 @@ export class AvatarAssetDownloadManager
             const libraryName = (library.id as string);
             const revision = (library.revision || '');
 
-            if(this._libraryNames.indexOf(libraryName) >= 0) continue;
+            if(this._libraryNames.has(libraryName)) continue;
 
-            this._libraryNames.push(libraryName);
+            this._libraryNames.add(libraryName);
 
             const downloadLibrary = new AvatarAssetDownloadLibrary(libraryName, revision, downloadUrl, this._assets);
 
@@ -119,15 +171,35 @@ export class AvatarAssetDownloadManager
     private async processMissingLibraries(): Promise<void>
     {
         const promises: Promise<void>[] = [];
+        const libraryNames = new Set<string>();
 
         this._missingMandatoryLibs.forEach(value =>
         {
             const libraries = this._figureMap.get(value);
 
-            if(libraries) for(const library of libraries) promises.push(library.downloadAsset());
+            if(!libraries) return;
+
+            for(const library of libraries)
+            {
+                if(AvatarAssetDownloadManager.LIBRARY_NAME_PATTERN.test(library.libraryName)) libraryNames.add(library.libraryName);
+
+                promises.push(library.downloadAsset());
+            }
         });
 
         this._missingMandatoryLibs = [];
+
+        if(libraryNames.size)
+        {
+            try
+            {
+                safeLocalStorage()?.setItem(AvatarAssetDownloadManager.MANDATORY_LIBS_STORAGE_KEY, JSON.stringify([ ...libraryNames ]));
+            }
+            catch
+            {
+                // Storage full or blocked: the next boot guesses again.
+            }
+        }
 
         await Promise.all(promises);
     }
@@ -327,3 +399,16 @@ export class AvatarAssetDownloadManager
         }
     }
 }
+
+/** The page's localStorage, or undefined where reading it throws (blocked storage, sandboxed frames). */
+const safeLocalStorage = (): Storage | undefined =>
+{
+    try
+    {
+        return globalThis.localStorage ?? undefined;
+    }
+    catch
+    {
+        return undefined;
+    }
+};

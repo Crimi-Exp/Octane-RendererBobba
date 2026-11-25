@@ -1,4 +1,4 @@
-import { AutoDetectOptions, Renderer, autoDetectRenderer } from 'pixi.js';
+import { AutoDetectOptions, Renderer, WebGLRenderer, autoDetectRenderer } from 'pixi.js';
 import { GetDesiredScaleMode } from './DprRenderingMode';
 import { OctaneLogger } from './OctaneLogger';
 
@@ -76,9 +76,50 @@ const patchResizeSkip = (r: Renderer): void =>
     });
 };
 
+/**
+ * A WebGL renderer made directly, as autoDetectRenderer would make it for a webgl preference, but without
+ * its support check, which creates a throwaway WebGL context first. Null when WebGL cannot start here.
+ * (duckietm 4017a15)
+ */
+const createWebGLRenderer = async (options: Partial<AutoDetectOptions>): Promise<Renderer> =>
+{
+    const glRenderer = new WebGLRenderer();
+
+    try
+    {
+        const glOptions: Partial<AutoDetectOptions> = { ...options, ...options.webgl };
+
+        delete glOptions.webgl;
+        delete glOptions.webgpu;
+        delete glOptions.canvasOptions;
+
+        await glRenderer.init(glOptions);
+
+        return glRenderer;
+    }
+    catch
+    {
+        try
+        {
+            glRenderer.destroy();
+        }
+        catch
+        {
+            // Half made: nothing more to release.
+        }
+
+        return null;
+    }
+};
+
 export const PrepareRenderer = async (options: Partial<AutoDetectOptions>): Promise<Renderer> =>
 {
-    renderer = await autoDetectRenderer({ hello: OctaneLogger.LOG_DEBUG, ...options });
+    const detectOptions: Partial<AutoDetectOptions> = { hello: OctaneLogger.LOG_DEBUG, ...options };
+
+    // Any other preference, or a WebGL that fails to start, goes through Pixi's own detection and fallbacks.
+    const direct = ((detectOptions.preference === 'webgl') && (typeof document !== 'undefined')) ? await createWebGLRenderer(detectOptions) : null;
+
+    renderer = direct ?? await autoDetectRenderer(detectOptions);
 
     renderer.events?.destroy();
 
