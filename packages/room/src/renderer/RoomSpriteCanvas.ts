@@ -1,12 +1,12 @@
 import { ColorMatrixFilter } from 'pixi.js';
-import { AlphaTolerance, IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType } from '@octane/api';
+import { AlphaTolerance, AvatarAction, IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
 import { GetConfiguration } from '@octane/configuration';
 import { RoomSpriteMouseEvent } from '@octane/events';
 import { GetTicker, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Graphics, Matrix, Point, PointData, Rectangle, Texture } from 'pixi.js';
 import { RoomEnterEffect, RoomGeometry, RoomRotatingEffect, RoomShakingEffect } from '../utils';
 import { RoomObjectCache, RoomObjectCacheItem } from './cache';
-import { getObjectAltitudeDepth } from './ObjectAltitudeDepth';
+import { getObjectAltitudeDepth, isStackableFurni, isUnitObject, restsOnRideFurniture } from './ObjectAltitudeDepth';
 import { ExtendedSprite, ObjectMouseData, SortableSprite } from './utils';
 
 export class RoomSpriteCanvas implements IRoomRenderingCanvas
@@ -35,6 +35,11 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
     private _sortableSprites: SortableSprite[] = [];
     private _sortableSpritesDirty: boolean = false;
+    // BobbaTok : a furni that moves, comes or goes changes how the other objects on its tile sort (a furni stacked on
+    // another one, a seat on a roller...): those are sorted again on the next frame, without re-entering the room
+    private _stackTilesChanged: Set<string> = new Set();
+    private _stackTilesToRefresh: Set<string> = new Set();
+    private _objectStackTiles: Map<string, string> = new Map();
     private _spriteCount: number = 0;
     private _activeSpriteCount: number = 0;
     private _spritePool: ExtendedSprite[] = [];
@@ -510,6 +515,10 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
         const objects = this._container.objects;
 
+        // BobbaTok : the tiles where a furni changed during the last frame are sorted again in this one
+        this._stackTilesToRefresh = (this._stackTilesChanged ??= new Set());
+        if(this._stackTilesToRefresh.size) this._stackTilesChanged = new Set();
+
         if(objects.size)
         {
             for(const object of objects.values())
@@ -602,6 +611,14 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
     public removeFromCache(identifier: string): void
     {
+        const stackTile = this._objectStackTiles?.get(identifier);
+
+        if(stackTile !== undefined)
+        {
+            this._stackTilesChanged.add(stackTile);
+            this._objectStackTiles.delete(identifier);
+        }
+
         this._objectCache.removeObjectCache(identifier);
 
         this._sortableSpritesDirty = true;
@@ -639,6 +656,31 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
         if(locationCache.locationChanged) update = true;
 
+        // BobbaTok : tri des mobis empiles tenu a jour sur la case (voir _stackTilesChanged)
+        {
+            const location = object.getLocation();
+            const stackTile = `${ Math.round(location.x) }_${ Math.round(location.y) }`;
+
+            this._objectStackTiles ??= new Map();
+            this._stackTilesChanged ??= new Set();
+
+            if(isStackableFurni(object))
+            {
+                const lastTile = this._objectStackTiles.get(identifier);
+
+                if((lastTile !== stackTile) || locationCache.locationChanged)
+                {
+                    this._stackTilesChanged.add(stackTile);
+
+                    if(lastTile !== undefined) this._stackTilesChanged.add(lastTile);
+
+                    this._objectStackTiles.set(identifier, stackTile);
+                }
+            }
+
+            if(this._stackTilesToRefresh?.size && this._stackTilesToRefresh.has(stackTile)) update = true;
+        }
+
         if(!sortableCache.needsUpdate(visualization.instanceId, visualization.updateSpriteCounter) && !update)
         {
             return sortableCache.spriteCount;
@@ -646,7 +688,11 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
         let x = vector.x;
         let y = vector.y;
-        let z = (vector.z - getObjectAltitudeDepth(object));
+        // BobbaTok : a furni (or a seated unit) only weighs its altitude on a roller (see ObjectAltitudeDepth)
+        const posture = object.model?.getValue<string>(RoomObjectVariable.FIGURE_POSTURE);
+        const needsBase = (isStackableFurni(object) || (isUnitObject(object) && ((posture === AvatarAction.POSTURE_SIT) || (posture === AvatarAction.POSTURE_LAY))));
+        const onRideFurniture = (needsBase && (object.getLocation().z > 0.01)) ? restsOnRideFurniture(object, this._container.objects.values()) : (needsBase ? false : undefined);
+        let z = (vector.z - getObjectAltitudeDepth(object, onRideFurniture));
 
         if(x > 0) z = (z + (x * 1.2E-7));
         else z = (z + (-(x) * 1.2E-7));
