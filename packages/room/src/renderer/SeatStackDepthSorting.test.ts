@@ -68,3 +68,24 @@ describe('seat stack depth', () =>
         expect(restsInsideSeat(statue, [ throne, statue ], isSeat)).toBe(false);
     });
 });
+
+describe('architect sort overrides', () =>
+{
+    it('stores, forgets and resets the per-furni setting', async () =>
+    {
+        const { FURNI_SORT_INSIDE, FURNI_SORT_ON_TOP, getFurniSortOverride, getFurniSortVersion, setFurniSortOverrides } = await import('./FurniSortOverrides');
+        const before = getFurniSortVersion();
+
+        setFurniSortOverrides(true, [ [ 10, FURNI_SORT_INSIDE ], [ 11, FURNI_SORT_ON_TOP ] ]);
+        expect(getFurniSortOverride(10)).toBe(FURNI_SORT_INSIDE);
+        expect(getFurniSortOverride(11)).toBe(FURNI_SORT_ON_TOP);
+        expect(getFurniSortVersion()).not.toBe(before);
+
+        setFurniSortOverrides(false, [ [ 10, 0 ] ]);
+        expect(getFurniSortOverride(10)).toBe(0);
+        expect(getFurniSortOverride(11)).toBe(FURNI_SORT_ON_TOP);
+
+        setFurniSortOverrides(true, []);
+        expect(getFurniSortOverride(11)).toBe(0);
+    });
+});

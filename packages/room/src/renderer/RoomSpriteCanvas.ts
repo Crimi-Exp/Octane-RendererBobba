@@ -7,6 +7,7 @@ import { GetTicker, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Graphics, Matrix, Point, PointData, Rectangle, Texture } from 'pixi.js';
 import { RoomEnterEffect, RoomGeometry, RoomRotatingEffect, RoomShakingEffect } from '../utils';
 import { RoomObjectCache, RoomObjectCacheItem } from './cache';
+import { FURNI_SORT_AUTO, FURNI_SORT_INSIDE, getFurniSortOverride, getFurniSortVersion } from './FurniSortOverrides';
 import { getObjectAltitudeDepth, isStackableFurni, restsInsideSeat } from './ObjectAltitudeDepth';
 import { ExtendedSprite, ObjectMouseData, SortableSprite } from './utils';
 
@@ -43,6 +44,9 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
     private _objectStackTiles: Map<string, string> = new Map();
     // BobbaTok : types de mobis sur lesquels on s'assoit ou s'allonge (furnidata), gardes en cache
     private _seatTypes: Map<string, boolean> = new Map();
+    // BobbaTok : reglages d'affichage de l'Architecte (FurniSortOverrides) : un changement refait le tri des mobis
+    private _furniSortVersion: number = -1;
+    private _furniSortRefreshAll: boolean = false;
     private _isSeatType = (type: string): boolean =>
     {
         this._seatTypes ??= new Map();
@@ -542,6 +546,11 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         this._stackTilesToRefresh = (this._stackTilesChanged ??= new Set());
         if(this._stackTilesToRefresh.size) this._stackTilesChanged = new Set();
 
+        // BobbaTok : un reglage d'affichage a change (Architecte) : tous les mobis sont tries de nouveau dans cette frame
+        const furniSortVersion = getFurniSortVersion();
+        this._furniSortRefreshAll = (furniSortVersion !== this._furniSortVersion);
+        this._furniSortVersion = furniSortVersion;
+
         if(objects.size)
         {
             for(const object of objects.values())
@@ -702,6 +711,7 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
             }
 
             if(this._stackTilesToRefresh?.size && this._stackTilesToRefresh.has(stackTile)) update = true;
+            if(this._furniSortRefreshAll && isStackableFurni(object)) update = true;
         }
 
         if(!sortableCache.needsUpdate(visualization.instanceId, visualization.updateSpriteCounter) && !update)
@@ -713,7 +723,9 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
         let y = vector.y;
         // BobbaTok : seul un mobi pose DANS un siege ou un lit (statue sur l'assise d'un trone) se trie par ses calques ;
         // tout le reste (blocs empiles ou emboites, murs, piliers, mezzanines, persos) garde le poids de sa hauteur
-        const insideSeat = (isStackableFurni(object) && (object.getLocation().z > 0.01) && restsInsideSeat(object, this._container.objects.values(), this._isSeatType));
+        // le reglage de l'Architecte passe avant : « dans le mobi du dessous » (calques) ou « par-dessus » (hauteur)
+        const furniSort = isStackableFurni(object) ? getFurniSortOverride(object.id) : FURNI_SORT_AUTO;
+        const insideSeat = (furniSort === FURNI_SORT_INSIDE) || ((furniSort === FURNI_SORT_AUTO) && isStackableFurni(object) && (object.getLocation().z > 0.01) && restsInsideSeat(object, this._container.objects.values(), this._isSeatType));
         let z = (vector.z - getObjectAltitudeDepth(object, (insideSeat ? false : undefined)));
 
         if(x > 0) z = (z + (x * 1.2E-7));
