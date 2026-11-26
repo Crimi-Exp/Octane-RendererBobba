@@ -94,9 +94,26 @@ export const restsOnRideFurniture = (object: IRoomObject, objects: Iterable<IRoo
  * @param onRideFurniture for a furni or a seated unit: whether a ride-on furni lies under it (restsOnRideFurniture).
  *        Leave it undefined to weight the altitude as before (standing units always are).
  */
+/** BobbaTok : cle du modele posee par une glissade assise (toboggan) : date de fin, en ms. */
+export const SLIDING_UNTIL_KEY = 'bobba_sliding_until';
+
+/**
+ * Pendant une glissade, le perso est trie dans la goulotte : devant l'eau (calques du toboggan a ~0) mais derriere le
+ * rebord avant (calque a -0,707). Il ne passe ni sous l'eau, ni par-dessus le rebord orange.
+ */
+export const SLIDING_DEPTH_BIAS = 0.4;
+
 export const getObjectAltitudeDepth = (object: IRoomObject, onRideFurniture?: boolean): number =>
 {
     const altitude = object.getLocation().z;
+
+    // BobbaTok : perso assis qui glisse (toboggan) : il garde sa hauteur et une case d'avance dans le tri
+    if(isUnitObject(object))
+    {
+        const slidingUntil = object.model?.getValue<number>(SLIDING_UNTIL_KEY);
+
+        if(slidingUntil && (slidingUntil > Date.now())) return SLIDING_DEPTH_BIAS;
+    }
 
     // BobbaTok : a furni weighs its altitude only on a roller ; elsewhere its layers decide (Habbo sorting)
     if((onRideFurniture !== undefined) && !isUnitObject(object)) return (onRideFurniture ? (altitude * OBJECT_ALTITUDE_DEPTH) : 0);

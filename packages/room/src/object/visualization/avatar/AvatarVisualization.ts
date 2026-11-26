@@ -9,6 +9,8 @@ import { RoomWindowReflectionState } from '../RoomWindowReflectionState';
 import { LeadEffects } from '../LeadEffects';
 import { WiredHighlightFilters } from '../WiredHighlightFilters';
 import { AvatarVisualizationData } from './AvatarVisualizationData';
+import { SlideSplashAddition } from './additions/SlideSplashAddition';
+import { SLIDING_UNTIL_KEY } from '../../../renderer/ObjectAltitudeDepth';
 import { ExpressionAdditionFactory, FloatingIdleZAddition, GameClickTargetAddition, GuideStatusBubbleAddition, HabbiconBubbleAddition, IAvatarAddition, LeadRankBubbleAddition, LeadSparkleAddition, MutedBubbleAddition, NumberBubbleAddition, TypingBubbleAddition } from './additions';
 
 export class AvatarVisualization extends RoomObjectSpriteVisualization implements IAvatarImageListener, IAvatarEffectListener
@@ -20,6 +22,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private static NUMBER_BUBBLE_ID: number = 4;
     private static GAME_CLICK_TARGET_ID: number = 5;
     private static MUTED_BUBBLE_ID: number = 6;
+    /** BobbaTok : giclees d'eau pendant une glissade (toboggan) */
+    private static SLIDE_SPLASH_ID: number = 9401;
     private static GUIDE_BUBBLE_ID: number = 7;
     private static HABBICON_BUBBLE_ID: number = 8;
     private static OWN_USER_ID: number = 4;
@@ -930,6 +934,23 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         {
             this.removeAddition(LeadEffects.ADDITION_ID);
             this.removeAddition(LeadEffects.BUBBLE_ADDITION_ID);
+
+            needsUpdate = true;
+        }
+
+        // BobbaTok : giclees d'eau tant que le perso glisse (toboggan), puis une derniere gerbe a l'arrivee
+        const slidingUntil = (model.getValue<number>(SLIDING_UNTIL_KEY) || 0);
+        const slideSplash = this.getAddition(AvatarVisualization.SLIDE_SPLASH_ID);
+
+        if(slidingUntil && (Date.now() < (slidingUntil + SlideSplashAddition.FINAL_SPLASH_MS)))
+        {
+            if(!slideSplash) this.addAddition(new SlideSplashAddition(AvatarVisualization.SLIDE_SPLASH_ID, this, () => (this.object?.model?.getValue<number>(SLIDING_UNTIL_KEY) || 0)));
+
+            needsUpdate = true;
+        }
+        else if(slideSplash)
+        {
+            this.removeAddition(AvatarVisualization.SLIDE_SPLASH_ID);
 
             needsUpdate = true;
         }

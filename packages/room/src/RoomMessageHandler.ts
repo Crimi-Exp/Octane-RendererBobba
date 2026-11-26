@@ -2,6 +2,7 @@ import { AvatarGuideStatus, IConnection, IMessageEvent, IRoomCreator, IRoomObjec
 import { AreaHideMessageEvent, BlockResultEvent, BlockResultParser, ConfInvisStateMessageEvent, DiceValueMessageEvent, FloorHeightMapEvent, FurnitureAliasesComposer, FurnitureAliasesEvent, FurnitureDataEvent, FurnitureFloorAddEvent, FurnitureFloorDataParser, FurnitureFloorEvent, FurnitureFloorRemoveEvent, FurnitureFloorUpdateEvent, FurnitureWallAddEvent, FurnitureWallDataParser, FurnitureWallEvent, FurnitureWallRemoveEvent, FurnitureWallUpdateEvent, GetCommunication, GetRoomEntryDataMessageComposer, GuideSessionEndedMessageEvent, GuideSessionErrorMessageEvent, GuideSessionStartedMessageEvent, IgnoreResultEvent, ItemDataUpdateMessageEvent, ObjectsDataUpdateEvent, ObjectsRollingEvent, OneWayDoorStatusMessageEvent, PetExperienceEvent, PetFigureUpdateEvent, RoomEntryTileMessageEvent, RoomEntryTileMessageParser, RoomHeightMapEvent, RoomHeightMapUpdateEvent, RoomPaintEvent, RoomReadyMessageEvent, RoomUnitChatEvent, RoomUnitChatShoutEvent, RoomUnitChatWhisperEvent, RoomUnitDanceEvent, RoomUnitEffectEvent, RoomUnitEvent, RoomUnitExpressionEvent, RoomUnitHabbiconEvent, RoomUnitHandItemEvent, RoomUnitIdleEvent, RoomUnitInfoEvent, RoomUnitNumberEvent, RoomUnitRemoveEvent, RoomUnitStatusEvent, RoomUnitStatusMessage, RoomUnitTypingEvent, RoomVisualizationSettingsEvent, UserInfoEvent, WiredFurniMoveStyleEvent, WiredHighlightEvent, WiredHighlightParser, WiredUnitOpacityEvent, WiredFurniMovementData, WiredMovementsEvent, WiredUserDirectionUpdateData, WiredUserMovementData, YouArePlayingGameEvent, WiredFurniMoveStyleParser, WallTagAddedMessageEvent, WallTagRemovedMessageEvent, WallTagsMessageEvent } from '@octane/communication';
 import { GetRoomSessionManager, GetSessionDataManager } from '@octane/session';
 import { OctaneLogger, Vector3d } from '@octane/utils';
+import { SLIDING_UNTIL_KEY } from './renderer/ObjectAltitudeDepth';
 import { FloorHeightMapMessageParser } from '@octane/communication';
 import { ItemRemoveMultipleEvent, ItemsStateUpdateEvent, ObjectRemoveMultipleEvent } from '@octane/communication';
 import { GetRoomEngine } from './GetRoomEngine';
@@ -822,6 +823,20 @@ export class RoomMessageHandler
 
         if(object && object.type !== RoomObjectUserType.MONSTER_PLANT)
         {
+            // glissade (toboggan, wired « glisser ») : un perso assis ou allonge le reste pendant le mouvement
+            if(isSlide)
+            {
+                const current = object.model.getValue<string>(RoomObjectVariable.FIGURE_POSTURE);
+
+                if(current === 'sit' || current === 'lay')
+                {
+                    // le temps de la glissade, le tri d'affichage le garde devant le toboggan (voir ObjectAltitudeDepth)
+                    object.model.setValue(SLIDING_UNTIL_KEY, Date.now() + Math.max(movement.duration, 1) + 250);
+
+                    return;
+                }
+            }
+
             const posture = (movement.movementType === ObjectRolling.MOVE) ? 'mv' : 'std';
 
             this._roomEngine.updateRoomObjectUserPosture(this._currentRoomId, movement.id, posture);
