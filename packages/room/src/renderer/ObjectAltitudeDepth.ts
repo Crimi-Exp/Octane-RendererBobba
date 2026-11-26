@@ -91,6 +91,53 @@ export const restsOnRideFurniture = (object: IRoomObject, objects: Iterable<IRoo
 };
 
 /**
+ * BobbaTok : is this furni set down *inside* a seat or a bed on its tile (a statue on a throne's seat, below the top
+ * of the throne)? Only then does it sort by the layer depths of the two furni (the throne's armrests cover it).
+ * A furni put on top of another one, or sunk a little into a block that is not a seat (walls, pillars, mezzanines
+ * built with :setz), keeps the weight of its altitude, so builds look as they always did.
+ * @param isSeat whether a furni type can be sat or laid on (furnidata canSitOn / canLayOn)
+ */
+export const restsInsideSeat = (object: IRoomObject, objects: Iterable<IRoomObject>, isSeat: (type: string) => boolean): boolean =>
+{
+    const location = object?.getLocation();
+
+    if(!location || !objects || !isSeat) return false;
+
+    const x = Math.round(location.x);
+    const y = Math.round(location.y);
+
+    for(const other of objects)
+    {
+        if(!other || (other === object) || !isStackableFurni(other)) continue;
+
+        const otherLocation = other.getLocation();
+
+        if(!otherLocation || (otherLocation.z >= (location.z - 0.01))) continue;
+
+        // the tiles the seat covers (a sofa or a bench spans several)
+        let sizeX = Math.max(1, Math.round(other.model?.getValue<number>(RoomObjectVariable.FURNITURE_SIZE_X) || 1));
+        let sizeY = Math.max(1, Math.round(other.model?.getValue<number>(RoomObjectVariable.FURNITURE_SIZE_Y) || 1));
+        const direction = other.getDirection()?.x;
+
+        if((direction === 90) || (direction === 270)) [ sizeX, sizeY ] = [ sizeY, sizeX ];
+
+        const originX = Math.round(otherLocation.x);
+        const originY = Math.round(otherLocation.y);
+
+        if((x < originX) || (x >= (originX + sizeX)) || (y < originY) || (y >= (originY + sizeY))) continue;
+
+        const sizeZ = (other.model?.getValue<number>(RoomObjectVariable.FURNITURE_SIZE_Z) || 0);
+
+        // only inside it: set down below its top
+        if(location.z >= ((otherLocation.z + sizeZ) - 0.01)) continue;
+
+        if(isSeat(other.type)) return true;
+    }
+
+    return false;
+};
+
+/**
  * @param onRideFurniture for a furni or a seated unit: whether a ride-on furni lies under it (restsOnRideFurniture).
  *        Leave it undefined to weight the altitude as before (standing units always are).
  */

@@ -1,12 +1,13 @@
 import { ColorMatrixFilter } from 'pixi.js';
-import { AlphaTolerance, AvatarAction, IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType, RoomObjectVariable } from '@octane/api';
+import { AlphaTolerance, IPlaneVisualization, IRoomCanvasMouseListener, IRoomGeometry, IRoomObject, IRoomObjectSprite, IRoomObjectSpriteVisualization, IRoomPlane, IRoomRenderingCanvas, IRoomSpriteCanvasContainer, IRoomSpriteMouseEvent, MouseEventType, RoomObjectSpriteData, RoomObjectSpriteType } from '@octane/api';
 import { GetConfiguration } from '@octane/configuration';
 import { RoomSpriteMouseEvent } from '@octane/events';
+import { GetSessionDataManager } from '@octane/session';
 import { GetTicker, TextureUtils, Vector3d } from '@octane/utils';
 import { Container, Graphics, Matrix, Point, PointData, Rectangle, Texture } from 'pixi.js';
 import { RoomEnterEffect, RoomGeometry, RoomRotatingEffect, RoomShakingEffect } from '../utils';
 import { RoomObjectCache, RoomObjectCacheItem } from './cache';
-import { getObjectAltitudeDepth, isStackableFurni, isUnitObject, restsOnRideFurniture } from './ObjectAltitudeDepth';
+import { getObjectAltitudeDepth, isStackableFurni, restsInsideSeat } from './ObjectAltitudeDepth';
 import { ExtendedSprite, ObjectMouseData, SortableSprite } from './utils';
 
 export class RoomSpriteCanvas implements IRoomRenderingCanvas
@@ -40,6 +41,28 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
     private _stackTilesChanged: Set<string> = new Set();
     private _stackTilesToRefresh: Set<string> = new Set();
     private _objectStackTiles: Map<string, string> = new Map();
+    // BobbaTok : types de mobis sur lesquels on s'assoit ou s'allonge (furnidata), gardes en cache
+    private _seatTypes: Map<string, boolean> = new Map();
+    private _isSeatType = (type: string): boolean =>
+    {
+        this._seatTypes ??= new Map();
+
+        let seat = this._seatTypes.get(type);
+
+        if(seat === undefined)
+        {
+            const furniData = GetSessionDataManager()?.getFloorItemDataByName(type);
+
+            // furnidata pas encore chargee : on ne retient rien, on redemandera
+            if(!furniData) return false;
+
+            seat = !!(furniData.canSitOn || furniData.canLayOn);
+
+            this._seatTypes.set(type, seat);
+        }
+
+        return seat;
+    };
     private _spriteCount: number = 0;
     private _activeSpriteCount: number = 0;
     private _spritePool: ExtendedSprite[] = [];
@@ -688,11 +711,10 @@ export class RoomSpriteCanvas implements IRoomRenderingCanvas
 
         let x = vector.x;
         let y = vector.y;
-        // BobbaTok : a furni (or a seated unit) only weighs its altitude on a roller (see ObjectAltitudeDepth)
-        const posture = object.model?.getValue<string>(RoomObjectVariable.FIGURE_POSTURE);
-        const needsBase = (isStackableFurni(object) || (isUnitObject(object) && ((posture === AvatarAction.POSTURE_SIT) || (posture === AvatarAction.POSTURE_LAY))));
-        const onRideFurniture = (needsBase && (object.getLocation().z > 0.01)) ? restsOnRideFurniture(object, this._container.objects.values()) : (needsBase ? false : undefined);
-        let z = (vector.z - getObjectAltitudeDepth(object, onRideFurniture));
+        // BobbaTok : seul un mobi pose DANS un siege ou un lit (statue sur l'assise d'un trone) se trie par ses calques ;
+        // tout le reste (blocs empiles ou emboites, murs, piliers, mezzanines, persos) garde le poids de sa hauteur
+        const insideSeat = (isStackableFurni(object) && (object.getLocation().z > 0.01) && restsInsideSeat(object, this._container.objects.values(), this._isSeatType));
+        let z = (vector.z - getObjectAltitudeDepth(object, (insideSeat ? false : undefined)));
 
         if(x > 0) z = (z + (x * 1.2E-7));
         else z = (z + (-(x) * 1.2E-7));
